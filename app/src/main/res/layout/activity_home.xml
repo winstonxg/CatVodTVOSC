@@ -66,19 +66,35 @@
         android:clipToPadding="false"
         android:orientation="vertical">
 
-        <com.owen.tvrecyclerview.widget.TvRecyclerView
-            android:id="@+id/mGridView"
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/mFeatureView"
+            android:name="com.github.tvbox.osc.ui.fragment.UserFragment"
             android:layout_width="match_parent"
-            android:layout_height="45pt"
+            android:layout_height="wrap_content"
             android:layout_marginTop="80pt"
-            android:layout_marginBottom="20pt"
-            android:paddingLeft="60pt"
-            android:paddingRight="60pt"
-            app:tv_selectedItemIsCentered="true" />
+            android:layout_marginBottom="4pt" />
 
-        <com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager
-            android:id="@+id/mViewPager"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <com.owen.tvrecyclerview.widget.TvRecyclerView
+                android:id="@+id/mGridView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="2pt"
+                android:layout_marginLeft="2pt"
+                android:paddingLeft="4pt"
+                android:paddingRight="4pt"
+                app:tv_selectedItemIsCentered="true" />
+
+            <com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager
+                android:id="@+id/mViewPager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
     </LinearLayout>
 </FrameLayout>

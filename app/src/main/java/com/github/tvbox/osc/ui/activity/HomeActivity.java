@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.FragmentContainerView;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
@@ -36,6 +37,7 @@ import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
 import com.github.tvbox.osc.ui.adapter.SortAdapter;
 import com.github.tvbox.osc.ui.fragment.GridFragment;
+import com.github.tvbox.osc.ui.fragment.HistoryFragment;
 import com.github.tvbox.osc.ui.fragment.UserFragment;
 import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
 import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
@@ -65,6 +67,7 @@ public class HomeActivity extends BaseActivity {
     private LinearLayout topLayout;
     private LinearLayout contentLayout;
     private TextView tvDate;
+    private FragmentContainerView mFeatureView;
     private TvRecyclerView mGridView;
     private NoScrollViewPager mViewPager;
     private SourceViewModel sourceViewModel;
@@ -108,10 +111,11 @@ public class HomeActivity extends BaseActivity {
         this.tvDate = findViewById(R.id.tvDate);
         this.contentLayout = findViewById(R.id.contentLayout);
         this.mGridView = findViewById(R.id.mGridView);
+        this.mFeatureView = findViewById(R.id.mFeatureView);
         this.mViewPager = findViewById(R.id.mViewPager);
         this.sortAdapter = new SortAdapter();
-        this.mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 0, false));
-        this.mGridView.setSpacingWithMargins(0, AutoSizeUtils.dp2px(this.mContext, 10.0f));
+        this.mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, V7LinearLayoutManager.VERTICAL, false));
+        this.mGridView.setSpacingWithMargins(0, AutoSizeUtils.dp2px(this.mContext, 2.0f));
         this.mGridView.setAdapter(this.sortAdapter);
         this.mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             public void onItemPreSelected(TvRecyclerView tvRecyclerView, View view, int position) {
@@ -143,23 +147,23 @@ public class HomeActivity extends BaseActivity {
 
             }
         });
-        this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
-            public final boolean onInBorderKeyEvent(int direction, View view) {
-                if (direction != View.FOCUS_DOWN) {
-                    return false;
-                }
-                isDownOrUp = true;
-                BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
-                if (!(baseLazyFragment instanceof GridFragment)) {
-                    return false;
-                }
-                if (!((GridFragment) baseLazyFragment).isLoad()) {
-                    return true;
-                }
-                changeTop(true);
-                return false;
-            }
-        });
+//        this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
+//            public final boolean onInBorderKeyEvent(int direction, View view) {
+//                if (direction != View.FOCUS_DOWN) {
+//                    return false;
+//                }
+//                isDownOrUp = true;
+//                BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
+//                if (!(baseLazyFragment instanceof GridFragment)) {
+//                    return false;
+//                }
+//                if (!((GridFragment) baseLazyFragment).isLoad()) {
+//                    return true;
+//                }
+//                changeTop(true);
+//                return false;
+//            }
+//        });
         this.sortAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             public final void onItemChildClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
                 if (view.getId() == R.id.tvTitle) {
@@ -326,7 +330,7 @@ public class HomeActivity extends BaseActivity {
         if (sortAdapter.getData().size() > 0) {
             for (MovieSort.SortData data : sortAdapter.getData()) {
                 if (data.id.equals("my0")) {
-                    fragments.add(UserFragment.newInstance());
+                    fragments.add(HistoryFragment.newInstance());
                 } else {
                     fragments.add(GridFragment.newInstance(data.id));
                 }
@@ -449,7 +453,7 @@ public class HomeActivity extends BaseActivity {
     }
 
     private void changeTop(boolean hide) {
-        ViewObj viewObj = new ViewObj(mGridView, (ViewGroup.MarginLayoutParams) mGridView.getLayoutParams());
+        ViewObj viewObj = new ViewObj(mFeatureView, (ViewGroup.MarginLayoutParams) mFeatureView.getLayoutParams());
         AnimatorSet animatorSet = new AnimatorSet();
         if (hide) {
             animatorSet.playTogether(new Animator[]{
@@ -458,7 +462,7 @@ public class HomeActivity extends BaseActivity {
                                     Integer.valueOf(AutoSizeUtils.pt2px(this.mContext, 80.0f)),
                                     Integer.valueOf(AutoSizeUtils.pt2px(this.mContext, -65.0f))
                             }),
-                    ObjectAnimator.ofFloat(this.mGridView, "alpha", new float[]{1.0f, 0.0f}),
+                    ObjectAnimator.ofFloat(this.mFeatureView, "alpha", new float[]{1.0f, 0.0f}),
                     ObjectAnimator.ofFloat(this.topLayout, "alpha", new float[]{1.0f, 0.0f})});
             animatorSet.setDuration(300);
             animatorSet.start();
@@ -466,7 +470,7 @@ public class HomeActivity extends BaseActivity {
         }
         viewObj.setMarginTop(AutoSizeUtils.pt2px(this.mContext, 80.0f));
         this.topLayout.setAlpha(1.0f);
-        this.mGridView.setAlpha(1.0f);
+        this.mFeatureView.setAlpha(1.0f);
     }
 
     @Override
