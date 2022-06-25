@@ -1,20 +1,27 @@
 package com.github.tvbox.osc.api;
 
 import android.app.Activity;
+import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Base64;
 
 import com.github.catvod.crawler.JarLoader;
 import com.github.catvod.crawler.Spider;
+import com.github.tvbox.osc.bean.ChannelGroup;
+import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.bean.LiveChannel;
 import com.github.tvbox.osc.bean.ParseBean;
 import com.github.tvbox.osc.bean.SourceBean;
 import com.github.tvbox.osc.cache.RoomDataManger;
 import com.github.tvbox.osc.cache.SourceState;
+import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.util.AdBlocker;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.HawkConfig;
+import com.github.tvbox.osc.util.MD5;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.lzy.okgo.OkGo;
@@ -25,7 +32,9 @@ import com.orhanobut.hawk.Hawk;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +52,7 @@ public class ApiConfig {
     private List<SourceBean> sourceBeanList;
     private SourceBean mHomeSource;
     private ParseBean mDefaultParse;
-    private List<LiveChannel> channelList;
+    private List<ChannelGroup> channelGroupList;
     private List<ParseBean> parseBeanList;
     private List<String> vipParseFlags;
     private List<IJKCode> ijkCodes;
@@ -56,7 +65,7 @@ public class ApiConfig {
 
     private ApiConfig() {
         sourceBeanList = new ArrayList<>();
-        channelList = new ArrayList<>();
+        channelGroupList = new ArrayList<>();
         parseBeanList = new ArrayList<>();
     }
 
@@ -71,68 +80,46 @@ public class ApiConfig {
         return instance;
     }
 
-    public void loadConfig(LoadConfigCallback callback, Activity activity) {
-        /*boolean isSourceModeLocal = Hawk.get(HawkConfig.SOURCE_MODE_LOCAL, false);
-        if (isSourceModeLocal) {
-            loadConfigLocal(callback, activity);
-        } else {
-            loadConfigServer(callback, activity);
-        }*/
-        loadConfigServer(callback, activity);
-    }
-
-
-    public void loadJar(String spider, LoadConfigCallback callback) {
-        OkGo.<byte[]>get(spider).execute(new AbsCallback<byte[]>() {
-            @Override
-            public byte[] convertResponse(okhttp3.Response response) {
-                try {
-                    return response.body().bytes();
-                } catch (Throwable th) {
-                    return null;
-                }
-            }
-
-            @Override
-            public void onFinish() {
-                super.onFinish();
-                callback.success();
-            }
-
-            @Override
-            public void onSuccess(Response<byte[]> response) {
-                if (response != null && response.body() != null) {
-                    jarLoader.load(response.body());
-                }
-            }
-        });
-    }
-
-    private void loadConfigLocal(LoadConfigCallback callback, Activity activity) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            InputStream is = activity.getAssets().open("cfg.json");
-            BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-            String str;
-            while ((str = br.readLine()) != null) {
-                sb.append(str);
-            }
-            br.close();
-            parseJson(sb.toString());
-            callback.success();
-        } catch (Throwable e) {
-            e.printStackTrace();
-            callback.error("加载配置失败");
+    public void loadConfig(boolean useCache, LoadConfigCallback callback, Activity activity) {
+        String apiUrl = Hawk.get(HawkConfig.API_URL, "");
+        if (apiUrl.isEmpty()) {
+            callback.error("-1");
+            return;
         }
-    }
-
-    private void loadConfigServer(LoadConfigCallback callback, Activity activity) {
-        OkGo.<String>get(Hawk.get(HawkConfig.API_URL, ""))
+        File cache = new File(App.getInstance().getFilesDir().getAbsolutePath() + "/" + MD5.encode(apiUrl));
+        if (useCache && cache.exists()) {
+            try {
+                parseJson(apiUrl, cache);
+                callback.success();
+                return;
+            } catch (Throwable th) {
+                th.printStackTrace();
+            }
+        }
+        String apiFix = apiUrl;
+        if (apiUrl.startsWith("clan://")) {
+            apiFix = clanToAddress(apiUrl);
+        }
+        OkGo.<String>get(apiFix)
                 .execute(new AbsCallback<String>() {
                     @Override
                     public void onSuccess(Response<String> response) {
                         try {
-                            parseJson(response.body());
+                            String json = response.body();
+                            parseJson(apiUrl, response.body());
+                            try {
+                                File cacheDir = cache.getParentFile();
+                                if (!cacheDir.exists())
+                                    cacheDir.mkdirs();
+                                if (cache.exists())
+                                    cache.delete();
+                                FileOutputStream fos = new FileOutputStream(cache);
+                                fos.write(json.getBytes("UTF-8"));
+                                fos.flush();
+                                fos.close();
+                            } catch (Throwable th) {
+                                th.printStackTrace();
+                            }
                             callback.success();
                         } catch (Throwable th) {
                             th.printStackTrace();
@@ -143,6 +130,15 @@ public class ApiConfig {
                     @Override
                     public void onError(Response<String> response) {
                         super.onError(response);
+                        if (cache.exists()) {
+                            try {
+                                parseJson(apiUrl, cache);
+                                callback.success();
+                                return;
+                            } catch (Throwable th) {
+                                th.printStackTrace();
+                            }
+                        }
                         callback.error("拉取配置失败");
                     }
 
@@ -153,16 +149,79 @@ public class ApiConfig {
                         } else {
                             result = response.body().string();
                         }
+                        if (apiUrl.startsWith("clan")) {
+                            result = clanContentFix(clanToAddress(apiUrl), result);
+                        }
                         return result;
                     }
                 });
     }
 
-    private void parseJson(String jsonStr) {
+
+    public void loadJar(String spider, LoadConfigCallback callback) {
+        String[] urls = spider.split(";md5;");
+        String jarUrl = urls[0];
+        String md5 = urls.length > 1 ? urls[1].trim() : "";
+        File cache = new File(App.getInstance().getFilesDir().getAbsolutePath() + "/csp.jar");
+
+        if (!md5.isEmpty()) {
+            if (cache.exists() && MD5.getFileMd5(cache).equalsIgnoreCase(md5)) {
+                if (jarLoader.load(cache.getAbsolutePath())) {
+                    callback.success();
+                } else {
+                    callback.error("");
+                }
+                return;
+            }
+        }
+
+        OkGo.<File>get(jarUrl).execute(new AbsCallback<File>() {
+
+            @Override
+            public File convertResponse(okhttp3.Response response) throws Throwable {
+                File cacheDir = cache.getParentFile();
+                if (!cacheDir.exists())
+                    cacheDir.mkdirs();
+                if (cache.exists())
+                    cache.delete();
+                FileOutputStream fos = new FileOutputStream(cache);
+                fos.write(response.body().bytes());
+                fos.flush();
+                fos.close();
+                return cache;
+            }
+
+            @Override
+            public void onSuccess(Response<File> response) {
+                if (response.body().exists()) {
+                    if (jarLoader.load(response.body().getAbsolutePath())) {
+                        callback.success();
+                    } else {
+                        callback.error("");
+                    }
+                } else {
+                    callback.error("");
+                }
+            }
+        });
+    }
+
+    private void parseJson(String apiUrl, File f) throws Throwable {
+        System.out.println("从本地缓存加载" + f.getAbsolutePath());
+        BufferedReader bReader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-8"));
+        StringBuilder sb = new StringBuilder();
+        String s = "";
+        while ((s = bReader.readLine()) != null) {
+            sb.append(s + "\n");
+        }
+        bReader.close();
+        parseJson(apiUrl, sb.toString());
+    }
+
+    private void parseJson(String apiUrl, String jsonStr) {
         JsonObject infoJson = new Gson().fromJson(jsonStr, JsonObject.class);
         // spider
         spider = DefaultConfig.safeJsonString(infoJson, "spider", "");
-        spider = spider.split(";md5;")[0];
         // 远端站点源
         for (JsonElement opt : infoJson.get("sites").getAsJsonArray()) {
             JsonObject obj = (JsonObject) opt;
@@ -217,17 +276,29 @@ public class ApiConfig {
         }
         // 直播源
         try {
-            int lcIdx = 0;
-            for (JsonElement opt : infoJson.get("lives").getAsJsonArray()) {
-                for (JsonElement optChl : ((JsonObject) opt).get("channels").getAsJsonArray()) {
-                    JsonObject obj = (JsonObject) optChl;
-                    LiveChannel lc = new LiveChannel();
-                    lc.setName(obj.get("name").getAsString().trim());
-                    lc.setUrls(DefaultConfig.safeJsonStringList(obj, "urls"));
-                    // 暂时不考虑分组问题
-                    lc.setChannelNum(lcIdx++);
-                    channelList.add(lc);
+            String lives = infoJson.get("lives").getAsJsonArray().toString();
+            int index = lives.indexOf("proxy://");
+            if (index != -1) {
+                int endIndex = lives.lastIndexOf("\"");
+                String url = lives.substring(index, endIndex);
+                url = DefaultConfig.checkReplaceProxy(url);
+
+                //clan
+                String extUrl = Uri.parse(url).getQueryParameter("ext");
+                if (extUrl != null && !extUrl.isEmpty()) {
+                    String extUrlFix = new String(Base64.decode(extUrl, Base64.DEFAULT | Base64.URL_SAFE | Base64.NO_WRAP), "UTF-8");
+                    if (extUrlFix.startsWith("clan://")) {
+                        extUrlFix = clanContentFix(clanToAddress(apiUrl), extUrlFix);
+                        extUrlFix = Base64.encodeToString(extUrlFix.getBytes("UTF-8"), Base64.DEFAULT | Base64.URL_SAFE | Base64.NO_WRAP);
+                        url = url.replace(extUrl, extUrlFix);
+                    }
                 }
+                ChannelGroup channelGroup = new ChannelGroup();
+                channelGroup.setGroupName(url);
+                channelGroupList.add(channelGroup);
+            }
+            else{
+                loadLives(infoJson.get("lives").getAsJsonArray());
             }
         } catch (Throwable th) {
             th.printStackTrace();
@@ -264,6 +335,27 @@ public class ApiConfig {
         }
         if (!foundOldSelect && ijkCodes.size() > 0) {
             ijkCodes.get(0).selected(true);
+        }
+    }
+
+    public void loadLives(JsonArray livesArray)
+    {
+        int groupIndex = 0;
+        int channelIndex = 0;
+        for (JsonElement groupElement : livesArray) {
+            ChannelGroup channelGroup = new ChannelGroup();
+            channelGroup.setGroupNum(groupIndex++);
+            channelGroup.setGroupName(((JsonObject) groupElement).get("Group").getAsString().trim());
+            for (JsonElement channelElement : ((JsonObject) groupElement).get("channels").getAsJsonArray()) {
+                JsonObject obj = (JsonObject) channelElement;
+                LiveChannel liveChannel = new LiveChannel();
+                liveChannel.setChannelName(obj.get("name").getAsString().trim());
+                liveChannel.setChannelNum(channelIndex++);
+                ArrayList<String> urls = DefaultConfig.safeJsonStringList(obj, "urls");
+                liveChannel.setUrls(urls);
+                channelGroup.getLiveChannels().add(liveChannel);
+            }
+            channelGroupList.add(channelGroup);
         }
     }
 
@@ -344,8 +436,8 @@ public class ApiConfig {
         return mHomeSource == null ? emptyHome : mHomeSource;
     }
 
-    public List<LiveChannel> getChannelList() {
-        return channelList;
+    public List<ChannelGroup> getChannelGroupList() {
+        return channelGroupList;
     }
 
     public List<IJKCode> getIjkCodes() {
@@ -359,5 +451,20 @@ public class ApiConfig {
                 return code;
         }
         return ijkCodes.get(0);
+    }
+
+    String clanToAddress(String lanLink) {
+        if (lanLink.startsWith("clan://localhost/")) {
+            return lanLink.replace("clan://localhost/", ControlManager.get().getAddress(true) + "file/");
+        } else {
+            String link = lanLink.substring(7);
+            int end = link.indexOf('/');
+            return "http://" + link.substring(0, end) + "/file/" + link.substring(end + 1);
+        }
+    }
+
+    String clanContentFix(String lanLink, String content) {
+        String fix = lanLink.substring(0, lanLink.indexOf("/file/") + 6);
+        return content.replace("clan://", fix);
     }
 }

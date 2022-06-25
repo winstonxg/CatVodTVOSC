@@ -8,6 +8,8 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.View;
@@ -31,13 +33,11 @@ import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.AbsSortXml;
 import com.github.tvbox.osc.bean.MovieSort;
-import com.github.tvbox.osc.event.ServerEvent;
-import com.github.tvbox.osc.event.TopStateEvent;
+import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
 import com.github.tvbox.osc.ui.adapter.SortAdapter;
 import com.github.tvbox.osc.ui.fragment.GridFragment;
-import com.github.tvbox.osc.ui.fragment.HistoryFragment;
 import com.github.tvbox.osc.ui.fragment.UserFragment;
 import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
 import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
@@ -76,7 +76,7 @@ public class HomeActivity extends BaseActivity {
     private List<BaseLazyFragment> fragments = new ArrayList<>();
     private boolean isDownOrUp = false;
     private boolean sortChange = false;
-    private int defaultSelected = 0;
+    private int currentSelected = 0;
     private int sortFocused = 0;
     public View sortFocusView = null;
     private Handler mHandler = new Handler();
@@ -98,11 +98,20 @@ public class HomeActivity extends BaseActivity {
         return R.layout.activity_home;
     }
 
+    boolean useCacheConfig = false;
+
     @Override
     protected void init() {
         EventBus.getDefault().register(this);
+        ControlManager.get().startServer();
         initView();
         initViewModel();
+        useCacheConfig = false;
+        Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            Bundle bundle = intent.getExtras();
+            useCacheConfig = bundle.getBoolean("useCache", false);
+        }
         initData();
     }
 
@@ -147,23 +156,22 @@ public class HomeActivity extends BaseActivity {
 
             }
         });
-//        this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
-//            public final boolean onInBorderKeyEvent(int direction, View view) {
-//                if (direction != View.FOCUS_DOWN) {
-//                    return false;
-//                }
-//                isDownOrUp = true;
-//                BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
-//                if (!(baseLazyFragment instanceof GridFragment)) {
-//                    return false;
-//                }
-//                if (!((GridFragment) baseLazyFragment).isLoad()) {
-//                    return true;
-//                }
-//                changeTop(true);
-//                return false;
-//            }
-//        });
+        this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
+            public final boolean onInBorderKeyEvent(int direction, View view) {
+                if (direction != View.FOCUS_DOWN) {
+                    return false;
+                }
+                isDownOrUp = true;
+                BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
+                if (!(baseLazyFragment instanceof GridFragment)) {
+                    return false;
+                }
+                if (!((GridFragment) baseLazyFragment).isLoad()) {
+                    return true;
+                }
+                return false;
+            }
+        });
         this.sortAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             public final void onItemChildClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
                 if (view.getId() == R.id.tvTitle) {
@@ -174,9 +182,14 @@ public class HomeActivity extends BaseActivity {
                         sortFocusView = viewGroup;
                         viewGroup.requestFocus();
                         sortFocused = position;
-                        if (position != defaultSelected) {
-                            defaultSelected = position;
+                        if (position != currentSelected) {
+                            currentSelected = position;
                             mViewPager.setCurrentItem(position, false);
+                            if (position == 0) {
+                                changeTop(false);
+                            } else {
+                                changeTop(true);
+                            }
                         }
                     }
                 }
@@ -240,6 +253,7 @@ public class HomeActivity extends BaseActivity {
                         mHandler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                Toast.makeText(HomeActivity.this, "jar加载成功", Toast.LENGTH_SHORT).show();
                                 initData();
                             }
                         }, 50);
@@ -252,12 +266,19 @@ public class HomeActivity extends BaseActivity {
 
                     @Override
                     public void error(String msg) {
+                        jarInitOk = true;
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(HomeActivity.this, "jar加载失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 });
             }
             return;
         }
-        ApiConfig.get().loadConfig(new ApiConfig.LoadConfigCallback() {
+        ApiConfig.get().loadConfig(useCacheConfig, new ApiConfig.LoadConfigCallback() {
             AlertDialog dialog = null;
 
             @Override
@@ -286,6 +307,17 @@ public class HomeActivity extends BaseActivity {
 
             @Override
             public void error(String msg) {
+                if (msg.equalsIgnoreCase("-1")) {
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            dataInitOk = true;
+                            jarInitOk = true;
+                            initData();
+                        }
+                    });
+                    return;
+                }
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -346,7 +378,7 @@ public class HomeActivity extends BaseActivity {
             }
             mViewPager.setPageTransformer(true, new DefaultTransformer());
             mViewPager.setAdapter(pageAdapter);
-            mViewPager.setCurrentItem(defaultSelected, false);
+            mViewPager.setCurrentItem(currentSelected, false);
         }
     }
 
@@ -397,46 +429,25 @@ public class HomeActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void changeTop(TopStateEvent event) {
-        if (event.type == TopStateEvent.TYPE_TOP) {
-            changeTop(false);
+    public void refresh(RefreshEvent event) {
+        if (event.type == RefreshEvent.TYPE_API_URL_CHANGE) {
+            Toast.makeText(mContext, "配置地址设置为" + (String) event.obj + ",重启应用生效!", Toast.LENGTH_SHORT).show();
         }
     }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void server(ServerEvent event) {
-//        if (event.type == ServerEvent.SERVER_SUCCESS) {
-//            remoteDialog = new RemoteDialog().build(mContext);
-//            remoteDialog.show();
-//        } else if (event.type == ServerEvent.SERVER_CONNECTION) {
-//            if (remoteDialog != null && remoteDialog.isShowing()) {
-//                remoteDialog.dismiss();
-//            }
-//        }
-    }
-
-    private Runnable mFindFocus = new Runnable() {
-        @Override
-        public void run() {
-            View rootview = getWindow().getDecorView();
-            if (rootview != null) {
-                View focus = rootview.findFocus();
-                if (focus != null) {
-                    L.i("id = 0x" + Integer.toHexString(focus.getId()));
-                }
-            }
-            mHandler.postDelayed(this, 500);
-        }
-    };
 
     private Runnable mDataRunnable = new Runnable() {
         @Override
         public void run() {
             if (sortChange) {
                 sortChange = false;
-                if (sortFocused != defaultSelected) {
-                    defaultSelected = sortFocused;
+                if (sortFocused != currentSelected) {
+                    currentSelected = sortFocused;
                     mViewPager.setCurrentItem(sortFocused, false);
+                    if (sortFocused == 0) {
+                        changeTop(false);
+                    } else {
+                        changeTop(true);
+                    }
                 }
             }
         }
@@ -444,6 +455,8 @@ public class HomeActivity extends BaseActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (topHide < 0)
+            return false;
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             mHandler.removeCallbacks(mDataRunnable);
         } else if (event.getAction() == KeyEvent.ACTION_UP) {
@@ -452,10 +465,33 @@ public class HomeActivity extends BaseActivity {
         return super.dispatchKeyEvent(event);
     }
 
+    byte topHide = 0;
+
     private void changeTop(boolean hide) {
         ViewObj viewObj = new ViewObj(mFeatureView, (ViewGroup.MarginLayoutParams) mFeatureView.getLayoutParams());
         AnimatorSet animatorSet = new AnimatorSet();
-        if (hide) {
+        animatorSet.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                topHide = (byte) (hide ? 1 : 0);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        if (hide && topHide == 0) {
             animatorSet.playTogether(new Animator[]{
                     ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
                             new Object[]{
@@ -468,9 +504,24 @@ public class HomeActivity extends BaseActivity {
             animatorSet.start();
             return;
         }
-        viewObj.setMarginTop(AutoSizeUtils.pt2px(this.mContext, 80.0f));
-        this.topLayout.setAlpha(1.0f);
-        this.mFeatureView.setAlpha(1.0f);
+        if (!hide && topHide == 1) {
+            animatorSet.playTogether(new Animator[]{
+                    ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
+                            new Object[]{
+                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 0.0f)),
+                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 10.0f))
+                            }),
+                    ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(),
+                            new Object[]{
+                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 1.0f)),
+                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 50.0f))
+                            }),
+                    ObjectAnimator.ofFloat(this.topLayout, "alpha", new float[]{0.0f, 1.0f})});
+            ObjectAnimator.ofFloat(this.mFeatureView, "alpha", new float[]{0.0f, 1.0f})});
+            animatorSet.setDuration(200);
+            animatorSet.start();
+            return;
+        }
     }
 
     @Override

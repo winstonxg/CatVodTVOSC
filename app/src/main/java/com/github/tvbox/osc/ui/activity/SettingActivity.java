@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.activity;
 
 import android.graphics.Color;
+import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.View;
@@ -45,7 +46,6 @@ public class SettingActivity extends BaseActivity {
     private String homeSourceKey;
     private String currentApi;
     private String homeSourceSort;
-    private boolean sourceMode;
 
     @Override
     protected int getLayoutResID() {
@@ -111,9 +111,8 @@ public class SettingActivity extends BaseActivity {
         homeSourceSort = ApiConfig.get().getHomeSourceBean().getState().tidSort;
         if (homeSourceSort == null)
             homeSourceSort = "";
-        sourceMode = Hawk.get(HawkConfig.SOURCE_MODE_LOCAL, true);
         List<String> sortList = new ArrayList<>();
-        sortList.add("站点数据源");
+        sortList.add("数据源");
         sortList.add("设置其他");
         sortAdapter.setNewData(sortList);
         initViewPager();
@@ -187,10 +186,15 @@ public class SettingActivity extends BaseActivity {
 
         if ((homeSourceKey != null && !homeSourceKey.equals(ApiConfig.get().getHomeSourceBean().getKey())) ||
                 !currentApi.equals(Hawk.get(HawkConfig.API_URL, "")) ||
-                !homeSourceSort.equals(newHomeSourceSort) ||
-                sourceMode != Hawk.get(HawkConfig.SOURCE_MODE_LOCAL, true)) {
+                !homeSourceSort.equals(newHomeSourceSort)) {
             AppManager.getInstance().finishAllActivity();
-            jumpActivity(HomeActivity.class);
+            if (currentApi.equals(Hawk.get(HawkConfig.API_URL, ""))) {
+                Bundle bundle = new Bundle();
+                bundle.putBoolean("useCache", true);
+                jumpActivity(HomeActivity.class, bundle);
+            } else {
+                jumpActivity(HomeActivity.class);
+            }
         } else {
             super.onBackPressed();
         }
