@@ -20,7 +20,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentContainerView;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
@@ -38,6 +40,7 @@ import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
 import com.github.tvbox.osc.ui.adapter.SortAdapter;
 import com.github.tvbox.osc.ui.fragment.GridFragment;
+import com.github.tvbox.osc.ui.fragment.HistoryFragment;
 import com.github.tvbox.osc.ui.fragment.UserFragment;
 import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
 import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
@@ -73,15 +76,15 @@ public class HomeActivity extends BaseActivity {
     private SourceViewModel sourceViewModel;
     private SortAdapter sortAdapter;
     private HomePageAdapter pageAdapter;
-    private List<BaseLazyFragment> fragments = new ArrayList<>();
+    private final List<BaseLazyFragment> fragments = new ArrayList<>();
     private boolean isDownOrUp = false;
     private boolean sortChange = false;
     private int currentSelected = 0;
     private int sortFocused = 0;
     public View sortFocusView = null;
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
     private long mExitTime = 0;
-    private Runnable mRunnable = new Runnable() {
+    private final Runnable mRunnable = new Runnable() {
         @SuppressLint({"DefaultLocale", "SetTextI18n"})
         @Override
         public void run() {
@@ -121,6 +124,8 @@ public class HomeActivity extends BaseActivity {
         this.contentLayout = findViewById(R.id.contentLayout);
         this.mGridView = findViewById(R.id.mGridView);
         this.mFeatureView = findViewById(R.id.mFeatureView);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        ((UserFragment)fragmentManager.findFragmentByTag("mUserFragment")).SetFragmentView(mFeatureView);
         this.mViewPager = findViewById(R.id.mViewPager);
         this.sortAdapter = new SortAdapter();
         this.mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, V7LinearLayoutManager.VERTICAL, false));
@@ -166,10 +171,7 @@ public class HomeActivity extends BaseActivity {
                 if (!(baseLazyFragment instanceof GridFragment)) {
                     return false;
                 }
-                if (!((GridFragment) baseLazyFragment).isLoad()) {
-                    return true;
-                }
-                return false;
+                return !((GridFragment) baseLazyFragment).isLoad();
             }
         });
         this.sortAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
@@ -185,15 +187,22 @@ public class HomeActivity extends BaseActivity {
                         if (position != currentSelected) {
                             currentSelected = position;
                             mViewPager.setCurrentItem(position, false);
-                            if (position == 0) {
-                                changeTop(false);
-                            } else {
-                                changeTop(true);
-                            }
+                            //changeTop(position != 0);
                         }
                     }
                 }
 
+            }
+        });
+        this.mFeatureView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(topHide == 1 && hasFocus) {
+                    changeTop(false);
+                } else if(topHide == 0 && !hasFocus) {
+                    changeTop(true);
+                }
             }
         });
         setLoadSir(this.contentLayout);
@@ -431,11 +440,11 @@ public class HomeActivity extends BaseActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void refresh(RefreshEvent event) {
         if (event.type == RefreshEvent.TYPE_API_URL_CHANGE) {
-            Toast.makeText(mContext, "配置地址设置为" + (String) event.obj + ",重启应用生效!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "配置地址设置为" + event.obj + ",重启应用生效!", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private Runnable mDataRunnable = new Runnable() {
+    private final Runnable mDataRunnable = new Runnable() {
         @Override
         public void run() {
             if (sortChange) {
@@ -443,11 +452,7 @@ public class HomeActivity extends BaseActivity {
                 if (sortFocused != currentSelected) {
                     currentSelected = sortFocused;
                     mViewPager.setCurrentItem(sortFocused, false);
-                    if (sortFocused == 0) {
-                        changeTop(false);
-                    } else {
-                        changeTop(true);
-                    }
+                    //changeTop(sortFocused != 0);
                 }
             }
         }
@@ -492,32 +497,24 @@ public class HomeActivity extends BaseActivity {
             }
         });
         if (hide && topHide == 0) {
-            animatorSet.playTogether(new Animator[]{
-                    ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
-                            new Object[]{
-                                    Integer.valueOf(AutoSizeUtils.pt2px(this.mContext, 80.0f)),
-                                    Integer.valueOf(AutoSizeUtils.pt2px(this.mContext, -65.0f))
-                            }),
-                    ObjectAnimator.ofFloat(this.mFeatureView, "alpha", new float[]{1.0f, 0.0f}),
-                    ObjectAnimator.ofFloat(this.topLayout, "alpha", new float[]{1.0f, 0.0f})});
+            animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
+                    AutoSizeUtils.mm2px(this.mContext, 50.0f),
+                    AutoSizeUtils.mm2px(this.mContext, -100.0f)),
+                    ObjectAnimator.ofFloat(this.mFeatureView, "alpha", 1.0f, 0.0f),
+                    ObjectAnimator.ofFloat(this.topLayout, "alpha", 1.0f, 0.0f));
             animatorSet.setDuration(300);
             animatorSet.start();
             return;
         }
         if (!hide && topHide == 1) {
-            animatorSet.playTogether(new Animator[]{
-                    ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
-                            new Object[]{
-                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 0.0f)),
-                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 10.0f))
-                            }),
-                    ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(),
-                            new Object[]{
-                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 1.0f)),
-                                    Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 50.0f))
-                            }),
-                    ObjectAnimator.ofFloat(this.topLayout, "alpha", new float[]{0.0f, 1.0f})});
-            ObjectAnimator.ofFloat(this.mFeatureView, "alpha", new float[]{0.0f, 1.0f})});
+            animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
+                    AutoSizeUtils.mm2px(this.mContext, -100.0f),
+                    AutoSizeUtils.mm2px(this.mContext, 50.0f)),
+//                    ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(),
+//                            AutoSizeUtils.mm2px(this.mContext, 1.0f),
+//                            AutoSizeUtils.mm2px(this.mContext, 50.0f)),
+                    ObjectAnimator.ofFloat(this.topLayout, "alpha", 0.0f, 1.0f),
+                    ObjectAnimator.ofFloat(this.mFeatureView, "alpha", 0.0f, 1.0f));
             animatorSet.setDuration(200);
             animatorSet.start();
             return;

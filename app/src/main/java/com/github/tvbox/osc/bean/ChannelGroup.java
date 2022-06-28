@@ -11,7 +11,7 @@ public class ChannelGroup {
     private int groupNum;
     private String groupName;
     private String groupPassword;
-    private ArrayList<LiveChannel> liveChannels;
+    private ArrayList<LiveChannel> liveChannels = new ArrayList<>();
     private boolean isDefault;
 
 

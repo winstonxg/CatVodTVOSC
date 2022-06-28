@@ -38,8 +38,10 @@ public class DefaultConfig {
                 data.add(sortData);
             }
         }
-        if (withMy)
-            data.add(0, new MovieSort.SortData("my0", "我的"));
+        if (withMy) {
+            data.add(0, new MovieSort.SortData("my0", "历史记录"));
+            data.add(1, new MovieSort.SortData("_home", "首页"));
+        }
         Collections.sort(data);
         return data;
     }

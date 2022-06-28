@@ -1,8 +1,11 @@
 package com.github.tvbox.osc.ui.fragment;
 
+import android.os.Handler;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
+
+import androidx.fragment.app.FragmentContainerView;
 
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.BaseLazyFragment;
@@ -12,6 +15,7 @@ import com.github.tvbox.osc.ui.activity.LivePlayActivity;
 import com.github.tvbox.osc.ui.activity.SearchActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
+import com.github.tvbox.osc.util.LOG;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -27,6 +31,9 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     private FrameLayout tvSearch;
     private FrameLayout tvSetting;
     private FrameLayout tvHistory;
+    private FragmentContainerView selfView;
+    private boolean anyItemFocused = false;
+    private final Handler userFragmentHandler = new Handler();
 
     public static UserFragment newInstance() {
         return new UserFragment();
@@ -61,6 +68,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                 v.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
             else
                 v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
+            anyItemFocused = hasFocus;
+            userFragmentHandler.postDelayed(mFeatureViewRunnable, 100);
         }
     };
 
@@ -89,4 +98,17 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         super.onDestroy();
         EventBus.getDefault().unregister(this);
     }
+
+    public void SetFragmentView(FragmentContainerView view) {
+        this.selfView = view;
+    }
+
+    private final Runnable mFeatureViewRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if(selfView != null) {
+                selfView.getOnFocusChangeListener().onFocusChange(selfView, anyItemFocused);
+            }
+        }
+    };
 }

@@ -113,7 +113,10 @@ public class SourceViewModel extends ViewModel {
                 public void run() {
                     try {
                         Spider sp = ApiConfig.get().getCSP(homeSourceBean);
-                        json(listResult, sp.categoryContent(id, page + "", false, new HashMap<>()), homeSourceBean.getKey());
+                        if(id.equals("_home"))
+                            json(listResult, sp.homeContent(false), homeSourceBean.getKey());
+                        else
+                            json(listResult, sp.categoryContent(id, page + "", false, new HashMap<>()), homeSourceBean.getKey());
                     } catch (Throwable th) {
                         th.printStackTrace();
                     }
@@ -123,7 +126,7 @@ public class SourceViewModel extends ViewModel {
             OkGo.<String>get(homeSourceBean.getApi())
                     .tag(homeSourceBean.getApi())
                     .params("ac", type == 0 ? "videolist" : "detail")
-                    .params("t", id)
+                    .params("t", id.equals("_home") ? "" : id)
                     .params("pg", page)
                     .execute(new AbsCallback<String>() {
 

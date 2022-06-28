@@ -345,7 +345,7 @@ public class ApiConfig {
         for (JsonElement groupElement : livesArray) {
             ChannelGroup channelGroup = new ChannelGroup();
             channelGroup.setGroupNum(groupIndex++);
-            channelGroup.setGroupName(((JsonObject) groupElement).get("Group").getAsString().trim());
+            channelGroup.setGroupName(((JsonObject) groupElement).get("group").getAsString().trim());
             for (JsonElement channelElement : ((JsonObject) groupElement).get("channels").getAsJsonArray()) {
                 JsonObject obj = (JsonObject) channelElement;
                 LiveChannel liveChannel = new LiveChannel();
