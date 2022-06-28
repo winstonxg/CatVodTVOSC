@@ -16,16 +16,14 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.dueeeke.videocontroller.component.GestureView;
-import com.dueeeke.videoplayer.player.VideoView;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.bean.ChannelGroup;
 import com.github.tvbox.osc.bean.LiveChannel;
 import com.github.tvbox.osc.player.controller.BoxVideoController;
-import com.github.tvbox.osc.ui.adapter.LiveChannelAdapter;
 import com.github.tvbox.osc.ui.adapter.ChannelGroupAdapter;
+import com.github.tvbox.osc.ui.adapter.LiveChannelAdapter;
 import com.github.tvbox.osc.ui.tv.widget.ViewObj;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
@@ -44,6 +42,9 @@ import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import xyz.doikki.videocontroller.component.GestureView;
+import xyz.doikki.videoplayer.player.VideoView;
 
 /**
  * @author pj567
@@ -82,7 +83,7 @@ public class LivePlayActivity extends BaseActivity {
 //        layoutParams.width = 100;
 //        layoutParams.height = 50;
 //        mVideoView.setLayoutParams(layoutParams);
-        tvLeftLinearLayout = findViewById(R.id.tvLeftlinearLayout);
+        tvLeftLinearLayout = findViewById(R.id.tvLeftLinearLayout);
         mGroupGridView = findViewById(R.id.mGroupGridView);
         mChannelGridView = findViewById(R.id.mChannelGridView);
         tvChannel = findViewById(R.id.tvChannel);
@@ -306,6 +307,7 @@ public class LivePlayActivity extends BaseActivity {
             }
             channelGroupList.add(channelGroup);
         }
+        ApiConfig.get().setChannelGroupList(channelGroupList);
     }
 
     private void initLiveState() {
@@ -388,7 +390,7 @@ public class LivePlayActivity extends BaseActivity {
     private Runnable showListAfterScrollOk = new Runnable() {
         @Override
         public void run() {
-            if (mGroupGridView.isScrolling()) {
+            if (mGroupGridView.isScrolling() || mChannelGridView.isScrolling()) {
                 mHandler.postDelayed(this, 100);
             } else {
                 ViewObj viewObj = new ViewObj(tvLeftLinearLayout, (ViewGroup.MarginLayoutParams) tvLeftLinearLayout.getLayoutParams());
@@ -409,11 +411,18 @@ public class LivePlayActivity extends BaseActivity {
 
     private void showChannelList() {
         if (tvLeftLinearLayout.getVisibility() == View.INVISIBLE) {
-            tvHint.setVisibility(View.VISIBLE);
-            tvLeftLinearLayout.setVisibility(View.VISIBLE);
+            if (selectedGroupIndex != currentGroupIndex) {
+                channelGroupList.get(selectedGroupIndex).setDefault(false);
+                groupAdapter.notifyItemChanged(selectedGroupIndex);
+                selectedGroupIndex = currentGroupIndex;
+                channelGroupList.get(selectedGroupIndex).setDefault(true);
+                groupAdapter.notifyItemChanged(selectedGroupIndex);
+            }
             channelAdapter.setNewData(channelGroupList.get(currentGroupIndex).getLiveChannels());
             mGroupGridView.setSelection(currentGroupIndex);
             mChannelGridView.setSelection(currentChannelIndex);
+            tvHint.setVisibility(View.VISIBLE);
+            tvLeftLinearLayout.setVisibility(View.VISIBLE);
             mHandler.postDelayed(showListAfterScrollOk, 100);
         }
     }
@@ -442,9 +451,9 @@ public class LivePlayActivity extends BaseActivity {
                 || channelIndex < 0 || channelIndex >= channelGroupList.get(groupIndex).getLiveChannels().size())
             return false;
 
-        if (groupIndex != currentGroupIndex) {
-            channelGroupList.get(currentGroupIndex).setDefault(false);
-            groupAdapter.notifyItemChanged(currentGroupIndex);
+        if (groupIndex != selectedGroupIndex) {
+            channelGroupList.get(selectedGroupIndex).setDefault(false);
+            groupAdapter.notifyItemChanged(selectedGroupIndex);
         }
         if (channelIndex != currentChannelIndex) {
             channelGroupList.get(currentGroupIndex).getLiveChannels().get(currentChannelIndex).setDefault(false);

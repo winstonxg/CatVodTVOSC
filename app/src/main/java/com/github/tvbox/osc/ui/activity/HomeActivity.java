@@ -39,6 +39,7 @@ import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
 import com.github.tvbox.osc.ui.adapter.SortAdapter;
+import com.github.tvbox.osc.ui.dialog.TipDialog;
 import com.github.tvbox.osc.ui.fragment.GridFragment;
 import com.github.tvbox.osc.ui.fragment.HistoryFragment;
 import com.github.tvbox.osc.ui.fragment.UserFragment;
@@ -76,15 +77,15 @@ public class HomeActivity extends BaseActivity {
     private SourceViewModel sourceViewModel;
     private SortAdapter sortAdapter;
     private HomePageAdapter pageAdapter;
-    private final List<BaseLazyFragment> fragments = new ArrayList<>();
+    private List<BaseLazyFragment> fragments = new ArrayList<>();
     private boolean isDownOrUp = false;
     private boolean sortChange = false;
     private int currentSelected = 0;
     private int sortFocused = 0;
     public View sortFocusView = null;
-    private final Handler mHandler = new Handler();
+    private Handler mHandler = new Handler();
     private long mExitTime = 0;
-    private final Runnable mRunnable = new Runnable() {
+    private Runnable mRunnable = new Runnable() {
         @SuppressLint({"DefaultLocale", "SetTextI18n"})
         @Override
         public void run() {
@@ -139,6 +140,7 @@ public class HomeActivity extends BaseActivity {
                     textView.getPaint().setFakeBoldText(false);
                     textView.setTextColor(HomeActivity.this.getResources().getColor(R.color.color_BBFFFFFF));
                     textView.invalidate();
+                    view.findViewById(R.id.tvFilter).setVisibility(View.GONE);
                 }
             }
 
@@ -151,14 +153,23 @@ public class HomeActivity extends BaseActivity {
                     textView.getPaint().setFakeBoldText(true);
                     textView.setTextColor(HomeActivity.this.getResources().getColor(R.color.color_FFFFFF));
                     textView.invalidate();
+                    if (!sortAdapter.getItem(position).filters.isEmpty())
+                        view.findViewById(R.id.tvFilter).setVisibility(View.VISIBLE);
                     HomeActivity.this.sortFocusView = view;
                     HomeActivity.this.sortFocused = position;
+                    mHandler.removeCallbacks(mDataRunnable);
+                    mHandler.postDelayed(mDataRunnable, 200);
                 }
             }
 
             @Override
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
-
+                if (itemView != null && currentSelected == position && !sortAdapter.getItem(position).filters.isEmpty()) { // 弹出筛选
+                    BaseLazyFragment baseLazyFragment = fragments.get(currentSelected);
+                    if ((baseLazyFragment instanceof GridFragment)) {
+                        ((GridFragment) baseLazyFragment).showFilter();
+                    }
+                }
             }
         });
         this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
@@ -203,21 +214,14 @@ public class HomeActivity extends BaseActivity {
                 } else if(topHide == 0 && !hasFocus) {
                     changeTop(true);
                 }
+                if (!((GridFragment) baseLazyFragment).isLoad()) {
+                    return true;
+                }
+                return false;
             }
         });
         setLoadSir(this.contentLayout);
         //mHandler.postDelayed(mFindFocus, 500);
-        /*
-        if (!Hawk.contains("update_hint_v14")) {
-            UpdateHintDialog updateHintDialog = new UpdateHintDialog().OnSureListener(new UpdateHintDialog.OnSureListener() {
-                @Override
-                public void sure() {
-                    Hawk.put("update_hint_v14", true);
-                }
-            }).build(this);
-            updateHintDialog.show();
-        }
-        */
     }
 
     private void initViewModel() {
@@ -241,7 +245,6 @@ public class HomeActivity extends BaseActivity {
 
     private void initData() {
         if (dataInitOk && jarInitOk) {
-            ControlManager.get().startServer();
             showLoading();
             sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey());
             if (hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
@@ -252,9 +255,8 @@ public class HomeActivity extends BaseActivity {
             return;
         }
         showLoading();
-        if (dataInitOk) {
+        if (dataInitOk && !jarInitOk) {
             if (!ApiConfig.get().getSpider().isEmpty()) {
-
                 ApiConfig.get().loadJar(ApiConfig.get().getSpider(), new ApiConfig.LoadConfigCallback() {
                     @Override
                     public void success() {
@@ -262,7 +264,8 @@ public class HomeActivity extends BaseActivity {
                         mHandler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(HomeActivity.this, "jar加载成功", Toast.LENGTH_SHORT).show();
+                                if (!useCacheConfig)
+                                    Toast.makeText(HomeActivity.this, "自定义jar加载成功", Toast.LENGTH_SHORT).show();
                                 initData();
                             }
                         }, 50);
@@ -280,6 +283,7 @@ public class HomeActivity extends BaseActivity {
                             @Override
                             public void run() {
                                 Toast.makeText(HomeActivity.this, "jar加载失败", Toast.LENGTH_SHORT).show();
+                                initData();
                             }
                         });
                     }
@@ -288,7 +292,7 @@ public class HomeActivity extends BaseActivity {
             return;
         }
         ApiConfig.get().loadConfig(useCacheConfig, new ApiConfig.LoadConfigCallback() {
-            AlertDialog dialog = null;
+            TipDialog dialog = null;
 
             @Override
             public void retry() {
@@ -331,34 +335,44 @@ public class HomeActivity extends BaseActivity {
                     @Override
                     public void run() {
                         if (dialog == null)
-                            dialog = new AlertDialog.Builder(HomeActivity.this).setTitle("提示")
-                                    .setMessage(msg + "\n\n请重试!")
-                                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            dialog = new TipDialog(HomeActivity.this, msg, "重试", "取消", new TipDialog.OnListener() {
+                                @Override
+                                public void left() {
+                                    mHandler.post(new Runnable() {
                                         @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            mHandler.post(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    initData();
-                                                }
-                                            });
-                                        }
-                                    })
-                                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dataInitOk = true;
-                                            jarInitOk = true;
+                                        public void run() {
                                             initData();
+                                            dialog.hide();
                                         }
-                                    })
-                                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                    });
+                                }
+
+                                @Override
+                                public void right() {
+                                    dataInitOk = true;
+                                    jarInitOk = true;
+                                    mHandler.post(new Runnable() {
                                         @Override
-                                        public void onCancel(DialogInterface dialog) {
-                                            dataInitOk = true;
-                                            jarInitOk = true;
+                                        public void run() {
+                                            initData();
+                                            dialog.hide();
                                         }
-                                    }).create();
+                                    });
+                                }
+
+                                @Override
+                                public void cancel() {
+                                    dataInitOk = true;
+                                    jarInitOk = true;
+                                    mHandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            initData();
+                                            dialog.hide();
+                                        }
+                                    });
+                                }
+                            });
                         if (!dialog.isShowing())
                             dialog.show();
                     }
@@ -373,7 +387,7 @@ public class HomeActivity extends BaseActivity {
                 if (data.id.equals("my0")) {
                     fragments.add(HistoryFragment.newInstance());
                 } else {
-                    fragments.add(GridFragment.newInstance(data.id));
+                    fragments.add(GridFragment.newInstance(data));
                 }
             }
             pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
@@ -440,11 +454,19 @@ public class HomeActivity extends BaseActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void refresh(RefreshEvent event) {
         if (event.type == RefreshEvent.TYPE_API_URL_CHANGE) {
-            Toast.makeText(mContext, "配置地址设置为" + event.obj + ",重启应用生效!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "配置地址设置为" + (String) event.obj + ",重启应用生效!", Toast.LENGTH_SHORT).show();
+        } else if (event.type == RefreshEvent.TYPE_PUSH_URL) {
+            if (ApiConfig.get().getSource("push_agent") != null) {
+                Intent newIntent = new Intent(mContext, DetailActivity.class);
+                newIntent.putExtra("id", (String) event.obj);
+                newIntent.putExtra("sourceKey", "push_agent");
+                newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                HomeActivity.this.startActivity(newIntent);
+            }
         }
     }
 
-    private final Runnable mDataRunnable = new Runnable() {
+    private Runnable mDataRunnable = new Runnable() {
         @Override
         public void run() {
             if (sortChange) {

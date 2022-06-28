@@ -8,7 +8,6 @@ import com.chad.library.adapter.base.BaseViewHolder;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.bean.ChannelGroup;
 
-
 import java.util.ArrayList;
 
 
@@ -19,7 +18,7 @@ import java.util.ArrayList;
  */
 public class ChannelGroupAdapter extends BaseQuickAdapter<ChannelGroup, BaseViewHolder> {
     public ChannelGroupAdapter() {
-        super(R.layout.item_channel_group_layout, new ArrayList<>());
+        super(R.layout.item_channel_group, new ArrayList<>());
     }
 
     @Override
