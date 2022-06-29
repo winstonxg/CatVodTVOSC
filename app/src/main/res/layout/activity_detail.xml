@@ -182,7 +182,8 @@
                         android:gravity="center"
                         android:text="加入收藏"
                         android:textColor="@android:color/white"
-                        android:textSize="@dimen/vs_20" />
+                        android:textSize="@dimen/vs_20"
+                        android:visibility="gone" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
