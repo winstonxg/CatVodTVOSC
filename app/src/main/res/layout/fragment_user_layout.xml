@@ -151,7 +151,7 @@
             android:paddingTop="@dimen/vs_15"
             android:paddingRight="@dimen/vs_15"
             android:paddingBottom="@dimen/vs_15"
-            android:visibility="gone">
+            android:visibility="visible">
 
 
             <ImageView
