@@ -24,7 +24,7 @@
             android:layout_height="@dimen/vs_100"
             android:layout_gravity="center"
             android:layout_margin="@dimen/vs_5"
-            android:background="@drawable/user_focus"
+            android:background="@drawable/shape_user_focus"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:focusable="true"
@@ -40,7 +40,7 @@
                 android:layout_height="@dimen/vs_50"
                 android:layout_gravity="center"
                 android:alpha="0.75"
-                android:src="@drawable/ic_live" />
+                android:src="@drawable/icon_live" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -63,7 +63,7 @@
             android:layout_height="@dimen/vs_100"
             android:layout_gravity="center"
             android:layout_margin="@dimen/vs_5"
-            android:background="@drawable/user_focus"
+            android:background="@drawable/shape_user_focus"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:focusable="true"
@@ -79,7 +79,7 @@
                 android:layout_height="@dimen/vs_50"
                 android:layout_gravity="center"
                 android:alpha="0.75"
-                android:src="@drawable/ic_search1" />
+                android:src="@drawable/icon_search" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -103,7 +103,7 @@
             android:layout_height="@dimen/vs_100"
             android:layout_gravity="center"
             android:layout_margin="@dimen/vs_5"
-            android:background="@drawable/user_focus"
+            android:background="@drawable/shape_user_focus"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:focusable="true"
@@ -119,7 +119,7 @@
                 android:layout_height="@dimen/vs_50"
                 android:layout_gravity="center"
                 android:alpha="0.75"
-                android:src="@drawable/ic_push" />
+                android:src="@drawable/icon_push" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -142,7 +142,7 @@
             android:layout_height="@dimen/vs_100"
             android:layout_gravity="center"
             android:layout_margin="@dimen/vs_5"
-            android:background="@drawable/user_focus"
+            android:background="@drawable/shape_user_focus"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:focusable="true"
@@ -150,8 +150,7 @@
             android:paddingLeft="@dimen/vs_15"
             android:paddingTop="@dimen/vs_15"
             android:paddingRight="@dimen/vs_15"
-            android:paddingBottom="@dimen/vs_15"
-            android:visibility="gone">
+            android:paddingBottom="@dimen/vs_15">
 
 
             <ImageView
@@ -159,7 +158,7 @@
                 android:layout_height="@dimen/vs_50"
                 android:layout_gravity="center"
                 android:alpha="0.75"
-                android:src="@drawable/ic_collect" />
+                android:src="@drawable/icon_collect" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -183,7 +182,7 @@
             android:layout_height="@dimen/vs_100"
             android:layout_gravity="center"
             android:layout_margin="@dimen/vs_5"
-            android:background="@drawable/user_focus"
+            android:background="@drawable/shape_user_focus"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:focusable="true"
@@ -199,7 +198,7 @@
                 android:layout_height="@dimen/vs_50"
                 android:layout_gravity="center"
                 android:alpha="0.75"
-                android:src="@drawable/ic_setting" />
+                android:src="@drawable/icon_setting" />
 
             <TextView
                 android:layout_width="wrap_content"
