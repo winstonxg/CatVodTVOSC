@@ -76,6 +76,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/vs_50"
             android:layout_marginBottom="@dimen/vs_4"
+            android:nextFocusRight="@id/mViewPager"
             android:tag="mUserFragment" />
 
         <LinearLayout

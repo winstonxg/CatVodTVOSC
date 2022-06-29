@@ -28,7 +28,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.dueeeke.videoplayer.util.L;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.BaseActivity;
@@ -157,6 +156,13 @@ public class HomeActivity extends BaseActivity {
                         view.findViewById(R.id.tvFilter).setVisibility(View.VISIBLE);
                     HomeActivity.this.sortFocusView = view;
                     HomeActivity.this.sortFocused = position;
+                    if(position != 0) {
+                        HistoryFragment historyFragment = (HistoryFragment)fragments.get(0);
+                        if(historyFragment.isInDelMode()) {
+                            historyFragment.toggleDelMode();
+                            return;
+                        }
+                    }
                     mHandler.removeCallbacks(mDataRunnable);
                     mHandler.postDelayed(mDataRunnable, 200);
                 }
@@ -198,7 +204,7 @@ public class HomeActivity extends BaseActivity {
                         if (position != currentSelected) {
                             currentSelected = position;
                             mViewPager.setCurrentItem(position, false);
-                            //changeTop(position != 0);
+                            changeTop(position > 0);
                         }
                     }
                 }
@@ -211,13 +217,9 @@ public class HomeActivity extends BaseActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(topHide == 1 && hasFocus) {
                     changeTop(false);
-                } else if(topHide == 0 && !hasFocus) {
+                } else if(topHide == 0 && !hasFocus && sortFocused > 0) {
                     changeTop(true);
                 }
-                if (!((GridFragment) baseLazyFragment).isLoad()) {
-                    return true;
-                }
-                return false;
             }
         });
         setLoadSir(this.contentLayout);
@@ -257,7 +259,7 @@ public class HomeActivity extends BaseActivity {
         showLoading();
         if (dataInitOk && !jarInitOk) {
             if (!ApiConfig.get().getSpider().isEmpty()) {
-                ApiConfig.get().loadJar(ApiConfig.get().getSpider(), new ApiConfig.LoadConfigCallback() {
+                ApiConfig.get().loadJar(useCacheConfig, ApiConfig.get().getSpider(), new ApiConfig.LoadConfigCallback() {
                     @Override
                     public void success() {
                         jarInitOk = true;
@@ -413,6 +415,13 @@ public class HomeActivity extends BaseActivity {
             return;
         }
         BaseLazyFragment baseLazyFragment = this.fragments.get(i);
+        if(baseLazyFragment instanceof HistoryFragment) {
+            HistoryFragment historyFragment = (HistoryFragment)baseLazyFragment;
+            if(historyFragment.isInDelMode()) {
+                historyFragment.toggleDelMode();
+                return;
+            }
+        }
         if (baseLazyFragment instanceof GridFragment) {
             View view = this.sortFocusView;
             if (view != null && !view.isFocused()) {
@@ -474,7 +483,7 @@ public class HomeActivity extends BaseActivity {
                 if (sortFocused != currentSelected) {
                     currentSelected = sortFocused;
                     mViewPager.setCurrentItem(sortFocused, false);
-                    //changeTop(sortFocused != 0);
+                    changeTop(sortFocused != 0);
                 }
             }
         }
@@ -521,20 +530,17 @@ public class HomeActivity extends BaseActivity {
         if (hide && topHide == 0) {
             animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
                     AutoSizeUtils.mm2px(this.mContext, 50.0f),
-                    AutoSizeUtils.mm2px(this.mContext, -100.0f)),
+                    AutoSizeUtils.mm2px(this.mContext, -180.0f)),
                     ObjectAnimator.ofFloat(this.mFeatureView, "alpha", 1.0f, 0.0f),
                     ObjectAnimator.ofFloat(this.topLayout, "alpha", 1.0f, 0.0f));
-            animatorSet.setDuration(300);
+            animatorSet.setDuration(200);
             animatorSet.start();
             return;
         }
         if (!hide && topHide == 1) {
             animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
-                    AutoSizeUtils.mm2px(this.mContext, -100.0f),
+                    AutoSizeUtils.mm2px(this.mContext, -180.0f),
                     AutoSizeUtils.mm2px(this.mContext, 50.0f)),
-//                    ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(),
-//                            AutoSizeUtils.mm2px(this.mContext, 1.0f),
-//                            AutoSizeUtils.mm2px(this.mContext, 50.0f)),
                     ObjectAnimator.ofFloat(this.topLayout, "alpha", 0.0f, 1.0f),
                     ObjectAnimator.ofFloat(this.mFeatureView, "alpha", 0.0f, 1.0f));
             animatorSet.setDuration(200);

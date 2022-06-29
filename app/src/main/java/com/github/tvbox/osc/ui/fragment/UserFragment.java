@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.fragment.app.FragmentContainerView;
 
@@ -12,6 +13,7 @@ import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.event.ServerEvent;
 import com.github.tvbox.osc.ui.activity.HistoryActivity;
 import com.github.tvbox.osc.ui.activity.LivePlayActivity;
+import com.github.tvbox.osc.ui.activity.PushActivity;
 import com.github.tvbox.osc.ui.activity.SearchActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
@@ -27,12 +29,13 @@ import org.greenrobot.eventbus.ThreadMode;
  * @description:
  */
 public class UserFragment extends BaseLazyFragment implements View.OnClickListener {
-    private FrameLayout tvLive;
-    private FrameLayout tvSearch;
-    private FrameLayout tvSetting;
-    private FrameLayout tvHistory;
+    private LinearLayout tvLive;
+    private LinearLayout tvSearch;
+    private LinearLayout tvSetting;
+    private LinearLayout tvPush;
     private FragmentContainerView selfView;
     private boolean anyItemFocused = false;
+    private boolean hasScheduled = false;
     private final Handler userFragmentHandler = new Handler();
 
     public static UserFragment newInstance() {
@@ -50,15 +53,15 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvLive = findViewById(R.id.tvLive);
         tvSearch = findViewById(R.id.tvSearch);
         tvSetting = findViewById(R.id.tvSetting);
-        tvHistory = findViewById(R.id.tvHistory);
+        tvPush = findViewById(R.id.tvPush);
         tvLive.setOnClickListener(this);
         tvSearch.setOnClickListener(this);
         tvSetting.setOnClickListener(this);
-        tvHistory.setOnClickListener(this);
+        tvPush.setOnClickListener(this);
         tvLive.setOnFocusChangeListener(focusChangeListener);
         tvSearch.setOnFocusChangeListener(focusChangeListener);
         tvSetting.setOnFocusChangeListener(focusChangeListener);
-        tvHistory.setOnFocusChangeListener(focusChangeListener);
+        tvPush.setOnFocusChangeListener(focusChangeListener);
     }
 
     private View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
@@ -69,7 +72,10 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             else
                 v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
             anyItemFocused = hasFocus;
-            userFragmentHandler.postDelayed(mFeatureViewRunnable, 100);
+            if(!hasScheduled) {
+                hasScheduled = true;
+                userFragmentHandler.postDelayed(mFeatureViewRunnable, 50);
+            }
         }
     };
 
@@ -82,8 +88,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             jumpActivity(SearchActivity.class);
         } else if (v.getId() == R.id.tvSetting) {
             jumpActivity(SettingActivity.class);
-        } else if (v.getId() == R.id.tvHistory) {
-            jumpActivity(HistoryActivity.class);
+        } else if (v.getId() == R.id.tvPush) {
+            jumpActivity(PushActivity.class);
         }
     }
 
@@ -107,7 +113,10 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         @Override
         public void run() {
             if(selfView != null) {
-                selfView.getOnFocusChangeListener().onFocusChange(selfView, anyItemFocused);
+                try {
+                    selfView.getOnFocusChangeListener().onFocusChange(selfView, anyItemFocused);
+                }catch (Exception ex) {}
+                hasScheduled = false;
             }
         }
     };

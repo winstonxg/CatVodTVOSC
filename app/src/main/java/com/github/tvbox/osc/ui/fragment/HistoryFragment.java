@@ -52,7 +52,11 @@ public class HistoryFragment extends BaseLazyFragment {
         initData();
     }
 
-    private void toggleDelMode() {
+    public boolean isInDelMode() {
+        return delMode;
+    }
+
+    public void toggleDelMode() {
         delMode = !delMode;
         tvDelTip.setVisibility(delMode ? View.VISIBLE : View.GONE);
         tvDel.setTextColor(delMode ? getResources().getColor(R.color.color_FF0057) : Color.WHITE);
