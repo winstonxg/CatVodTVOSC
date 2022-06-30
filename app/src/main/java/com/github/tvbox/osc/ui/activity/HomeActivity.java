@@ -6,8 +6,6 @@ import android.animation.AnimatorSet;
 import android.animation.IntEvaluator;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,7 +18,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
@@ -77,7 +74,7 @@ public class HomeActivity extends BaseActivity {
     private SortAdapter sortAdapter;
     private HomePageAdapter pageAdapter;
     private List<BaseLazyFragment> fragments = new ArrayList<>();
-    private boolean isDownOrUp = false;
+    private boolean isUpOrRight = false;
     private boolean sortChange = false;
     private int currentSelected = 0;
     private int sortFocused = 0;
@@ -133,19 +130,23 @@ public class HomeActivity extends BaseActivity {
         this.mGridView.setAdapter(this.sortAdapter);
         this.mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             public void onItemPreSelected(TvRecyclerView tvRecyclerView, View view, int position) {
-                if (view != null && !HomeActivity.this.isDownOrUp) {
+                if (view != null && !HomeActivity.this.isUpOrRight) {
                     view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start();
                     TextView textView = view.findViewById(R.id.tvTitle);
                     textView.getPaint().setFakeBoldText(false);
                     textView.setTextColor(HomeActivity.this.getResources().getColor(R.color.color_BBFFFFFF));
                     textView.invalidate();
                     view.findViewById(R.id.tvFilter).setVisibility(View.GONE);
+                    view.findViewById(R.id.tvFocusedBar).setVisibility(View.INVISIBLE);
                 }
             }
 
             public void onItemSelected(TvRecyclerView tvRecyclerView, View view, int position) {
                 if (view != null) {
-                    HomeActivity.this.isDownOrUp = false;
+                    if(HomeActivity.this.sortFocusView != null) {
+                        HomeActivity.this.sortFocusView.findViewById(R.id.tvFocusedBar).setVisibility(View.INVISIBLE);
+                    }
+                    HomeActivity.this.isUpOrRight = false;
                     HomeActivity.this.sortChange = true;
                     view.animate().scaleX(1.1f).scaleY(1.1f).setInterpolator(new BounceInterpolator()).setDuration(300).start();
                     TextView textView = view.findViewById(R.id.tvTitle);
@@ -154,6 +155,7 @@ public class HomeActivity extends BaseActivity {
                     textView.invalidate();
                     if (!sortAdapter.getItem(position).filters.isEmpty())
                         view.findViewById(R.id.tvFilter).setVisibility(View.VISIBLE);
+                    view.findViewById(R.id.tvFocusedBar).setVisibility(View.INVISIBLE);
                     HomeActivity.this.sortFocusView = view;
                     HomeActivity.this.sortFocused = position;
                     if(position != 0) {
@@ -180,10 +182,13 @@ public class HomeActivity extends BaseActivity {
         });
         this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
             public final boolean onInBorderKeyEvent(int direction, View view) {
+                if(direction == View.FOCUS_RIGHT || direction == View.FOCUS_UP) {
+                    view.findViewById(R.id.tvFocusedBar).setVisibility(View.VISIBLE);
+                    isUpOrRight = true;
+                }
                 if (direction != View.FOCUS_DOWN) {
                     return false;
                 }
-                isDownOrUp = true;
                 BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
                 if (!(baseLazyFragment instanceof GridFragment)) {
                     return false;
