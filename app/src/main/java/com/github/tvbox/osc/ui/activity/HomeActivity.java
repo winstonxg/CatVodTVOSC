@@ -45,9 +45,10 @@ import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
 import com.github.tvbox.osc.ui.tv.widget.ViewObj;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.DefaultConfig;
-import com.github.tvbox.osc.util.FastClickCheckUtil;
+import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
@@ -199,7 +200,6 @@ public class HomeActivity extends BaseActivity {
         this.sortAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             public final void onItemChildClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
                 if (view.getId() == R.id.tvTitle) {
-                    FastClickCheckUtil.check(view);
                     mGridView.smoothScrollToPosition(position);
                     if (view.getParent() != null) {
                         ViewGroup viewGroup = (ViewGroup) view.getParent();
@@ -237,12 +237,12 @@ public class HomeActivity extends BaseActivity {
             @Override
             public void onChanged(AbsSortXml absXml) {
                 showSuccess();
-                if (absXml != null && absXml.movieSort != null && absXml.movieSort.sortList != null) {
-                    sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml.movieSort.sortList, true));
+                if (absXml != null && absXml.classes != null && absXml.classes.sortList != null) {
+                    sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml.classes.sortList, true));
                 } else {
                     sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true));
                 }
-                initViewPager();
+                initViewPager(absXml);
             }
         });
     }
@@ -388,7 +388,7 @@ public class HomeActivity extends BaseActivity {
         }, this);
     }
 
-    private void initViewPager() {
+    private void initViewPager(AbsSortXml absXml) {
         if (sortAdapter.getData().size() > 0) {
             for (MovieSort.SortData data : sortAdapter.getData()) {
                 if (data.id.equals("my0")) {
