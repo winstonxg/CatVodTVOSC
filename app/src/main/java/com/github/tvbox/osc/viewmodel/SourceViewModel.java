@@ -99,13 +99,19 @@ public class SourceViewModel extends ViewModel {
                         if (sortJson != null) {
                             AbsSortXml sortXml = sortJson(sortResult, sortJson);
                             if (sortXml != null && Hawk.get(HawkConfig.HOME_REC, 0) == 1) {
-                                getHomeRecList(sourceBean, null, new HomeRecCallback() {
-                                    @Override
-                                    public void done(List<Movie.Video> videos) {
-                                        sortXml.videoList = videos;
-                                        sortResult.postValue(sortXml);
-                                    }
-                                });
+                                AbsXml absXml = json(null, sortJson, sourceBean.getKey());
+                                if (absXml != null && absXml.movie != null && absXml.movie.videoList != null && absXml.movie.videoList.size() > 0) {
+                                    sortXml.videoList = absXml.movie.videoList;
+                                    sortResult.postValue(sortXml);
+                                } else {
+                                    getHomeRecList(sourceBean, null, new HomeRecCallback() {
+                                        @Override
+                                        public void done(List<Movie.Video> videos) {
+                                            sortXml.videoList = videos;
+                                            sortResult.postValue(sortXml);
+                                        }
+                                    });
+                                }
                             } else {
                                 sortResult.postValue(sortXml);
                             }
@@ -185,7 +191,7 @@ public class SourceViewModel extends ViewModel {
                         if(sortData.id.equals("_home"))
                             json(listResult, sp.homeContent(false), homeSourceBean.getKey());
                         else
-                            json(listResult, sp.categoryContent(sortData.id, page + "", false, sortData.filterSelect), homeSourceBean.getKey());
+                            json(listResult, sp.categoryContent(sortData.id, page + "", true, sortData.filterSelect), homeSourceBean.getKey());
                     } catch (Throwable th) {
                         th.printStackTrace();
                     }
@@ -497,7 +503,7 @@ public class SourceViewModel extends ViewModel {
             try {
                 result.put("key", url);
                 String playUrl = sourceBean.getPlayerUrl().trim();
-                if (DefaultConfig.isVideoFormat(url)) {
+                if (DefaultConfig.isVideoFormat(url) && playUrl.isEmpty()) {
                     result.put("parse", 0);
                     result.put("url", url);
                 } else {
