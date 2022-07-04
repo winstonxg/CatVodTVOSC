@@ -3,7 +3,6 @@ package com.github.tvbox.osc.ui.fragment;
 import android.os.Handler;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import androidx.fragment.app.FragmentContainerView;
@@ -12,13 +11,12 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.event.ServerEvent;
 import com.github.tvbox.osc.ui.activity.CollectActivity;
-import com.github.tvbox.osc.ui.activity.HistoryActivity;
 import com.github.tvbox.osc.ui.activity.LivePlayActivity;
 import com.github.tvbox.osc.ui.activity.PushActivity;
+import com.github.tvbox.osc.ui.activity.RecommendActivity;
 import com.github.tvbox.osc.ui.activity.SearchActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
-import com.github.tvbox.osc.util.LOG;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -35,6 +33,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     private LinearLayout tvSetting;
     private LinearLayout tvPush;
     private LinearLayout tvFavorite;
+    private LinearLayout tvDouban;
     private FragmentContainerView selfView;
     private boolean anyItemFocused = false;
     private boolean hasScheduled = false;
@@ -57,16 +56,19 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvSetting = findViewById(R.id.tvSetting);
         tvPush = findViewById(R.id.tvPush);
         tvFavorite = findViewById(R.id.tvFavorite);
+        tvDouban = findViewById(R.id.tvDouban);
         tvLive.setOnClickListener(this);
         tvSearch.setOnClickListener(this);
         tvSetting.setOnClickListener(this);
         tvPush.setOnClickListener(this);
         tvFavorite.setOnClickListener(this);
+        tvDouban.setOnClickListener(this);
         tvLive.setOnFocusChangeListener(focusChangeListener);
         tvSearch.setOnFocusChangeListener(focusChangeListener);
         tvSetting.setOnFocusChangeListener(focusChangeListener);
         tvPush.setOnFocusChangeListener(focusChangeListener);
         tvFavorite.setOnFocusChangeListener(focusChangeListener);
+        tvDouban.setOnFocusChangeListener(focusChangeListener);
     }
 
     private View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
@@ -97,6 +99,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             jumpActivity(PushActivity.class);
         } else if (v.getId() == R.id.tvFavorite) {
             jumpActivity(CollectActivity.class);
+        } else if (v.getId() == R.id.tvDouban) {
+            jumpActivity(RecommendActivity.class);
         }
     }
 

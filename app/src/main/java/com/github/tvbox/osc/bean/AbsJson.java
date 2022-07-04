@@ -112,6 +112,7 @@ public class AbsJson implements Serializable {
             video.tid = type_id;
             video.name = vod_name;
             video.type = type_name;
+            video.score = vod_score;
             // video.dt = vod_play_from == null ? "" : vod_play_from.replace("$$$", ",");
             video.pic = vod_pic;
             video.lang = vod_lang;

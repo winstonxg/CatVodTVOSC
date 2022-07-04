@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.BaseViewHolder;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.AbsXml;
@@ -18,6 +19,7 @@ import com.github.tvbox.osc.ui.adapter.GridAdapter;
 import com.github.tvbox.osc.ui.dialog.GridFilterDialog;
 import com.github.tvbox.osc.ui.tv.widget.LoadMoreView;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
+import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
@@ -30,20 +32,37 @@ import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 public class GridFragment extends BaseLazyFragment {
     private MovieSort.SortData sortData = null;
     private TvRecyclerView mGridView;
+    private Class<SourceViewModel> viewoModelClass;
     private SourceViewModel sourceViewModel;
     private GridFilterDialog gridFilterDialog;
-    private GridAdapter gridAdapter;
     private int page = 1;
     private int maxPage = 1;
     private boolean isLoad = false;
     private boolean isTop = true;
+    private int spanCount = 5;
+    private BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter;
 
-    public static GridFragment newInstance(MovieSort.SortData sortData) {
-        return new GridFragment().setArguments(sortData);
+    public static GridFragment newInstance(MovieSort.SortData sortData, Class viewModelClass) {
+        GridFragment fragment = new GridFragment().setArguments(sortData, new GridAdapter(), viewModelClass, null);
+        return fragment;
     }
 
-    public GridFragment setArguments(MovieSort.SortData sortData) {
+    public static GridFragment newInstance(MovieSort.SortData sortData, BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter, Class viewModelClass) {
+        GridFragment fragment = new GridFragment().setArguments(sortData, adapter, viewModelClass, null);
+        return fragment;
+    }
+
+    public static GridFragment newInstance(MovieSort.SortData sortData, BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter, Class viewModelClass, Integer spanCount) {
+        GridFragment fragment = new GridFragment().setArguments(sortData, adapter, viewModelClass, spanCount);
+        return fragment;
+    }
+
+    public GridFragment setArguments(MovieSort.SortData sortData, BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter, Class viewModelClass, Integer spanCount) {
         this.sortData = sortData;
+        this.adapter = adapter;
+        this.viewoModelClass = viewModelClass;
+        if(spanCount != null)
+            this.spanCount = spanCount;
         return this;
     }
 
@@ -62,13 +81,12 @@ public class GridFragment extends BaseLazyFragment {
     private void initView() {
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
-        gridAdapter = new GridAdapter();
-        mGridView.setAdapter(gridAdapter);
-        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, 5));
-        gridAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
+        mGridView.setAdapter(adapter);
+        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, this.spanCount));
+        adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                gridAdapter.setEnableLoadMore(true);
+                adapter.setEnableLoadMore(true);
                 sourceViewModel.getList(sortData, page);
             }
         }, mGridView);
@@ -96,11 +114,11 @@ public class GridFragment extends BaseLazyFragment {
                 return false;
             }
         });
-        gridAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+        adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 FastClickCheckUtil.check(view);
-                Movie.Video video = gridAdapter.getData().get(position);
+                Movie.Video video = (Movie.Video) adapter.getData().get(position);
                 if (video != null) {
                     Bundle bundle = new Bundle();
                     bundle.putString("id", video.id);
@@ -109,12 +127,12 @@ public class GridFragment extends BaseLazyFragment {
                 }
             }
         });
-        gridAdapter.setLoadMoreView(new LoadMoreView());
+        adapter.setLoadMoreView(new LoadMoreView());
         setLoadSir(mGridView);
     }
 
     private void initViewModel() {
-        sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
+        sourceViewModel = new ViewModelProvider(this).get(viewoModelClass);
         sourceViewModel.listResult.observe(this, new Observer<AbsXml>() {
             @Override
             public void onChanged(AbsXml absXml) {
@@ -122,9 +140,9 @@ public class GridFragment extends BaseLazyFragment {
                     if (page == 1) {
                         showSuccess();
                         isLoad = true;
-                        gridAdapter.setNewData(absXml.movie.videoList);
+                        adapter.setNewData(absXml.movie.videoList);
                     } else {
-                        gridAdapter.addData(absXml.movie.videoList);
+                        adapter.addData(absXml.movie.videoList);
                     }
                     page++;
                     maxPage = absXml.movie.pagecount;
@@ -134,9 +152,9 @@ public class GridFragment extends BaseLazyFragment {
                     }
                 }
                 if (page > maxPage) {
-                    gridAdapter.loadMoreEnd();
+                    adapter.loadMoreEnd();
                 } else {
-                    gridAdapter.loadMoreComplete();
+                    adapter.loadMoreComplete();
                 }
             }
         });
