@@ -48,13 +48,9 @@ import org.seimicrawler.xpath.JXNode;
  */
 public class RecommendViewModel extends SourceViewModel {
 
-    private static ReentrantLock doubanLock = new ReentrantLock();
-    private static ReentrantLock imdbLock = new ReentrantLock();
-
     public static void getVodDetail(String doubanId, Callback<String> resultCallback) {
         GetRequest<String> request = OkGo.<String>get("https://movie.douban.com/subject/" + doubanId);
         request.headers("User-Agent", UA.random());
-        doubanLock.lock();
         request.execute(new AbsCallback<String>() {
             @Override
             public void onSuccess(Response<String> response) {
@@ -111,7 +107,6 @@ public class RecommendViewModel extends SourceViewModel {
 
             @Override
             public void onFinish() {
-                doubanLock.unlock();
                 super.onFinish();
             }
 
@@ -125,7 +120,6 @@ public class RecommendViewModel extends SourceViewModel {
     public static void getIMDBScore(String imdbId, Callback<String> resultCallback) {
         GetRequest<String> request = OkGo.<String>get("https://www.imdb.com/title/" + imdbId);
         request.headers("User-Agent", UA.random());
-        imdbLock.lock();
         request.execute(new AbsCallback<String>() {
             @Override
             public void onSuccess(Response<String> response) {
@@ -149,7 +143,6 @@ public class RecommendViewModel extends SourceViewModel {
 
             @Override
             public void onFinish() {
-                imdbLock.unlock();
                 super.onFinish();
             }
 

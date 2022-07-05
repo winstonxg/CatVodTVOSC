@@ -24,9 +24,6 @@
         android:theme="@style/AppTheme.NoActionBar"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".ui.activity.RecommendActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.activity.HomeActivity"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -58,6 +55,9 @@
             android:screenOrientation="landscape" />
         <activity
             android:name=".ui.activity.CollectActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".ui.activity.RecommendActivity"
             android:screenOrientation="landscape" />
 
         <receiver android:name=".receiver.SearchReceiver">

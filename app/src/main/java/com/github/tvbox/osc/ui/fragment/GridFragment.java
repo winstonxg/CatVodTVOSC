@@ -41,6 +41,20 @@ public class GridFragment extends BaseLazyFragment {
     private boolean isTop = true;
     private int spanCount = 5;
     private BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter;
+    private BaseQuickAdapter.OnItemClickListener itemClickListener = new BaseQuickAdapter.OnItemClickListener() {
+        @Override
+        public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+            FastClickCheckUtil.check(view);
+            Movie.Video video = (Movie.Video) adapter.getData().get(position);
+            if (video != null) {
+                Bundle bundle = new Bundle();
+                bundle.putString("id", video.id);
+                bundle.putString("sourceKey", video.sourceKey);
+                jumpActivity(DetailActivity.class, bundle);
+            }
+        }
+    };
+    private BaseQuickAdapter.OnItemLongClickListener itemLongClickListener = null;
 
     public static GridFragment newInstance(MovieSort.SortData sortData, Class viewModelClass) {
         GridFragment fragment = new GridFragment().setArguments(sortData, new GridAdapter(), viewModelClass, null);
@@ -106,6 +120,8 @@ public class GridFragment extends BaseLazyFragment {
 
             }
         });
+        if(itemLongClickListener != null)
+            this.adapter.setOnItemLongClickListener(itemLongClickListener);
         mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
             @Override
             public boolean onInBorderKeyEvent(int direction, View focused) {
@@ -114,21 +130,19 @@ public class GridFragment extends BaseLazyFragment {
                 return false;
             }
         });
-        adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                FastClickCheckUtil.check(view);
-                Movie.Video video = (Movie.Video) adapter.getData().get(position);
-                if (video != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("id", video.id);
-                    bundle.putString("sourceKey", video.sourceKey);
-                    jumpActivity(DetailActivity.class, bundle);
-                }
-            }
-        });
+        setOnItemClickListener(itemClickListener);
         adapter.setLoadMoreView(new LoadMoreView());
         setLoadSir(mGridView);
+    }
+
+    public void setOnItemClickListener(BaseQuickAdapter.OnItemClickListener listener) {
+        this.itemClickListener = listener;
+        this.adapter.setOnItemClickListener(listener);
+    }
+
+    public void setOnItemLongClickListener(BaseQuickAdapter.OnItemLongClickListener listener) {
+        this.itemLongClickListener = listener;
+        this.adapter.setOnItemLongClickListener(listener);
     }
 
     private void initViewModel() {
@@ -188,6 +202,7 @@ public class GridFragment extends BaseLazyFragment {
                 public void change() {
                     page = 1;
                     initData();
+                    mGridView.scrollToPosition(0);
                 }
             });
         }

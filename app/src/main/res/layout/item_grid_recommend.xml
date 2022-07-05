@@ -85,8 +85,6 @@
                     android:id="@+id/tvAlias"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/vs_10"
-                    android:layout_marginRight="@dimen/vs_10"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:singleLine="true"
@@ -125,17 +123,6 @@
                     android:textColor="@color/color_CCFFFFFF"
                     android:textSize="@dimen/ts_20" />
 
-                <TextView
-                    android:id="@+id/tvReleaseDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/vs_10"
-                    android:layout_marginRight="@dimen/vs_10"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:textColor="@color/color_CCFFFFFF"
-                    android:textSize="@dimen/ts_20" />
             </LinearLayout>
 
             <LinearLayout
@@ -147,7 +134,6 @@
                     android:id="@+id/tvGenre"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/vs_5"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:singleLine="true"
@@ -164,7 +150,6 @@
                     android:id="@+id/tvActor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/vs_5"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:singleLine="true"
@@ -179,9 +164,22 @@
 
                 <TextView
                     android:id="@+id/tvDirector"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/vs_5"
+                    android:layout_marginEnd="@dimen/vs_10"
+                    android:layout_marginRight="@dimen/vs_10"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:textColor="@color/color_CCFFFFFF"
+                    android:textSize="@dimen/ts_20" />
+
+                <TextView
+                    android:id="@+id/tvReleaseDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/vs_10"
+                    android:layout_marginRight="@dimen/vs_10"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:singleLine="true"

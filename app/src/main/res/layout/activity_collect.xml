@@ -35,29 +35,15 @@
             android:id="@+id/tvDelTip"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/vs_50"
-            android:layout_gravity="center"
+            android:layout_gravity="right|center_vertical"
             android:layout_marginRight="@dimen/vs_10"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:gravity="center"
-            android:text="确定键删除当前选中收藏"
+            android:gravity="center|right|center_vertical"
             android:textColor="@android:color/white"
             android:textSize="@dimen/ts_24"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
-        <TextView
-            android:id="@+id/tvDel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/shape_user_focus"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            android:gravity="center"
-            android:padding="@dimen/vs_10"
-            android:text="删除收藏"
-            android:textColor="@android:color/white"
-            android:textSize="@dimen/ts_24" />
     </LinearLayout>
 
     <com.owen.tvrecyclerview.widget.TvRecyclerView

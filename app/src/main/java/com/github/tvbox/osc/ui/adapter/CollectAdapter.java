@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.adapter;
 
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -17,8 +18,20 @@ import java.util.ArrayList;
 import me.jessyan.autosize.utils.AutoSizeUtils;
 
 public class CollectAdapter extends BaseQuickAdapter<VodCollect, BaseViewHolder> {
+
+    private boolean isDelMode = false;
+
     public CollectAdapter() {
         super(R.layout.item_grid, new ArrayList<>());
+    }
+
+    public void toggleDelMode(boolean isDelMode) {
+        this.isDelMode = isDelMode;
+        for (int pos = 0; pos < this.getItemCount(); pos++) {
+            View delView = this.getViewByPosition(pos, R.id.delFrameLayout);
+            if(delView != null)
+                delView.setVisibility(isDelMode ? View.VISIBLE : View.GONE);
+        }
     }
 
     @Override
@@ -43,5 +56,7 @@ public class CollectAdapter extends BaseQuickAdapter<VodCollect, BaseViewHolder>
         } else {
             ivThumb.setImageResource(R.drawable.img_loading_placeholder);
         }
+        if(isDelMode)
+            helper.setGone(R.id.delFrameLayout, isDelMode);
     }
 }

@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.IntEvaluator;
 import android.animation.ObjectAnimator;
+import android.graphics.Color;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -22,10 +23,13 @@ import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.bean.ChannelGroup;
+import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.bean.LiveChannel;
+import com.github.tvbox.osc.bean.LiveChannelSource;
 import com.github.tvbox.osc.player.controller.BoxVideoController;
 import com.github.tvbox.osc.ui.adapter.ChannelGroupAdapter;
 import com.github.tvbox.osc.ui.adapter.LiveChannelAdapter;
+import com.github.tvbox.osc.ui.adapter.LiveChannelSourceAdapter;
 import com.github.tvbox.osc.ui.tv.widget.ViewObj;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
@@ -42,6 +46,7 @@ import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,14 +62,20 @@ public class LivePlayActivity extends BaseActivity {
     private VideoView mVideoView;
     private TextView tvHint;
     private TextView tvChannel;
+    private TextView selectPlayer;
+    private TextView selectIjkCodec;
     private LinearLayout tvLeftLinearLayout;
     private TvRecyclerView mGroupGridView;
     private TvRecyclerView mChannelGridView;
+    private LinearLayout tvRightLinearLayout;
+    private TvRecyclerView mSourceGridView;
     private ChannelGroupAdapter groupAdapter;
     private LiveChannelAdapter channelAdapter;
+    private LiveChannelSourceAdapter sourceAdapter;
     private Handler mHandler = new Handler();
 
     private List<ChannelGroup> channelGroupList = new ArrayList<>();
+    ArrayList<LiveChannelSource> sources = new ArrayList<>();
     private int selectedGroupIndex = 0;
     private int focusedGroupIndex = 0;
     private int focusedChannelIndex = 0;
@@ -87,13 +98,66 @@ public class LivePlayActivity extends BaseActivity {
         tvLeftLinearLayout = findViewById(R.id.tvLeftLinearLayout);
         mGroupGridView = findViewById(R.id.mGroupGridView);
         mChannelGridView = findViewById(R.id.mChannelGridView);
+        tvRightLinearLayout = findViewById(R.id.tvRightLinearLayout);
+        mSourceGridView = findViewById(R.id.mSourceGridView);
         tvChannel = findViewById(R.id.tvChannel);
         tvHint = findViewById(R.id.tvHint);
+        selectPlayer = findViewById(R.id.selPlayer);
+        selectIjkCodec = findViewById(R.id.selIjkCodec);
+        updatePlayerText();
+        selectPlayer.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean isFocused) {
+                if(isFocused) {
+                    selectPlayer.setBackgroundColor(getResources().getColor(R.color.color_FFB800));
+                    selectPlayer.setTextColor(getResources().getColor(R.color.color_FFFFFF));
+                } else {
+                    selectPlayer.setBackgroundColor(Color.TRANSPARENT);
+                    selectPlayer.setTextColor(getResources().getColor(R.color.color_FFB800));
+                }
+                mHandler.removeCallbacks(mHideChannelListRun);
+                mHandler.postDelayed(mHideChannelListRun, 5000);
+            }
+        });
+        selectPlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mHandler.removeCallbacks(mHideChannelListRun);
+                mHandler.postDelayed(mHideChannelListRun, 5000);
+                updatePlayer();
+            }
+        });
+        selectIjkCodec.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean isFocused) {
+                if(isFocused) {
+                    selectIjkCodec.setBackgroundColor(getResources().getColor(R.color.color_CBF46A));
+                    selectIjkCodec.setTextColor(getResources().getColor(R.color.color_99000000));
+                } else {
+                    selectIjkCodec.setBackgroundColor(Color.TRANSPARENT);
+                    selectIjkCodec.setTextColor(getResources().getColor(R.color.color_CBF46A));
+                }
+                mHandler.removeCallbacks(mHideChannelListRun);
+                mHandler.postDelayed(mHideChannelListRun, 5000);
+            }
+        });
+        selectIjkCodec.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(selectIjkCodec.getVisibility() == View.VISIBLE) {
+                    mHandler.removeCallbacks(mHideChannelListRun);
+                    mHandler.postDelayed(mHideChannelListRun, 5000);
+                    updateIjkCodec();
+                }
+            }
+        });
 
         mGroupGridView.setHasFixedSize(true);
         mGroupGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 1, false));
         mChannelGridView.setHasFixedSize(true);
         mChannelGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 1, false));
+        mSourceGridView.setHasFixedSize(true);
+        mSourceGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 1, false));
         BoxVideoController controller = new BoxVideoController(this);
         controller.setScreenTapListener(new BoxVideoController.OnScreenTapListener() {
             @Override
@@ -174,6 +238,17 @@ public class LivePlayActivity extends BaseActivity {
             }
         });
 
+        sourceAdapter = new LiveChannelSourceAdapter();
+        mSourceGridView.setAdapter(sourceAdapter);
+        mSourceGridView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                mHandler.removeCallbacks(mHideChannelListRun);
+                mHandler.postDelayed(mHideChannelListRun, 5000);
+            }
+        });
+
         //电视
         mChannelGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
@@ -198,6 +273,32 @@ public class LivePlayActivity extends BaseActivity {
                 }
             }
         });
+        mSourceGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
+            @Override
+            public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
+                sources.get(position).setFocused(false);
+                sourceAdapter.notifyItemChanged(position);
+            }
+
+            @Override
+            public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
+                sources.get(position).setFocused(true);
+                sourceAdapter.notifyItemChanged(position);
+                mHandler.removeCallbacks(mHideChannelListRun);
+                mHandler.postDelayed(mHideChannelListRun, 5000);
+            }
+
+            @Override
+            public void onItemClick(TvRecyclerView parent, View itemView, int position) {
+                if (channelGroupList.get(currentGroupIndex).getLiveChannels().get(currentChannelIndex).getSourceIndex() == position)
+                    return;
+                for (LiveChannelSource source : sources) {
+                    source.setSelected(false);
+                }
+                sources.get(position).setSelected(true);
+                setSourceUrl(position);
+            }
+        });
 
         //手机/模拟器
         channelAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -209,6 +310,16 @@ public class LivePlayActivity extends BaseActivity {
                 if (playChannel(position, false)) {
                     mHandler.post(mHideChannelListRun);
                 }
+            }
+        });
+        sourceAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                FastClickCheckUtil.check(view);
+                if (channelGroupList.get(currentGroupIndex).getLiveChannels().get(currentChannelIndex).getSourceIndex() == position)
+                    return;
+                setSourceUrl(position);
+                mHandler.post(mHideChannelListRun);
             }
         });
 
@@ -236,7 +347,10 @@ public class LivePlayActivity extends BaseActivity {
                 preSourceUrl();
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && tvLeftLinearLayout.getVisibility() == View.INVISIBLE) {
                 nextSourceUrl();
-            } else if (((Hawk.get(HawkConfig.DEBUG_OPEN, false) && keyCode == KeyEvent.KEYCODE_0) || keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE/* || keyCode == KeyEvent.KEYCODE_0*/) && tvLeftLinearLayout.getVisibility() == View.INVISIBLE) {
+            } else if (((Hawk.get(HawkConfig.DEBUG_OPEN, false) && keyCode == KeyEvent.KEYCODE_0)
+                    || keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                    keyCode == KeyEvent.KEYCODE_ENTER ||
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE/* || keyCode == KeyEvent.KEYCODE_0*/) && tvLeftLinearLayout.getVisibility() == View.INVISIBLE) {
                 showChannelList();
             } else if (tvLeftLinearLayout.getVisibility() == View.INVISIBLE) {
                 switch (keyCode) {
@@ -415,18 +529,18 @@ public class LivePlayActivity extends BaseActivity {
     }
 
     private void refreshTextInfo() {
-        tvChannel.setText(String.format("%d", currentChannel.getChannelNum()));
+        tvChannel.setText(String.format("%d 信号源%d", currentChannel.getChannelNum(), currentChannel.getSourceIndex() + 1));
     }
 
     private Runnable mHideChannelListRun = new Runnable() {
         @Override
         public void run() {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) tvLeftLinearLayout.getLayoutParams();
             if (tvLeftLinearLayout.getVisibility() == View.VISIBLE) {
-                ViewObj viewObj = new ViewObj(tvLeftLinearLayout, params);
-                ObjectAnimator animator = ObjectAnimator.ofObject(viewObj, "marginLeft", new IntEvaluator(), 0, -tvLeftLinearLayout.getLayoutParams().width);
-                animator.setDuration(200);
-                animator.addListener(new AnimatorListenerAdapter() {
+                ViewGroup.MarginLayoutParams leftParams = (ViewGroup.MarginLayoutParams) tvLeftLinearLayout.getLayoutParams();
+                ViewObj leftViewObj = new ViewObj(tvLeftLinearLayout, leftParams);
+                ObjectAnimator leftAnimator = ObjectAnimator.ofObject(leftViewObj, "marginLeft", new IntEvaluator(), 0, -tvLeftLinearLayout.getLayoutParams().width);
+                leftAnimator.setDuration(200);
+                leftAnimator.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
@@ -445,7 +559,21 @@ public class LivePlayActivity extends BaseActivity {
                         tvHint.setVisibility(View.INVISIBLE);
                     }
                 });
-                animator.start();
+                leftAnimator.start();
+            }
+            if(tvRightLinearLayout.getVisibility() == View.VISIBLE) {
+                ViewGroup.MarginLayoutParams rightParams = (ViewGroup.MarginLayoutParams) tvRightLinearLayout.getLayoutParams();
+                ViewObj rightViewObj = new ViewObj(tvRightLinearLayout, rightParams);
+                ObjectAnimator rightAnimator = ObjectAnimator.ofObject(rightViewObj, "marginRight", new IntEvaluator(), 0, -tvRightLinearLayout.getLayoutParams().width);
+                rightAnimator.setDuration(200);
+                rightAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        tvRightLinearLayout.setVisibility(View.INVISIBLE);
+                    }
+                });
+                rightAnimator.start();
             }
         }
     };
@@ -478,16 +606,16 @@ public class LivePlayActivity extends BaseActivity {
                 RecyclerView.ViewHolder holder = mChannelGridView.findViewHolderForAdapterPosition(currentChannelIndex);
                 if (holder != null)
                     holder.itemView.requestFocus();
-                ViewObj viewObj = new ViewObj(tvLeftLinearLayout, (ViewGroup.MarginLayoutParams) tvLeftLinearLayout.getLayoutParams());
-                ObjectAnimator animator = ObjectAnimator.ofObject(viewObj, "marginLeft", new IntEvaluator(), -tvLeftLinearLayout.getLayoutParams().width, 0);
-                animator.setDuration(200);
-                animator.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                    }
-                });
-                animator.start();
+                ViewObj leftViewObj = new ViewObj(tvLeftLinearLayout, (ViewGroup.MarginLayoutParams) tvLeftLinearLayout.getLayoutParams());
+                ObjectAnimator leftAnimator = ObjectAnimator.ofObject(leftViewObj, "marginLeft", new IntEvaluator(), -tvLeftLinearLayout.getLayoutParams().width, 0);
+                leftAnimator.setDuration(200);
+
+                ViewObj rightViewObj = new ViewObj(tvRightLinearLayout, (ViewGroup.MarginLayoutParams) tvRightLinearLayout.getLayoutParams());
+                ObjectAnimator rightAnimator = ObjectAnimator.ofObject(rightViewObj, "marginRight", new IntEvaluator(), -tvRightLinearLayout.getLayoutParams().width, 0);
+                rightAnimator.setDuration(200);
+
+                leftAnimator.start();
+                rightAnimator.start();
                 mHandler.removeCallbacks(mHideChannelListRun);
                 mHandler.postDelayed(mHideChannelListRun, 5000);
             }
@@ -498,6 +626,7 @@ public class LivePlayActivity extends BaseActivity {
         if (tvLeftLinearLayout.getVisibility() == View.INVISIBLE) {
             tvHint.setVisibility(View.VISIBLE);
             tvLeftLinearLayout.setVisibility(View.VISIBLE);
+            tvRightLinearLayout.setVisibility(View.VISIBLE);
 
             //重新载入上一次状态
             channelAdapter.setNewData(channelGroupList.get(currentGroupIndex).getLiveChannels());
@@ -534,9 +663,18 @@ public class LivePlayActivity extends BaseActivity {
         if (!changeSource) {
             selectLiveChannel(channelIndex);
             currentChannel = channelGroupList.get(currentGroupIndex).getLiveChannels().get(currentChannelIndex);
-            showChannelNum();
             Hawk.put(HawkConfig.LIVE_CHANNEL, currentChannel.getChannelName());
+            sources = new ArrayList<>();
+            for (int sourceIndex = 0; sourceIndex < currentChannel.getSourceNum(); sourceIndex++) {
+                LiveChannelSource source = new LiveChannelSource();
+                if(sourceIndex == 0)
+                    source.setSelected(true);
+                source.setSourceIndex(sourceIndex);
+                sources.add(source);
+            }
+            sourceAdapter.setNewData(sources);
         }
+        showChannelNum();
         mVideoView.release();
         mVideoView.setUrl(currentChannel.getUrl());
         mVideoView.start();
@@ -584,12 +722,23 @@ public class LivePlayActivity extends BaseActivity {
     }
 
     public void preSourceUrl() {
+        int originSourceIndex = currentChannel.getSourceIndex();
         currentChannel.preSource();
+        if(originSourceIndex == currentChannel.getSourceIndex())
+            return;
         playChannel(currentChannelIndex, true);
     }
 
     public void nextSourceUrl() {
+        int originSourceIndex = currentChannel.getSourceIndex();
         currentChannel.nextSource();
+        if(originSourceIndex == currentChannel.getSourceIndex())
+            return;
+        playChannel(currentChannelIndex, true);
+    }
+
+    public void setSourceUrl(int sourceIndex) {
+        currentChannel.setSource(sourceIndex);
         playChannel(currentChannelIndex, true);
     }
 
@@ -651,5 +800,62 @@ public class LivePlayActivity extends BaseActivity {
     public void defocusLiveChannel(int channelIndex) {
         channelGroupList.get(selectedGroupIndex).getLiveChannels().get(channelIndex).setFocused(false);
         channelAdapter.notifyItemChanged(channelIndex);
+    }
+
+    private void updatePlayerText() {
+        int type = Hawk.get(HawkConfig.PLAY_TYPE, 0);
+        selectPlayer.setText(PlayerHelper.getPlayerName(type));
+        if(type == 1) {
+            selectIjkCodec.setVisibility(View.VISIBLE);
+            String codecName = Hawk.get(HawkConfig.IJK_CODEC, "");
+            List<IJKCode> codecs = ApiConfig.get().getIjkCodes();
+            for (int i = 0; i < codecs.size(); i++) {
+                if (codecName.equals(codecs.get(i).getName())) {
+                    if (i >= codecs.size() - 1)
+                        codecName = codecs.get(0).getName();
+                    else {
+                        codecName = codecs.get(i + 1).getName();
+                    }
+                    break;
+                }
+            }
+            selectIjkCodec.setText(codecName);
+        } else {
+            selectIjkCodec.setVisibility(View.GONE);
+        }
+    }
+
+    private void updatePlayer() {
+        int type = Hawk.get(HawkConfig.PLAY_TYPE, 0);
+        if(++type > 2)
+            type = 0;
+        Hawk.put(HawkConfig.PLAY_TYPE, type);
+        PlayerHelper.updateCfg(mVideoView);
+        updatePlayerText();
+        if(currentGroupIndex >= channelGroupList.size()
+                || currentChannelIndex >= channelGroupList.get(currentGroupIndex).getLiveChannels().size())
+            return;
+        playChannel(currentChannelIndex, true);
+    }
+
+    private void updateIjkCodec() {
+        List<IJKCode> codecs = ApiConfig.get().getIjkCodes();
+        String codecName = Hawk.get(HawkConfig.IJK_CODEC, "");
+        int currentIndex = 0;
+        for (int i = 0; i < codecs.size(); i++) {
+            if (codecName.equals(codecs.get(i).getName())) {
+                currentIndex = i;
+                break;
+            }
+        }
+        if(++currentIndex >= codecs.size())
+            currentIndex = 0;
+        Hawk.put(HawkConfig.IJK_CODEC, codecs.get(currentIndex).getName());
+        PlayerHelper.updateCfg(mVideoView);
+        updatePlayerText();
+        if(currentGroupIndex >= channelGroupList.size()
+                || currentChannelIndex >= channelGroupList.get(currentGroupIndex).getLiveChannels().size())
+            return;
+        playChannel(currentChannelIndex, true);
     }
 }

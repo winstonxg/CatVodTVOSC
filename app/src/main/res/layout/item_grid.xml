@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/shape_user_focus"
@@ -122,5 +123,25 @@
                 android:textSize="@dimen/ts_16"
                 android:visibility="gone" />
         </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/delFrameLayout"
+            android:layout_width="@dimen/vs_120"
+            android:layout_height="@dimen/vs_120"
+            android:layout_marginStart="@dimen/vs_30"
+            android:layout_marginLeft="@dimen/vs_30"
+            android:layout_marginTop="@dimen/vs_60"
+            android:background="#CDFFFFFF"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="@dimen/vs_80"
+                android:layout_height="@dimen/vs_80"
+                android:layout_marginStart="@dimen/vs_20"
+                android:layout_marginLeft="@dimen/vs_20"
+                android:layout_marginTop="@dimen/vs_20"
+                app:srcCompat="@drawable/icon_delete" />
+        </FrameLayout>
     </FrameLayout>
 </FrameLayout>

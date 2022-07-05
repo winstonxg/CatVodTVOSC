@@ -22,7 +22,7 @@
             android:id="@+id/mGroupGridView"
             android:layout_width="180mm"
             android:layout_height="match_parent"
-            android:background="@color/color_66000000"
+            android:background="@color/color_99000000"
             android:paddingLeft="5mm"
             android:paddingTop="10mm"
             android:paddingRight="5mm"
@@ -34,14 +34,14 @@
         <View
             android:layout_width="1mm"
             android:layout_height="match_parent"
-            android:background="@color/color_FFFFFF"
-            android:layout_gravity="center_horizontal" />
+            android:layout_gravity="center_horizontal"
+            android:background="@color/color_FFFFFF" />
 
         <com.owen.tvrecyclerview.widget.TvRecyclerView
             android:id="@+id/mChannelGridView"
             android:layout_width="240mm"
             android:layout_height="match_parent"
-            android:background="@color/color_66000000"
+            android:background="@color/color_99000000"
             android:paddingLeft="5mm"
             android:paddingTop="10mm"
             android:paddingRight="5mm"
@@ -49,23 +49,92 @@
             android:visibility="visible"
             app:tv_selectedItemIsCentered="true"
             app:tv_verticalSpacingWithMargins="10mm" />
+
     </LinearLayout>
 
     <TextView
         android:id="@+id/tvChannel"
-        android:layout_width="100mm"
+        android:layout_width="400mm"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:layout_marginTop="30mm"
         android:layout_marginRight="60mm"
         android:background="@drawable/shape_live_channel_num"
         android:gravity="center"
+        android:lines="1"
+        android:maxLines="1"
         android:paddingTop="5mm"
         android:paddingBottom="5mm"
         android:textColor="@android:color/white"
         android:textSize="36mm"
         android:textStyle="bold"
         android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/tvRightLinearLayout"
+        android:layout_width="@dimen/vs_200"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="-200mm"
+        android:layout_marginRight="-200mm"
+        android:layout_weight="1"
+        android:background="@color/color_99000000"
+        android:gravity="start|center_vertical"
+        android:orientation="vertical"
+        android:padding="@dimen/vs_20">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="播放源"
+            android:textColor="@color/color_CCFFFFFF"
+            android:textSize="@dimen/vs_24" />
+
+        <view
+            android:id="@+id/mSourceGridView"
+            class="com.owen.tvrecyclerview.widget.TvRecyclerView"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/vs_240"
+            android:layout_marginBottom="@dimen/vs_10"
+            android:layout_weight="1" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/vs_2"
+            android:layout_weight="1"
+            android:background="?android:attr/listDivider"
+            android:foreground="@color/color_CCFFFFFF" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/vs_10"
+            android:layout_weight="1"
+            android:text="播放器"
+            android:textColor="@color/color_CCFFFFFF"
+            android:textSize="@dimen/vs_24" />
+
+        <TextView
+            android:id="@+id/selPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:textColor="@color/color_FFB800"
+            android:textSize="@dimen/vs_28" />
+
+        <TextView
+            android:id="@+id/selIjkCodec"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:textColor="@color/color_CBF46A"
+            android:textSize="@dimen/vs_28" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvHint"

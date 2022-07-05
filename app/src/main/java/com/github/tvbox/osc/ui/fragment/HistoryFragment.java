@@ -14,9 +14,6 @@ import com.github.tvbox.osc.cache.RoomDataManger;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.event.ServerEvent;
 import com.github.tvbox.osc.ui.activity.DetailActivity;
-import com.github.tvbox.osc.ui.activity.LivePlayActivity;
-import com.github.tvbox.osc.ui.activity.SearchActivity;
-import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.ui.adapter.HistoryAdapter;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
@@ -31,11 +28,13 @@ import java.util.List;
 
 public class HistoryFragment extends BaseLazyFragment {
 
-    private TextView tvDel;
     private TextView tvDelTip;
     private TvRecyclerView mGridView;
     private HistoryAdapter historyAdapter;
     private boolean delMode = false;
+
+    private static final String defaultDelMsg = "长按任意影视项激活删除模式";
+    private static final String enabledDelMsg = "点击影视项删除该纪录，返回键退出删除模式";
 
     public static HistoryFragment newInstance() {
         return new HistoryFragment();
@@ -58,35 +57,21 @@ public class HistoryFragment extends BaseLazyFragment {
 
     public void toggleDelMode() {
         delMode = !delMode;
-        tvDelTip.setVisibility(delMode ? View.VISIBLE : View.GONE);
-        tvDel.setTextColor(delMode ? getResources().getColor(R.color.color_FF0057) : Color.WHITE);
+        historyAdapter.toggleDelMode(delMode);
+        tvDelTip.setText(delMode ? enabledDelMsg : defaultDelMsg);
+        tvDelTip.setTextColor(getResources().getColor(delMode ? R.color.color_FF0057 : R.color.color_CCFFFFFF));
     }
 
     private void initView() {
         EventBus.getDefault().register(this);
-        tvDel = findViewById(R.id.tvDel);
         tvDelTip = findViewById(R.id.tvDelTip);
+        tvDelTip.setText(defaultDelMsg);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
         mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, 5));
         historyAdapter = new HistoryAdapter();
         mGridView.setAdapter(historyAdapter);
-        tvDel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleDelMode();
-            }
-        });
-        mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
-            @Override
-            public boolean onInBorderKeyEvent(int direction, View focused) {
-                if (direction == View.FOCUS_UP) {
-                    tvDel.setFocusable(true);
-                    tvDel.requestFocus();
-                }
-                return false;
-            }
-        });
+        historyAdapter.bindToRecyclerView(mGridView);
         mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
@@ -101,6 +86,16 @@ public class HistoryFragment extends BaseLazyFragment {
             @Override
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
 
+            }
+        });
+        historyAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
+                if(!delMode) {
+                    toggleDelMode();
+                    return true;
+                }
+                return false;
             }
         });
         historyAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {

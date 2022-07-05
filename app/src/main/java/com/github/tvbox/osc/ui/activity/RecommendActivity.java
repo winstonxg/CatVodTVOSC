@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.activity;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
@@ -10,11 +11,13 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.AbsSortXml;
+import com.github.tvbox.osc.bean.Movie;
 import com.github.tvbox.osc.bean.MovieSort;
 import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
 import com.github.tvbox.osc.ui.adapter.RecommendGridAdapter;
@@ -157,8 +160,22 @@ public class RecommendActivity extends BaseActivity {
 
     private void initViewPager(AbsSortXml absXml) {
         if (sortAdapter.getData().size() > 0) {
+            BaseQuickAdapter.OnItemClickListener gridFragmentItemClickListener = new BaseQuickAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                    if (ApiConfig.get().getSourceBeanList().isEmpty())
+                        return;
+                    String title = ((Movie.Video) adapter.getItem(position)).name;
+                    Intent newIntent = new Intent(mContext, SearchActivity.class);
+                    newIntent.putExtra("title", title);
+                    newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(newIntent);
+                }
+            };
             for (MovieSort.SortData data : sortAdapter.getData()) {
-                fragments.add(GridFragment.newInstance(data, new RecommendGridAdapter(), RecommendViewModel.class, 1));
+                GridFragment gridFragment = GridFragment.newInstance(data, new RecommendGridAdapter(), RecommendViewModel.class, 1);
+                gridFragment.setOnItemClickListener(gridFragmentItemClickListener);
+                fragments.add(gridFragment);
             }
             pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
             try {

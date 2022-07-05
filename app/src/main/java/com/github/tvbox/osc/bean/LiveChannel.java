@@ -53,6 +53,9 @@ public class LiveChannel {
         sourceIndex++;
         if (sourceIndex == sourceNum) sourceIndex = 0;
     }
+    public void setSource(int sourceIndex) {
+        this.sourceIndex = sourceIndex;
+    }
 
     public int getSourceIndex() {
         return sourceIndex;

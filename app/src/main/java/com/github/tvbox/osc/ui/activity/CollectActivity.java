@@ -27,11 +27,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CollectActivity extends BaseActivity {
-    private TextView tvDel;
     private TextView tvDelTip;
     private TvRecyclerView mGridView;
     private CollectAdapter collectAdapter;
     private boolean delMode = false;
+
+    private static final String defaultDelMsg = "长按任意影视项激活删除模式";
+    private static final String enabledDelMsg = "点击影视项删除该纪录，返回键退出删除模式";
 
     @Override
     protected int getLayoutResID() {
@@ -46,35 +48,21 @@ public class CollectActivity extends BaseActivity {
 
     private void toggleDelMode() {
         delMode = !delMode;
-        tvDelTip.setVisibility(delMode ? View.VISIBLE : View.GONE);
-        tvDel.setTextColor(delMode ? getResources().getColor(R.color.color_FF0057) : Color.WHITE);
+        collectAdapter.toggleDelMode(delMode);
+        tvDelTip.setText(delMode ? enabledDelMsg : defaultDelMsg);
+        tvDelTip.setTextColor(delMode ? getResources().getColor(R.color.color_FF0057) : Color.WHITE);
     }
 
     private void initView() {
         EventBus.getDefault().register(this);
-        tvDel = findViewById(R.id.tvDel);
         tvDelTip = findViewById(R.id.tvDelTip);
+        tvDelTip.setText(defaultDelMsg);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
         mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, 5));
         collectAdapter = new CollectAdapter();
         mGridView.setAdapter(collectAdapter);
-        tvDel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleDelMode();
-            }
-        });
-        mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
-            @Override
-            public boolean onInBorderKeyEvent(int direction, View focused) {
-                if (direction == View.FOCUS_UP) {
-                    tvDel.setFocusable(true);
-                    tvDel.requestFocus();
-                }
-                return false;
-            }
-        });
+        collectAdapter.bindToRecyclerView(mGridView);
         mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
@@ -89,6 +77,16 @@ public class CollectActivity extends BaseActivity {
             @Override
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
 
+            }
+        });
+        collectAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
+                if(!delMode) {
+                    toggleDelMode();
+                    return true;
+                }
+                return false;
             }
         });
         collectAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
