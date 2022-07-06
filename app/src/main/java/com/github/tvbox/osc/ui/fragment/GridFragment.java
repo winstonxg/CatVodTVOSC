@@ -39,7 +39,7 @@ public class GridFragment extends BaseLazyFragment {
     private int maxPage = 1;
     private boolean isLoad = false;
     private boolean isTop = true;
-    private int spanCount = 5;
+    private int spanCount = isBaseOnWidth() ? 5 : 6;
     private BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter;
     private BaseQuickAdapter.OnItemClickListener itemClickListener = new BaseQuickAdapter.OnItemClickListener() {
         @Override

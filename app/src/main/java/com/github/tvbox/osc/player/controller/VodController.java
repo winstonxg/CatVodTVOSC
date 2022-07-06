@@ -232,18 +232,17 @@ public class VodController extends BaseController {
             public void onClick(View view) {
                 try {
                     int playerType = mPlayerConfig.getInt("pl");
-                    boolean playerVail = false;
-                    do {
-                        playerType++;
-                        if (playerType <= 2) {
-                            playerVail = true;
-                        } else if (playerType == 10) {
-                            playerVail = mxPlayerExist;
-                        } else if (playerType > 10) {
-                            playerType = 0;
-                            playerVail = true;
+                    Integer[] playerTypes = PlayerHelper.getAvailablePlayerTypes();
+                    for (int i = 0; i <playerTypes.length; i++) {
+                        if(playerTypes[i] != playerType)
+                            continue;
+                        else if(i + 1 < playerTypes.length) {
+                            playerType = playerTypes[i+1];
+                            break;
+                        } else {
+                            playerType = playerTypes[0];
                         }
-                    } while (!playerVail);
+                    }
                     mPlayerConfig.put("pl", playerType);
                     updatePlayerCfgView();
                     listener.updatePlayerCfg();
@@ -339,12 +338,10 @@ public class VodController extends BaseController {
 
     private JSONObject mPlayerConfig = null;
 
-    private boolean mxPlayerExist = false;
 
     public void setPlayerConfig(JSONObject playerCfg) {
         this.mPlayerConfig = playerCfg;
         updatePlayerCfgView();
-        mxPlayerExist = MXPlayer.getMXPackageInfo() != null;
     }
 
     void updatePlayerCfgView() {

@@ -68,7 +68,7 @@ public class HistoryFragment extends BaseLazyFragment {
         tvDelTip.setText(defaultDelMsg);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
-        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, 5));
+        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, isBaseOnWidth() ? 5 : 6));
         historyAdapter = new HistoryAdapter();
         mGridView.setAdapter(historyAdapter);
         historyAdapter.bindToRecyclerView(mGridView);

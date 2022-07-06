@@ -21,11 +21,19 @@
             android:paddingRight="@dimen/vs_50"
             android:paddingBottom="@dimen/vs_10">
 
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/playerFragmentView"
+                android:name="com.github.tvbox.osc.ui.fragment.PlayerFragment"
+                android:layout_width="@dimen/vs_570"
+                android:layout_height="@dimen/vs_320"
+                android:tag="playerFragment" />
+
             <ImageView
                 android:id="@+id/ivThumb"
                 android:layout_width="@dimen/vs_240"
                 android:layout_height="@dimen/vs_320"
-                android:scaleType="fitXY" />
+                android:scaleType="fitXY"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -144,63 +152,80 @@
                     android:layout_height="0mm"
                     android:layout_weight="1" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvPlay"
-                        android:layout_width="@dimen/vs_120"
-                        android:layout_height="@dimen/vs_40"
-                        android:layout_marginEnd="@dimen/vs_10"
-                        android:layout_marginRight="@dimen/vs_10"
-                        android:background="@drawable/button_detail_play"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:text="立即播放"
-                        android:textColor="@android:color/white"
-                        android:textSize="@dimen/vs_20" />
-
-                    <TextView
-                        android:id="@+id/tvQuickSearch"
-                        android:layout_width="@dimen/vs_120"
-                        android:layout_height="@dimen/vs_40"
-                        android:layout_marginEnd="@dimen/vs_10"
-                        android:layout_marginRight="@dimen/vs_10"
-                        android:background="@drawable/button_detail_quick_search"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:text="快速搜索"
-                        android:textColor="@android:color/white"
-                        android:textSize="@dimen/vs_20" />
-
-                    <TextView
-                        android:id="@+id/tvSort"
-                        android:layout_width="@dimen/vs_120"
-                        android:layout_height="@dimen/vs_40"
-                        android:layout_marginEnd="@dimen/vs_10"
-                        android:layout_marginRight="@dimen/vs_10"
-                        android:background="@drawable/button_detail_sort"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:text="倒序"
-                        android:textColor="@android:color/white"
-                        android:textSize="@dimen/vs_20" />
-
-                    <TextView
-                        android:id="@+id/tvCollect"
-                        android:layout_width="@dimen/vs_120"
-                        android:layout_height="@dimen/vs_40"
-                        android:background="@drawable/button_detail_collect"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:text="加入收藏"
-                        android:textColor="@android:color/white"
-                        android:textSize="@dimen/vs_20"
-                        android:visibility="visible" />
-                </LinearLayout>
             </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/vs_20"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvPlay"
+                android:layout_width="@dimen/vs_120"
+                android:layout_height="@dimen/vs_40"
+                android:layout_marginEnd="@dimen/vs_10"
+                android:layout_marginRight="@dimen/vs_10"
+                android:background="@drawable/button_detail_play"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="全屏"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/vs_20" />
+
+            <TextView
+                android:id="@+id/tv3rdPlay"
+                android:layout_width="@dimen/vs_120"
+                android:layout_height="@dimen/vs_40"
+                android:layout_marginEnd="@dimen/vs_10"
+                android:layout_marginRight="@dimen/vs_10"
+                android:layout_weight="1"
+                android:background="@drawable/button_dialog_main"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="外部播放"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/vs_20"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvQuickSearch"
+                android:layout_width="@dimen/vs_120"
+                android:layout_height="@dimen/vs_40"
+                android:layout_marginEnd="@dimen/vs_10"
+                android:layout_marginRight="@dimen/vs_10"
+                android:background="@drawable/button_detail_quick_search"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="快速搜索"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/vs_20" />
+
+            <TextView
+                android:id="@+id/tvSort"
+                android:layout_width="@dimen/vs_120"
+                android:layout_height="@dimen/vs_40"
+                android:layout_marginEnd="@dimen/vs_10"
+                android:layout_marginRight="@dimen/vs_10"
+                android:background="@drawable/button_detail_sort"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="倒序"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/vs_20" />
+
+            <TextView
+                android:id="@+id/tvCollect"
+                android:layout_width="@dimen/vs_120"
+                android:layout_height="@dimen/vs_40"
+                android:background="@drawable/button_detail_collect"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="加入收藏"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/vs_20"
+                android:visibility="visible" />
         </LinearLayout>
 
 

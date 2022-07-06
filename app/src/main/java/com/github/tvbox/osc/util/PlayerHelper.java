@@ -6,10 +6,16 @@ import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.player.IjkMediaPlayer;
 import com.github.tvbox.osc.player.render.SurfaceRenderViewFactory;
+import com.github.tvbox.osc.player.thirdparty.MXPlayer;
 import com.orhanobut.hawk.Hawk;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import tv.danmaku.ijk.media.player.IjkLibLoader;
 import xyz.doikki.videoplayer.exo.ExoMediaPlayerFactory;
@@ -20,6 +26,14 @@ import xyz.doikki.videoplayer.render.RenderViewFactory;
 import xyz.doikki.videoplayer.render.TextureRenderViewFactory;
 
 public class PlayerHelper {
+
+    private static Boolean IS_MXPLAYER_AVAILABLE = null;
+    private static Map<Integer, String> AVAILABLE_PLAYERS = new HashMap<Integer, String>() {{
+        put(0, "系统播放器");
+        put(1, "IJK播放器");
+        put(2, "Exo播放器");
+    }};
+
     public static void updateCfg(VideoView videoView, JSONObject playerCfg) {
         int playerType = Hawk.get(HawkConfig.PLAY_TYPE, 0);
         int renderType = Hawk.get(HawkConfig.PLAY_RENDER, 0);
@@ -139,15 +153,10 @@ public class PlayerHelper {
     }
 
     public static String getPlayerName(int playType) {
-        if (playType == 1) {
-            return "IJK播放器";
-        } else if (playType == 2) {
-            return "Exo播放器";
-        } else if (playType == 10) {
-            return "MXPlayer";
-        } else {
-            return "系统播放器";
-        }
+        if(AVAILABLE_PLAYERS.containsKey(playType))
+            return AVAILABLE_PLAYERS.get(playType);
+        else
+            return AVAILABLE_PLAYERS.get(0);
     }
 
     public static String getRenderName(int renderType) {
@@ -181,5 +190,21 @@ public class PlayerHelper {
                 break;
         }
         return scaleText;
+    }
+
+    public static boolean isMXPlayerAvailable() {
+        if(IS_MXPLAYER_AVAILABLE == null) {
+            IS_MXPLAYER_AVAILABLE = MXPlayer.getMXPackageInfo() != null;
+            if(IS_MXPLAYER_AVAILABLE) {
+                AVAILABLE_PLAYERS.put(10, "MXPlayer");
+            }
+        }
+        return IS_MXPLAYER_AVAILABLE;
+    }
+
+    public static Integer[] getAvailablePlayerTypes() {
+        isMXPlayerAvailable();
+        Integer[] types = new Integer[AVAILABLE_PLAYERS.keySet().size()];
+        return AVAILABLE_PLAYERS.keySet().toArray(types);
     }
 }

@@ -11,6 +11,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentContainerView;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -28,6 +31,7 @@ import com.github.tvbox.osc.picasso.RoundTransformation;
 import com.github.tvbox.osc.ui.adapter.SeriesAdapter;
 import com.github.tvbox.osc.ui.adapter.SeriesFlagAdapter;
 import com.github.tvbox.osc.ui.dialog.QuickSearchDialog;
+import com.github.tvbox.osc.ui.fragment.PlayerFragment;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.MD5;
@@ -89,6 +93,7 @@ public class DetailActivity extends BaseActivity {
     public String sourceKey;
     boolean seriesSelect = false;
     private View seriesFlagFocus = null;
+    private FragmentContainerView playerFragmentView;
 
     @Override
     protected int getLayoutResID() {
@@ -130,6 +135,7 @@ public class DetailActivity extends BaseActivity {
         mGridViewFlag.setLayoutManager(new V7LinearLayoutManager(this.mContext, 0, false));
         seriesFlagAdapter = new SeriesFlagAdapter();
         mGridViewFlag.setAdapter(seriesFlagAdapter);
+        playerFragmentView = findViewById(R.id.playerFragmentView);
         tvSort.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -145,7 +151,7 @@ public class DetailActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 FastClickCheckUtil.check(v);
-                jumpToPlay();
+                jumpToPlay(true);
             }
         });
         tvQuickSearch.setOnClickListener(new View.OnClickListener() {
@@ -252,7 +258,7 @@ public class DetailActivity extends BaseActivity {
                     }
                     seriesAdapter.getData().get(vodInfo.playIndex).selected = true;
                     seriesAdapter.notifyItemChanged(vodInfo.playIndex);
-                    jumpToPlay();
+                    jumpToPlay(true);
                 }
             }
         });
@@ -261,14 +267,19 @@ public class DetailActivity extends BaseActivity {
 
     private List<Runnable> pauseRunnable = null;
 
-    private void jumpToPlay() {
+    private void jumpToPlay(boolean shouldOpenActivity) {
         if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
             Bundle bundle = new Bundle();
             //保存历史
             insertVod(sourceKey, vodInfo);
             bundle.putString("sourceKey", sourceKey);
             bundle.putSerializable("VodInfo", vodInfo);
-            jumpActivity(PlayActivity.class, bundle);
+            if(shouldOpenActivity)
+                jumpActivity(PlayActivity.class, bundle);
+            else {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                ((PlayerFragment)fragmentManager.findFragmentByTag("playerFragment")).initData(vodInfo, sourceKey);
+            }
         }
     }
 
@@ -381,6 +392,7 @@ public class DetailActivity extends BaseActivity {
                         mGridViewFlag.scrollToPosition(flagScrollTo);
 
                         refreshList();
+                        jumpToPlay(false);
                         // startQuickSearch();
                     } else {
                         mGridViewFlag.setVisibility(View.GONE);
@@ -585,6 +597,10 @@ public class DetailActivity extends BaseActivity {
                 searchExecutorService.shutdownNow();
                 searchExecutorService = null;
             }
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            Fragment playerFragment = fragmentManager.findFragmentByTag("playerFragment");
+            if(playerFragment != null)
+                playerFragment.onDestroy();
         } catch (Throwable th) {
             th.printStackTrace();
         }

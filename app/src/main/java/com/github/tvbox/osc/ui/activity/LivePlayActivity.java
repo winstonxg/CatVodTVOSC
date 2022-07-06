@@ -826,10 +826,19 @@ public class LivePlayActivity extends BaseActivity {
     }
 
     private void updatePlayer() {
-        int type = Hawk.get(HawkConfig.PLAY_TYPE, 0);
-        if(++type > 2)
-            type = 0;
-        Hawk.put(HawkConfig.PLAY_TYPE, type);
+        int playerType = Hawk.get(HawkConfig.PLAY_TYPE, 0);
+        Integer[] playerTypes = PlayerHelper.getAvailablePlayerTypes();
+        for (int i = 0; i <playerTypes.length; i++) {
+            if(playerTypes[i] != playerType)
+                continue;
+            else if(i + 1 < playerTypes.length) {
+                playerType = playerTypes[i+1];
+                break;
+            } else {
+                playerType = playerTypes[0];
+            }
+        }
+        Hawk.put(HawkConfig.PLAY_TYPE, playerType);
         PlayerHelper.updateCfg(mVideoView);
         updatePlayerText();
         if(currentGroupIndex >= channelGroupList.size()
