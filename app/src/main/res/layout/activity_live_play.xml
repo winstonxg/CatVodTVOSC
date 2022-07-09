@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout android:id="@+id/live_root" xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -33,7 +32,7 @@
         android:textSize="@dimen/ts_24" />
 
     <LinearLayout
-        android:id="@+id/tvLeftLinearLayout"
+        android:id="@+id/tvLeftChannnelListLayout"
         android:layout_width="421mm"
         android:layout_height="match_parent"
         android:layout_marginLeft="-421mm"
@@ -158,6 +157,19 @@
             android:textColor="@color/color_CBF46A"
             android:textSize="@dimen/vs_28" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginTop="5mm"
+        android:layout_marginRight="5mm"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="22mm"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvHint"
