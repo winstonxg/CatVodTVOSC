@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -46,6 +47,7 @@ import com.github.tvbox.osc.cache.CacheManager;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.player.controller.VodController;
 import com.github.tvbox.osc.player.thirdparty.MXPlayer;
+import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
 import com.github.tvbox.osc.ui.activity.PlayActivity;
 import com.github.tvbox.osc.util.AdBlocker;
 import com.github.tvbox.osc.util.DefaultConfig;
@@ -73,6 +75,8 @@ import org.xwalk.core.XWalkWebResourceRequest;
 import org.xwalk.core.XWalkWebResourceResponse;
 
 import java.io.ByteArrayInputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -94,9 +98,22 @@ public class PlayerFragment  extends BaseLazyFragment {
     private SourceViewModel sourceViewModel;
     private Handler mHandler;
 
+    private String playingUrl;
+    private HashMap<String, String> playingHeader;
+    private Runnable mRunnable = new Runnable() {
+        @SuppressLint({"DefaultLocale", "SetTextI18n"})
+        @Override
+        public void run() {
+            setTip(getDisplaySpeed(mVideoView.getTcpSpeed()), true, false);
+            mHandler.postDelayed(this, 1000);
+        }
+    };
+
+    public static final String FRAGMENT_TAG = "mPlayerFragment";
+
     @Override
     protected int getLayoutResID() {
-        return R.layout.activity_play;
+        return R.layout.fragment_play;
     }
 
     @Override
@@ -104,6 +121,12 @@ public class PlayerFragment  extends BaseLazyFragment {
         initView();
         initViewModel();
     }
+
+    public VodController getVodController() {
+        return mController;
+    }
+
+    public VideoView getVideoView() {return mVideoView;}
 
     private void initView() {
         mHandler = new Handler(new Handler.Callback() {
@@ -188,7 +211,32 @@ public class PlayerFragment  extends BaseLazyFragment {
                 errorWithRetry("视频播放出错", false);
             }
         });
+        mVideoView.setOnStateChangeListener(new VideoView.OnStateChangeListener() {
+            @Override
+            public void onPlayerStateChanged(int playerState) {
+
+            }
+
+            @Override
+            public void onPlayStateChanged(int playState) {
+                if(playState == VideoView.STATE_BUFFERING)
+                    mHandler.post(mRunnable);
+                else if(playState == VideoView.STATE_BUFFERED) {
+                    hideTip();
+                    mHandler.removeCallbacks(mRunnable);
+                }
+            }
+        });
         mVideoView.setVideoController(mController);
+    }
+
+    private String getDisplaySpeed(long speed) {
+        if(speed > 1048576)
+            return (speed / 1048576) + "MB/s";
+        else if(speed > 1024)
+            return (speed / 1024) + "KB/s";
+        else
+            return speed + "B/s";
     }
 
     void setTip(String msg, boolean loading, boolean err) {
@@ -225,47 +273,13 @@ public class PlayerFragment  extends BaseLazyFragment {
             @Override
             public void run() {
                 stopParse();
+                playingUrl = url;
+                playingHeader = headers;
                 if (mVideoView != null) {
                     mVideoView.release();
                     if (url != null) {
                         try {
                             int playerType = mVodPlayerCfg.getInt("pl");
-                            if (playerType >= 10) {
-                                VodInfo.VodSeries vs = mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.playIndex);
-                                String playTitle = mVodInfo.name + " " + vs.name;
-                                setTip("调用外部播放器" + PlayerHelper.getPlayerName(playerType) + "进行播放", true, false);
-                                boolean callResult = false;
-                                switch (playerType) {
-                                    case 10: {
-                                        MXPlayer.Media media0 = new MXPlayer.Media(url);
-                                        media0.title = playTitle;
-                                        MXPlayer.Media[] medias = {media0};
-                                        MXPlayer.Subtitle[] subtitles = null;
-                                        Uri[] enabledSubs = null;
-
-                                        if (playSubtitle != null && !playSubtitle.isEmpty()) {
-                                            MXPlayer.Subtitle subtitle0_0 = new MXPlayer.Subtitle(playSubtitle);
-                                            subtitles = new MXPlayer.Subtitle[]{subtitle0_0};
-                                            enabledSubs = new Uri[]{subtitle0_0.uri};
-                                        }
-
-                                        MXPlayer.Options options = new MXPlayer.Options();
-                                        if (headers != null && headers.size() > 0) {
-                                            options.headers = new String[headers.size() * 2];
-                                            int idx = 0;
-                                            for (String hk : headers.keySet()) {
-                                                options.headers[idx] = hk;
-                                                options.headers[idx + 1] = headers.get(hk).trim();
-                                                idx += 2;
-                                            }
-                                        }
-                                        callResult = MXPlayer.run(mActivity, medias, subtitles, enabledSubs, options, false);
-                                        break;
-                                    }
-                                }
-                                setTip("调用外部播放器" + PlayerHelper.getPlayerName(playerType) + (callResult ? "成功" : "失败"), callResult, !callResult);
-                                return;
-                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -283,6 +297,34 @@ public class PlayerFragment  extends BaseLazyFragment {
                 }
             }
         });
+    }
+
+    public void playInOtherPlayer(int playerType) {
+        VodInfo.VodSeries vs = mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.playIndex);
+        String playTitle = mVodInfo.name + " " + vs.name;
+        if(playingUrl == null) {
+            Toast toast = Toast.makeText(mContext, "正在等待解析完毕",Toast.LENGTH_SHORT);
+            toast.show();
+            return;
+        }
+        boolean callResult = false;
+        switch (playerType) {
+            case 10: {
+                callResult = MXPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
+            case 11: {
+                callResult = ReexPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
+        }
+        if(callResult) {
+            Toast toast = Toast.makeText(mContext, "调用外部播放器成功",Toast.LENGTH_SHORT);
+            toast.show();
+        } else {
+            Toast toast = Toast.makeText(mContext, "调用外部播放器失败",Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 
     private void initViewModel() {
@@ -333,6 +375,7 @@ public class PlayerFragment  extends BaseLazyFragment {
     }
 
     public void initData(VodInfo vodInfo, String sourceKey) {
+        playingUrl = null;
         mVodInfo = vodInfo;
         this.sourceKey = sourceKey;
         sourceBean = ApiConfig.get().getSource(sourceKey);
@@ -699,6 +742,16 @@ public class PlayerFragment  extends BaseLazyFragment {
                 }
             });
         }
+    }
+
+    public void destroy() {
+        super.onDestroy();
+        if (mVideoView != null) {
+            mVideoView.release();
+            mVideoView = null;
+        }
+        stopLoadWebView(true);
+        stopParse();
     }
 
     // webview

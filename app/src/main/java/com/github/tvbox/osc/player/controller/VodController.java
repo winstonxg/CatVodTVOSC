@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.player.controller;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Message;
 import android.view.KeyEvent;
@@ -17,8 +18,7 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.bean.ParseBean;
-import com.github.tvbox.osc.player.thirdparty.MXPlayer;
-import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
+import com.github.tvbox.osc.ui.activity.DetailActivity;
 import com.github.tvbox.osc.ui.adapter.ParseAdapter;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.PlayerHelper;
@@ -30,6 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import xyz.doikki.videoplayer.player.VideoView;
@@ -88,16 +91,31 @@ public class VodController extends BaseController {
     LinearLayout mParseRoot;
     TvRecyclerView mGridView;
     TextView mPlayTitle;
+    TextView tvDate;
     TextView mNextBtn;
     TextView mPreBtn;
     TextView mPlayerScaleBtn;
     TextView mPlayerSpeedBtn;
     TextView mPlayerBtn;
     TextView mPlayerIJKBtn;
+    TextView m3rdPlayerBtn;
     TextView mPlayerRetry;
     TextView mPlayerTimeStartBtn;
     TextView mPlayerTimeSkipBtn;
     TextView mPlayerTimeStepBtn;
+
+    private boolean shouldShowBottom = true;
+    private Runnable mRunnable = new Runnable() {
+        @SuppressLint({"DefaultLocale", "SetTextI18n"})
+        @Override
+        public void run() {
+            Date date = new Date();
+            @SuppressLint("SimpleDateFormat")
+            SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            tvDate.setText(timeFormat.format(date));
+            mHandler.postDelayed(this, 1000);
+        }
+    };
 
     @Override
     protected void initView() {
@@ -105,6 +123,7 @@ public class VodController extends BaseController {
         mCurrentTime = findViewById(R.id.curr_time);
         mTotalTime = findViewById(R.id.total_time);
         mPlayTitle = findViewById(R.id.tv_info_name);
+        tvDate = findViewById(R.id.tv_info_time);
         mSeekBar = findViewById(R.id.seekBar);
         mProgressRoot = findViewById(R.id.tv_progress_container);
         mProgressIcon = findViewById(R.id.tv_progress_icon);
@@ -119,6 +138,7 @@ public class VodController extends BaseController {
         mPlayerSpeedBtn = findViewById(R.id.play_speed);
         mPlayerBtn = findViewById(R.id.play_player);
         mPlayerIJKBtn = findViewById(R.id.play_ijk);
+        m3rdPlayerBtn = findViewById(R.id.play_3rdplayer);
         mPlayerTimeStartBtn = findViewById(R.id.play_time_start);
         mPlayerTimeSkipBtn = findViewById(R.id.play_time_end);
         mPlayerTimeStepBtn = findViewById(R.id.play_time_step);
@@ -233,7 +253,7 @@ public class VodController extends BaseController {
             public void onClick(View view) {
                 try {
                     int playerType = mPlayerConfig.getInt("pl");
-                    Integer[] playerTypes = PlayerHelper.getAvailablePlayerTypes();
+                    Integer[] playerTypes = PlayerHelper.getAvailableDefaultPlayerTypes();
                     for (int i = 0; i <playerTypes.length; i++) {
                         if(playerTypes[i] != playerType)
                             continue;
@@ -326,6 +346,45 @@ public class VodController extends BaseController {
                 updatePlayerCfgView();
             }
         });
+        m3rdPlayerBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Integer[] types = PlayerHelper.getAvailable3rdPlayerTypes();
+                if(types.length > 0) {
+                    Integer selectedType = Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, types[0]);
+                    DetailActivity.getManagedPlayerFragment().playInOtherPlayer(selectedType);
+                }
+            }
+        });
+        tvDate.post(new Runnable() {
+            @Override
+            public void run() {
+                mHandler.post(mRunnable);
+            }
+        });
+        init3rdPlayerButton();
+    }
+
+    public void init3rdPlayerButton() {
+        PlayerHelper.reload3rdPlayers();
+        Integer[] types = PlayerHelper.getAvailable3rdPlayerTypes();
+        if(types.length <= 0)
+            m3rdPlayerBtn.setVisibility(View.GONE);
+        else {
+            m3rdPlayerBtn.setVisibility(View.VISIBLE);
+            Integer selectedType = Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, types[0]);
+            if(Arrays.binarySearch(types, selectedType) < 0)
+                Hawk.put(HawkConfig.THIRD_PARTY_PLAYER, types[0]);
+            m3rdPlayerBtn.setText(PlayerHelper.get3rdPlayerName(selectedType));
+        }
+    }
+
+    public void enableController(boolean enable) {
+        this.shouldShowBottom = enable;
+        this.mPlayTitle.setVisibility(enable ? VISIBLE : GONE);
+        this.tvDate.setVisibility(enable ? VISIBLE : GONE );
+        setDoubleTapTogglePlayEnabled(enable);
+        setGestureEnabled(enable);
     }
 
     @Override
@@ -506,8 +565,10 @@ public class VodController extends BaseController {
     }
 
     void showBottom() {
-        mHandler.removeMessages(1003);
-        mHandler.sendEmptyMessage(1002);
+        if(this.shouldShowBottom) {
+            mHandler.removeMessages(1003);
+            mHandler.sendEmptyMessage(1002);
+        }
     }
 
     void hideBottom() {
@@ -556,6 +617,10 @@ public class VodController extends BaseController {
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
+        if(!shouldShowBottom) {
+            togglePlay();
+            return true;
+        }
         if (!isBottomVisible()) {
             showBottom();
         } else {

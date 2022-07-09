@@ -2,6 +2,7 @@ package com.github.tvbox.osc.ui.fragment;
 
 import android.content.DialogInterface;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +32,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import okhttp3.HttpUrl;
@@ -51,8 +53,9 @@ public class ModelSettingFragment extends BaseLazyFragment {
     private TextView tvApi;
     private TextView tvHomeApi;
     private TextView tvDns;
-    private TextView tvHomeRec;
     private TextView tvSearchView;
+    private TextView thirdPartyPlayer;
+    private LinearLayout thirdPartyPlayLayout;
 
     public static ModelSettingFragment newInstance() {
         return new ModelSettingFragment().setArguments();
@@ -78,14 +81,15 @@ public class ModelSettingFragment extends BaseLazyFragment {
         tvApi = findViewById(R.id.tvApi);
         tvHomeApi = findViewById(R.id.tvHomeApi);
         tvDns = findViewById(R.id.tvDns);
-        tvHomeRec = findViewById(R.id.tvHomeRec);
         tvSearchView = findViewById(R.id.tvSearchView);
+        thirdPartyPlayer = findViewById(R.id.tv3rdPlay);
+        thirdPartyPlayLayout = findViewById(R.id.thirdPartyPlay);
         tvMediaCodec.setText(Hawk.get(HawkConfig.IJK_CODEC, ""));
         tvDebugOpen.setText(Hawk.get(HawkConfig.DEBUG_OPEN, false) ? "已打开" : "已关闭");
         tvParseWebView.setText(Hawk.get(HawkConfig.PARSE_WEBVIEW, true) ? "系统自带" : "XWalkView");
         tvApi.setText(Hawk.get(HawkConfig.API_URL, ""));
         tvDns.setText(OkGoHelper.dnsHttpsList.get(Hawk.get(HawkConfig.DOH_URL, 0)));
-        tvHomeRec.setText(getHomeRecName(Hawk.get(HawkConfig.HOME_REC, 0)));
+        //tvHomeRec.setText(getHomeRecName(Hawk.get(HawkConfig.HOME_REC, 0)));
         tvSearchView.setText(getSearchView(Hawk.get(HawkConfig.SEARCH_VIEW, 0)));
         tvHomeApi.setText(ApiConfig.get().getHomeSourceBean().getName());
         tvScale.setText(PlayerHelper.getScaleName(Hawk.get(HawkConfig.PLAY_SCALE, 0)));
@@ -383,42 +387,6 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 dialog.show();
             }
         });
-        findViewById(R.id.llHomeRec).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FastClickCheckUtil.check(v);
-                int defaultPos = Hawk.get(HawkConfig.HOME_REC, 0);
-                ArrayList<Integer> types = new ArrayList<>();
-                types.add(0);
-                types.add(1);
-                types.add(2);
-                SelectDialog<Integer> dialog = new SelectDialog<>(mActivity);
-                dialog.setTip("请选择首页列表数据");
-                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<Integer>() {
-                    @Override
-                    public void click(Integer value, int pos) {
-                        Hawk.put(HawkConfig.HOME_REC, value);
-                        tvHomeRec.setText(getHomeRecName(value));
-                    }
-
-                    @Override
-                    public String getDisplay(Integer val) {
-                        return getHomeRecName(val);
-                    }
-                }, new DiffUtil.ItemCallback<Integer>() {
-                    @Override
-                    public boolean areItemsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
-                        return oldItem.intValue() == newItem.intValue();
-                    }
-
-                    @Override
-                    public boolean areContentsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
-                        return oldItem.intValue() == newItem.intValue();
-                    }
-                }, types, defaultPos);
-                dialog.show();
-            }
-        });
         findViewById(R.id.llSearchView).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -454,6 +422,44 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 dialog.show();
             }
         });
+        thirdPartyPlayLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!thirdPartyPlayLayout.isFocusable())
+                    return;
+                FastClickCheckUtil.check(view);
+                Integer[] types = PlayerHelper.getAvailable3rdPlayerTypes();
+                Integer currentVal = Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, types[0]);
+                int defaultPos = Arrays.binarySearch(types, currentVal);
+                if(defaultPos < 0)
+                    defaultPos = 0;
+                SelectDialog<Integer> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("请选择外部播放器");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<Integer>() {
+                    @Override
+                    public void click(Integer value, int pos) {
+                        Hawk.put(HawkConfig.THIRD_PARTY_PLAYER, value);
+                        thirdPartyPlayer.setText(get3rdPlayerName(value));
+                    }
+
+                    @Override
+                    public String getDisplay(Integer val) {
+                        return get3rdPlayerName(val);
+                    }
+                }, new DiffUtil.ItemCallback<Integer>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
+                        return oldItem.intValue() == newItem.intValue();
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
+                        return oldItem.intValue() == newItem.intValue();
+                    }
+                }, Arrays.asList(types), defaultPos);
+                dialog.show();
+            }
+        });
         SettingActivity.callback = new SettingActivity.DevModeCallback() {
             @Override
             public void onChange() {
@@ -463,19 +469,37 @@ public class ModelSettingFragment extends BaseLazyFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        PlayerHelper.reload3rdPlayers();
+        if(!thirdPartyPlayLayout.isFocusable()) {
+            String thirdPartyPlayerName = PlayerHelper.get3rdPlayerName(Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, 0));
+            if(thirdPartyPlayerName != null) {
+                thirdPartyPlayLayout.setFocusable(true);
+                thirdPartyPlayer.setTextColor(getResources().getColor(R.color.color_FFFFFF));
+                thirdPartyPlayer.setText(thirdPartyPlayerName);
+            }
+        } else {
+            Integer[] thirdPartyPlayerTypes = PlayerHelper.getAvailable3rdPlayerTypes();
+            String thirdPartyPlayerName = PlayerHelper.get3rdPlayerName(Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, 0));
+            if (thirdPartyPlayerTypes.length <= 0) {
+                thirdPartyPlayer.setTextColor(getResources().getColor(R.color.color_6CFFFFFF));
+                thirdPartyPlayer.setText("没有找到可用播放器");
+                thirdPartyPlayLayout.setFocusable(false);
+            } else {
+                thirdPartyPlayer.setText(thirdPartyPlayerName);
+            }
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         SettingActivity.callback = null;
     }
 
-    String getHomeRecName(int type) {
-        if (type == 1) {
-            return "站点推荐";
-        } else if (type == 2) {
-            return "观看历史";
-        } else {
-            return "豆瓣热播";
-        }
+    String get3rdPlayerName(int type) {
+        return PlayerHelper.get3rdPlayerName(type);
     }
 
     String getSearchView(int type) {

@@ -4,13 +4,16 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.IntEvaluator;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,6 +75,8 @@ public class LivePlayActivity extends BaseActivity {
     private ChannelGroupAdapter groupAdapter;
     private LiveChannelAdapter channelAdapter;
     private LiveChannelSourceAdapter sourceAdapter;
+    private TextView mPlayLoadTip;
+    private ImageView mPlayLoadErr;
     private Handler mHandler = new Handler();
 
     private List<ChannelGroup> channelGroupList = new ArrayList<>();
@@ -82,7 +87,14 @@ public class LivePlayActivity extends BaseActivity {
     private int currentGroupIndex = 0;
     private int currentChannelIndex = 0;
     private LiveChannel currentChannel = null;
-
+    private Runnable mRunnable = new Runnable() {
+        @SuppressLint({"DefaultLocale", "SetTextI18n"})
+        @Override
+        public void run() {
+            setTip(getDisplaySpeed(mVideoView.getTcpSpeed()), false);
+            mHandler.postDelayed(this, 1000);
+        }
+    };
 
     @Override
     protected int getLayoutResID() {
@@ -104,7 +116,28 @@ public class LivePlayActivity extends BaseActivity {
         tvHint = findViewById(R.id.tvHint);
         selectPlayer = findViewById(R.id.selPlayer);
         selectIjkCodec = findViewById(R.id.selIjkCodec);
+        mPlayLoadTip = findViewById(R.id.play_load_tip);
+        mPlayLoadErr = findViewById(R.id.play_load_error);
         updatePlayerText();
+        mVideoView.setOnStateChangeListener(new VideoView.OnStateChangeListener() {
+            @Override
+            public void onPlayerStateChanged(int playerState) {
+
+            }
+
+            @Override
+            public void onPlayStateChanged(int playState) {
+                if(playState == VideoView.STATE_PREPARING) {
+                    mHandler.post(mRunnable);
+                } else if(playState == VideoView.STATE_PLAYING) {
+                    hideTip();
+                    mHandler.removeCallbacks(mRunnable);
+                } else if(playState == VideoView.STATE_ERROR) {
+                    setTip("直播源播放失败", true);
+                    mHandler.removeCallbacks(mRunnable);
+                }
+            }
+        });
         selectPlayer.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean isFocused) {
@@ -324,6 +357,26 @@ public class LivePlayActivity extends BaseActivity {
         });
 
         initChannelListView();
+    }
+
+    private String getDisplaySpeed(long speed) {
+        if(speed > 1048576)
+            return (speed / 1048576) + "MB/s";
+        else if(speed > 1024)
+            return (speed / 1024) + "KB/s";
+        else
+            return speed + "B/s";
+    }
+
+    void setTip(String msg, boolean err) {
+        mPlayLoadTip.setText(msg);
+        mPlayLoadTip.setVisibility(View.VISIBLE);
+        mPlayLoadErr.setVisibility(err ? View.VISIBLE : View.GONE);
+    }
+
+    void hideTip() {
+        mPlayLoadTip.setVisibility(View.GONE);
+        mPlayLoadErr.setVisibility(View.GONE);
     }
 
     @Override
@@ -827,7 +880,7 @@ public class LivePlayActivity extends BaseActivity {
 
     private void updatePlayer() {
         int playerType = Hawk.get(HawkConfig.PLAY_TYPE, 0);
-        Integer[] playerTypes = PlayerHelper.getAvailablePlayerTypes();
+        Integer[] playerTypes = PlayerHelper.getAvailableDefaultPlayerTypes();
         for (int i = 0; i <playerTypes.length; i++) {
             if(playerTypes[i] != playerType)
                 continue;

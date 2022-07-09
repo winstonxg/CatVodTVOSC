@@ -7,15 +7,15 @@ import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.player.IjkMediaPlayer;
 import com.github.tvbox.osc.player.render.SurfaceRenderViewFactory;
 import com.github.tvbox.osc.player.thirdparty.MXPlayer;
+import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
 import com.orhanobut.hawk.Hawk;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import tv.danmaku.ijk.media.player.IjkLibLoader;
 import xyz.doikki.videoplayer.exo.ExoMediaPlayerFactory;
@@ -27,12 +27,13 @@ import xyz.doikki.videoplayer.render.TextureRenderViewFactory;
 
 public class PlayerHelper {
 
-    private static Boolean IS_MXPLAYER_AVAILABLE = null;
-    private static Map<Integer, String> AVAILABLE_PLAYERS = new HashMap<Integer, String>() {{
+    private static Map<Integer, String> AVAILABLE_DEFAULT_PLAYERS = new TreeMap<Integer, String>() {{
         put(0, "系统播放器");
         put(1, "IJK播放器");
         put(2, "Exo播放器");
     }};
+    private static Map<Integer, String> AVAILABLE_3RD_PLAYERS = new TreeMap<Integer, String>();
+
 
     public static void updateCfg(VideoView videoView, JSONObject playerCfg) {
         int playerType = Hawk.get(HawkConfig.PLAY_TYPE, 0);
@@ -153,10 +154,22 @@ public class PlayerHelper {
     }
 
     public static String getPlayerName(int playType) {
-        if(AVAILABLE_PLAYERS.containsKey(playType))
-            return AVAILABLE_PLAYERS.get(playType);
+        if(AVAILABLE_DEFAULT_PLAYERS.containsKey(playType))
+            return AVAILABLE_DEFAULT_PLAYERS.get(playType);
         else
-            return AVAILABLE_PLAYERS.get(0);
+            return AVAILABLE_DEFAULT_PLAYERS.get(0);
+    }
+
+    public static String get3rdPlayerName(int playType) {
+        if(AVAILABLE_3RD_PLAYERS.containsKey(playType))
+            return AVAILABLE_3RD_PLAYERS.get(playType);
+        else {
+            Integer[] types = getAvailable3rdPlayerTypes();
+            if(types.length > 0)
+                return AVAILABLE_3RD_PLAYERS.get(types[0]);
+            else
+                return null;
+        }
     }
 
     public static String getRenderName(int renderType) {
@@ -192,19 +205,25 @@ public class PlayerHelper {
         return scaleText;
     }
 
-    public static boolean isMXPlayerAvailable() {
-        if(IS_MXPLAYER_AVAILABLE == null) {
-            IS_MXPLAYER_AVAILABLE = MXPlayer.getMXPackageInfo() != null;
-            if(IS_MXPLAYER_AVAILABLE) {
-                AVAILABLE_PLAYERS.put(10, "MXPlayer");
-            }
+    public static void reload3rdPlayers() {
+        AVAILABLE_3RD_PLAYERS.clear();
+        if(MXPlayer.getPackageInfo() != null) {
+            AVAILABLE_3RD_PLAYERS.put(10, "MX Player");
         }
-        return IS_MXPLAYER_AVAILABLE;
+        if(ReexPlayer.getPackageInfo() != null) {
+            AVAILABLE_3RD_PLAYERS.put(11, "Reex Player");
+        }
     }
 
-    public static Integer[] getAvailablePlayerTypes() {
-        isMXPlayerAvailable();
-        Integer[] types = new Integer[AVAILABLE_PLAYERS.keySet().size()];
-        return AVAILABLE_PLAYERS.keySet().toArray(types);
+    public static Integer[] getAvailable3rdPlayerTypes() {
+        Integer[] types = new Integer[AVAILABLE_3RD_PLAYERS.keySet().size()];
+        AVAILABLE_3RD_PLAYERS.keySet().toArray(types);
+        return types;
+    }
+
+    public static Integer[] getAvailableDefaultPlayerTypes() {
+        Integer[] types = new Integer[AVAILABLE_DEFAULT_PLAYERS.keySet().size()];
+        AVAILABLE_DEFAULT_PLAYERS.keySet().toArray(types);
+        return types;
     }
 }
