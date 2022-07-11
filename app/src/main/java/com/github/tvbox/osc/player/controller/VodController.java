@@ -103,6 +103,7 @@ public class VodController extends BaseController {
     TextView mPlayerTimeStartBtn;
     TextView mPlayerTimeSkipBtn;
     TextView mPlayerTimeStepBtn;
+    TextView loadingSpeed;
 
     private boolean shouldShowBottom = true;
     private Runnable mRunnable = new Runnable() {
@@ -113,6 +114,8 @@ public class VodController extends BaseController {
             @SuppressLint("SimpleDateFormat")
             SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             tvDate.setText(timeFormat.format(date));
+            if(loadingSpeed.getVisibility() == VISIBLE)
+                loadingSpeed.setText(PlayerHelper.getDisplaySpeed(mControlWrapper.getTcpSpeed()));
             mHandler.postDelayed(this, 1000);
         }
     };
@@ -142,6 +145,7 @@ public class VodController extends BaseController {
         mPlayerTimeStartBtn = findViewById(R.id.play_time_start);
         mPlayerTimeSkipBtn = findViewById(R.id.play_time_end);
         mPlayerTimeStepBtn = findViewById(R.id.play_time_step);
+        loadingSpeed = findViewById(R.id.loadingSpeed);
 
         mGridView.setLayoutManager(new V7LinearLayoutManager(getContext(), 0, false));
         ParseAdapter parseAdapter = new ParseAdapter();
@@ -550,9 +554,11 @@ public class VodController extends BaseController {
                 break;
             case VideoView.STATE_PREPARED:
             case VideoView.STATE_BUFFERED:
+                this.loadingSpeed.setVisibility(GONE);
                 break;
             case VideoView.STATE_PREPARING:
             case VideoView.STATE_BUFFERING:
+                this.loadingSpeed.setVisibility(VISIBLE);
                 break;
             case VideoView.STATE_PLAYBACK_COMPLETED:
                 listener.playNext(true);

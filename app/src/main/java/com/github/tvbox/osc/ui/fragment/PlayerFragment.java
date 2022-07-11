@@ -100,14 +100,6 @@ public class PlayerFragment  extends BaseLazyFragment {
 
     private String playingUrl;
     private HashMap<String, String> playingHeader;
-    private Runnable mRunnable = new Runnable() {
-        @SuppressLint({"DefaultLocale", "SetTextI18n"})
-        @Override
-        public void run() {
-            setTip(getDisplaySpeed(mVideoView.getTcpSpeed()), true, false);
-            mHandler.postDelayed(this, 1000);
-        }
-    };
 
     public static final String FRAGMENT_TAG = "mPlayerFragment";
 
@@ -211,32 +203,7 @@ public class PlayerFragment  extends BaseLazyFragment {
                 errorWithRetry("视频播放出错", false);
             }
         });
-        mVideoView.setOnStateChangeListener(new VideoView.OnStateChangeListener() {
-            @Override
-            public void onPlayerStateChanged(int playerState) {
-
-            }
-
-            @Override
-            public void onPlayStateChanged(int playState) {
-                if(playState == VideoView.STATE_BUFFERING)
-                    mHandler.post(mRunnable);
-                else if(playState == VideoView.STATE_BUFFERED) {
-                    hideTip();
-                    mHandler.removeCallbacks(mRunnable);
-                }
-            }
-        });
         mVideoView.setVideoController(mController);
-    }
-
-    private String getDisplaySpeed(long speed) {
-        if(speed > 1048576)
-            return (speed / 1048576) + "MB/s";
-        else if(speed > 1024)
-            return (speed / 1024) + "KB/s";
-        else
-            return speed + "B/s";
     }
 
     void setTip(String msg, boolean loading, boolean err) {

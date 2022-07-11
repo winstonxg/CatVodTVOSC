@@ -63,13 +63,25 @@
         tools:text="100" />
 
     <ProgressBar
+        android:id="@+id/loading"
         android:layout_width="@dimen/vs_50"
         android:layout_height="@dimen/vs_50"
         android:layout_gravity="center"
         android:indeterminateBehavior="repeat"
-        android:indeterminateDrawable="@drawable/anim_loading"
+        android:indeterminateDrawable="@drawable/dkplayer_progress_loading"
         android:indeterminateOnly="true"
         android:tag="vod_control_loading"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/loadingSpeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/vs_40"
+        android:text="11"
+        android:textColor="@color/color_FFFFFF"
+        android:textSize="@dimen/ts_22"
         android:visibility="gone" />
 
 </FrameLayout>

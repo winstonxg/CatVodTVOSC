@@ -8,6 +8,6 @@
         android:layout_height="@dimen/vs_50"
         android:layout_gravity="center"
         android:indeterminateBehavior="repeat"
-        android:indeterminateDrawable="@drawable/anim_loading"
+        android:indeterminateDrawable="@drawable/dkplayer_progress_loading"
         android:indeterminateOnly="true" />
 </FrameLayout>

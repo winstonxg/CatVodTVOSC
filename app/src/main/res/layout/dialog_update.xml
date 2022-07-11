@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/vs_600"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/shape_dialog_bg_main"
+    android:orientation="vertical"
+    android:padding="@dimen/vs_30">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="@dimen/ts_50"
+            android:lineSpacingMultiplier="0"
+            android:text="获取到的最新版本："
+            android:textColor="@color/color_CC000000"
+            android:textSize="@dimen/ts_24" />
+
+        <TextView
+            android:id="@+id/txt_ver_no"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:lineSpacingExtra="@dimen/ts_50"
+            android:lineSpacingMultiplier="0"
+            android:textColor="@color/color_CC000000"
+            android:textSize="@dimen/ts_24" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/vs_2"
+        android:layout_marginTop="@dimen/vs_10"
+        android:layout_marginBottom="@dimen/vs_10"
+        android:background="@color/color_CC000000">
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/txt_updated_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="@dimen/ts_50"
+        android:lineSpacingMultiplier="0"
+        android:textColor="@color/color_CC000000"
+        android:textSize="@dimen/ts_24" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_update"
+            android:layout_width="@dimen/vs_120"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/vs_30"
+            android:layout_marginLeft="@dimen/vs_30"
+            android:layout_marginEnd="@dimen/vs_30"
+            android:layout_marginRight="@dimen/vs_30"
+            android:background="@drawable/button_dialog_main"
+            android:focusable="true"
+            android:gravity="center"
+            android:padding="@dimen/vs_10"
+            android:text="马上更新"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/vs_20" />
+
+        <TextView
+            android:id="@+id/btn_cancel"
+            android:layout_width="@dimen/vs_120"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/vs_30"
+            android:layout_marginLeft="@dimen/vs_30"
+            android:layout_marginEnd="@dimen/vs_30"
+            android:layout_marginRight="@dimen/vs_30"
+            android:layout_weight="1"
+            android:background="@drawable/button_dialog_main"
+            android:focusable="true"
+            android:gravity="center"
+            android:padding="@dimen/vs_10"
+            android:text="取消"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/vs_20" />
+
+        <TextView
+            android:id="@+id/btn_next_time"
+            android:layout_width="@dimen/vs_120"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/vs_30"
+            android:layout_marginLeft="@dimen/vs_30"
+            android:layout_marginEnd="@dimen/vs_30"
+            android:layout_marginRight="@dimen/vs_30"
+            android:layout_weight="1"
+            android:background="@drawable/button_dialog_main"
+            android:focusable="true"
+            android:gravity="center"
+            android:padding="@dimen/vs_10"
+            android:text="不再提示"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/vs_20" />
+
+    </LinearLayout>
+
+</LinearLayout>

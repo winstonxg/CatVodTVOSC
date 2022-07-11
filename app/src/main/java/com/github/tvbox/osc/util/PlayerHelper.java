@@ -226,4 +226,13 @@ public class PlayerHelper {
         AVAILABLE_DEFAULT_PLAYERS.keySet().toArray(types);
         return types;
     }
+
+    public static String getDisplaySpeed(long speed) {
+        if(speed > 1048576)
+            return (speed / 1048576) + "MB/s";
+        else if(speed > 1024)
+            return (speed / 1024) + "KB/s";
+        else
+            return speed + "B/s";
+    }
 }

@@ -22,6 +22,7 @@ import com.github.tvbox.osc.ui.dialog.ApiDialog;
 import com.github.tvbox.osc.ui.dialog.BackupDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.XWalkInitDialog;
+import com.github.tvbox.osc.util.AppUpdate;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.OkGoHelper;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import okhttp3.HttpUrl;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
@@ -56,6 +58,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
     private TextView tvSearchView;
     private TextView thirdPartyPlayer;
     private LinearLayout thirdPartyPlayLayout;
+    private TextView tvVersion;
 
     public static ModelSettingFragment newInstance() {
         return new ModelSettingFragment().setArguments();
@@ -84,6 +87,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
         tvSearchView = findViewById(R.id.tvSearchView);
         thirdPartyPlayer = findViewById(R.id.tv3rdPlay);
         thirdPartyPlayLayout = findViewById(R.id.thirdPartyPlay);
+        tvVersion = findViewById(R.id.tvVersion);
+
         tvMediaCodec.setText(Hawk.get(HawkConfig.IJK_CODEC, ""));
         tvDebugOpen.setText(Hawk.get(HawkConfig.DEBUG_OPEN, false) ? "已打开" : "已关闭");
         tvParseWebView.setText(Hawk.get(HawkConfig.PARSE_WEBVIEW, true) ? "系统自带" : "XWalkView");
@@ -95,6 +100,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
         tvScale.setText(PlayerHelper.getScaleName(Hawk.get(HawkConfig.PLAY_SCALE, 0)));
         tvPlay.setText(PlayerHelper.getPlayerName(Hawk.get(HawkConfig.PLAY_TYPE, 0)));
         tvRender.setText(PlayerHelper.getRenderName(Hawk.get(HawkConfig.PLAY_RENDER, 0)));
+        tvVersion.setText(AppUpdate.getCurrentVersionNo());
+
         findViewById(R.id.llDebug).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,6 +143,19 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 FastClickCheckUtil.check(v);
                 AboutDialog dialog = new AboutDialog(mActivity);
                 dialog.show();
+            }
+        });
+        findViewById(R.id.llVersion).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FastClickCheckUtil.check(view);
+                new AppUpdate().CheckLatestVersion(ModelSettingFragment.this.mActivity, true, new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        Toast.makeText(mActivity, "已经是最新版本", Toast.LENGTH_SHORT).show();
+                        return null;
+                    }
+                });
             }
         });
         findViewById(R.id.llHomeApi).setOnClickListener(new View.OnClickListener() {
