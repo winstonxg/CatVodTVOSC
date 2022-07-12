@@ -28,5 +28,5 @@ public class HawkConfig {
     public static final String LIVE_SHOW_NET_SPEED = "live_show_net_speed";
     public static final String LIVE_SHOW_TIME = "live_show_time";
     public static final String FORGET_NEW_VERSION = "forget_new_version";
-
+    public static final String DISPLAY_LOADING_SPEED = "display_loading_speed";
 }

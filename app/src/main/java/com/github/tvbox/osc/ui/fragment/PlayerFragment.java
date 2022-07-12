@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -97,6 +98,8 @@ public class PlayerFragment  extends BaseLazyFragment {
     private VodController mController;
     private SourceViewModel sourceViewModel;
     private Handler mHandler;
+    private Observer<JSONObject> playResultObserver;
+    private String replayKey = null;
 
     private String playingUrl;
     private HashMap<String, String> playingHeader;
@@ -144,7 +147,8 @@ public class PlayerFragment  extends BaseLazyFragment {
         ProgressManager progressManager = new ProgressManager() {
             @Override
             public void saveProgress(String url, long progress) {
-                CacheManager.save(MD5.string2MD5(url), progress);
+                CacheManager.save(MD5.string2MD5(url), url != null && url.equals(replayKey) ? 0 : progress);
+                replayKey = null;
             }
 
             @Override
@@ -195,6 +199,8 @@ public class PlayerFragment  extends BaseLazyFragment {
             @Override
             public void replay() {
                 autoRetryCount = 0;
+                String progressKey = mVodInfo.sourceKey + mVodInfo.id + mVodInfo.playFlag + mVodInfo.playIndex;
+                replayKey = progressKey;
                 play();
             }
 
@@ -296,7 +302,7 @@ public class PlayerFragment  extends BaseLazyFragment {
 
     private void initViewModel() {
         sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
-        sourceViewModel.playResult.observe(this, new Observer<JSONObject>() {
+        playResultObserver = new Observer<JSONObject>() {
             @Override
             public void onChanged(JSONObject info) {
                 if (info != null) {
@@ -338,7 +344,8 @@ public class PlayerFragment  extends BaseLazyFragment {
                     errorWithRetry("获取播放信息错误", true);
                 }
             }
-        });
+        };
+        sourceViewModel.playResult.observeForever(playResultObserver);
     }
 
     public void initData(VodInfo vodInfo, String sourceKey) {
@@ -717,6 +724,8 @@ public class PlayerFragment  extends BaseLazyFragment {
             mVideoView.release();
             mVideoView = null;
         }
+        if(playResultObserver != null && sourceViewModel != null && sourceViewModel.playResult != null)
+            this.sourceViewModel.playResult.removeObserver(playResultObserver);
         stopLoadWebView(true);
         stopParse();
     }

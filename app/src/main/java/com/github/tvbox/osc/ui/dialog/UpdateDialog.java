@@ -1,6 +1,5 @@
 package com.github.tvbox.osc.ui.dialog;
 
-import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,22 +15,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
-import com.github.tvbox.osc.BuildConfig;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.BaseActivity;
-import com.github.tvbox.osc.ui.fragment.UpdateFragment;
 import com.github.tvbox.osc.util.AppUpdate;
 import com.github.tvbox.osc.util.HawkConfig;
-import com.lzy.okgo.OkGo;
-import com.lzy.okgo.callback.AbsCallback;
-import com.lzy.okgo.model.Response;
 import com.orhanobut.hawk.Hawk;
 
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Text;
 
 import java.io.File;
-import java.io.FileOutputStream;
 
 public class UpdateDialog extends BaseDialog {
 
@@ -110,7 +102,7 @@ public class UpdateDialog extends BaseDialog {
         if (cache.exists())
             cache.delete();
 
-        String url = "https://raw.githubusercontent.com/kensonmiao/CatVodTVOSC_Release/main/" + this.versionInfo.VersionNo + ".apk";
+        String url = this.versionInfo.Source + this.versionInfo.VersionNo + ".apk";
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
         request.setDescription("TV Box 更新版本 " + this.versionInfo.VersionNo + " 来自Github");
         request.setTitle("TV Box");

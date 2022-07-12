@@ -98,6 +98,7 @@ public class VodController extends BaseController {
     TextView mPlayerSpeedBtn;
     TextView mPlayerBtn;
     TextView mPlayerIJKBtn;
+    TextView lbl3rdPlayer;
     TextView m3rdPlayerBtn;
     TextView mPlayerRetry;
     TextView mPlayerTimeStartBtn;
@@ -106,6 +107,7 @@ public class VodController extends BaseController {
     TextView loadingSpeed;
 
     private boolean shouldShowBottom = true;
+    private boolean shouldShowLoadingSpeed = Hawk.get(HawkConfig.DISPLAY_LOADING_SPEED, true);
     private Runnable mRunnable = new Runnable() {
         @SuppressLint({"DefaultLocale", "SetTextI18n"})
         @Override
@@ -141,6 +143,7 @@ public class VodController extends BaseController {
         mPlayerSpeedBtn = findViewById(R.id.play_speed);
         mPlayerBtn = findViewById(R.id.play_player);
         mPlayerIJKBtn = findViewById(R.id.play_ijk);
+        lbl3rdPlayer = findViewById(R.id.lbl_play_3rdplayer);
         m3rdPlayerBtn = findViewById(R.id.play_3rdplayer);
         mPlayerTimeStartBtn = findViewById(R.id.play_time_start);
         mPlayerTimeSkipBtn = findViewById(R.id.play_time_end);
@@ -372,9 +375,11 @@ public class VodController extends BaseController {
     public void init3rdPlayerButton() {
         PlayerHelper.reload3rdPlayers();
         Integer[] types = PlayerHelper.getAvailable3rdPlayerTypes();
-        if(types.length <= 0)
+        if(types.length <= 0) {
+            lbl3rdPlayer.setVisibility(GONE);
             m3rdPlayerBtn.setVisibility(View.GONE);
-        else {
+        } else {
+            lbl3rdPlayer.setVisibility(VISIBLE);
             m3rdPlayerBtn.setVisibility(View.VISIBLE);
             Integer selectedType = Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, types[0]);
             if(Arrays.binarySearch(types, selectedType) < 0)
@@ -558,7 +563,8 @@ public class VodController extends BaseController {
                 break;
             case VideoView.STATE_PREPARING:
             case VideoView.STATE_BUFFERING:
-                this.loadingSpeed.setVisibility(VISIBLE);
+                if(shouldShowLoadingSpeed)
+                    this.loadingSpeed.setVisibility(VISIBLE);
                 break;
             case VideoView.STATE_PLAYBACK_COMPLETED:
                 listener.playNext(true);

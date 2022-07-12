@@ -295,6 +295,28 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 dialog.show();
             }
         });
+        findViewById(R.id.llDisplayLoadingSpeed).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<String> speedOptions = Arrays.asList(new String[] { "关闭", "展示" });
+                boolean displayLoadingSpeed = Hawk.get(HawkConfig.DISPLAY_LOADING_SPEED, true);
+                FastClickCheckUtil.check(v);
+                SelectDialog<String> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("是否展示缓冲速度");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<String>() {
+                    @Override
+                    public void click(String value, int pos) {
+                        Hawk.put(HawkConfig.DISPLAY_LOADING_SPEED, pos == 0 ? false : true);
+                    }
+
+                    @Override
+                    public String getDisplay(String val) {
+                        return val;
+                    }
+                }, null, speedOptions, displayLoadingSpeed? 1 : 0);
+                dialog.show();
+            }
+        });
         findViewById(R.id.llScale).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

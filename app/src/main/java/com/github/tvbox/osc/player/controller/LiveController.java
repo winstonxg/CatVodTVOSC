@@ -29,6 +29,7 @@ public class LiveController extends BaseController {
     private TextView loadingSpeed;
     private int minFlingDistance = 100;             //最小识别距离
     private int minFlingVelocity = 10;              //最小识别速度
+    private boolean shouldShowLoadingSpeed = Hawk.get(HawkConfig.DISPLAY_LOADING_SPEED, true);
     private Handler mHandler = new Handler();
 
     private Runnable mRunnable = new Runnable() {
@@ -97,7 +98,7 @@ public class LiveController extends BaseController {
                 break;
             case VideoView.STATE_PREPARING:
             case VideoView.STATE_BUFFERING:
-                if(!Hawk.get(HawkConfig.LIVE_SHOW_NET_SPEED, false)) {
+                if(!Hawk.get(HawkConfig.LIVE_SHOW_NET_SPEED, false) && shouldShowLoadingSpeed) {
                     this.loadingSpeed.setVisibility(VISIBLE);
                     mHandler.post(mRunnable);
                 }

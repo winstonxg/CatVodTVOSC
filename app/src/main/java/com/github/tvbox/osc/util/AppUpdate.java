@@ -17,19 +17,34 @@ import okhttp3.Response;
 
 public class AppUpdate {
 
-    private static final String versionNo = "0.6.20220710";
+    private static final String versionNo = "0.6.20220711";
+    private static final String[] updateUrls = new String[] {
+            "https://raw.githubusercontent.com/kensonmiao/CatVodTVOSC_Release/main/",
+            "https://codeberg.org/kensonlogin55/CatVodTVOSC_Release/raw/branch/main/"
+    };
 
     public static String getCurrentVersionNo() {
         return versionNo;
     }
 
     public void CheckLatestVersion(Context context, Boolean forceToShow, Callable<Void> hasNoUpdateCall) {
-        GetRequest<String> request = OkGo.<String>get("https://raw.githubusercontent.com/kensonmiao/CatVodTVOSC_Release/main/latest_ver.txt");
+        InternalCheckVersion(context, forceToShow, hasNoUpdateCall, 0);
+    }
+
+    private void InternalCheckVersion(Context context, Boolean forceToShow, Callable<Void> hasNoUpdateCall, int sourceIndex) {
+        GetRequest<String> request = OkGo.<String>get(updateUrls[sourceIndex] + "latest_ver.txt");
         request.execute(new AbsCallback<String>() {
 
             @Override
             public String convertResponse(Response response) throws Throwable {
                 return response.body().string();
+            }
+
+            @Override
+            public void onError(com.lzy.okgo.model.Response<String> response) {
+                super.onError(response);
+                if(sourceIndex + 1 < updateUrls.length)
+                    InternalCheckVersion(context, forceToShow, hasNoUpdateCall, sourceIndex+1);
             }
 
             @Override
@@ -44,12 +59,12 @@ public class AppUpdate {
                         String[] localVersionNo = versionNo.split("\\.");
                         String[] remoteVersionNo = splitData[0].split("\\.");
                         if(remoteVersionNo.length >localVersionNo.length) {
-                            showUpdateDialog(context, splitData);
+                            showUpdateDialog(context, updateUrls[sourceIndex], splitData);
                             return;
                         }
                         for (int i = 0; i < localVersionNo.length && i < remoteVersionNo.length; i++) {
                             if (Integer.parseInt(remoteVersionNo[i]) > Integer.parseInt(localVersionNo[i])) {
-                                showUpdateDialog(context, splitData);
+                                showUpdateDialog(context, updateUrls[sourceIndex], splitData);
                                 return;
                             }
                         }
@@ -66,9 +81,10 @@ public class AppUpdate {
         });
     }
 
-    private void showUpdateDialog(Context context, String[] splitData) {
+    private void showUpdateDialog(Context context, String source, String[] splitData) {
         VersionInfo info = new VersionInfo();
         info.VersionNo = splitData[0];
+        info.Source = source;
         StringBuilder updatedInfoSB = new StringBuilder();
         if (splitData.length > 2) {
             for (int lineIndex = 2; lineIndex < splitData.length; lineIndex++) {
@@ -83,6 +99,7 @@ public class AppUpdate {
 
     public class VersionInfo {
         public String VersionNo;
+        public String Source;
         public String UpdatedInfo;
     }
 }
