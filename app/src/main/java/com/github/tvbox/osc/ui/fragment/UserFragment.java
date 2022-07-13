@@ -44,9 +44,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     }
 
     @Override
-    protected int getLayoutResID() {
-        return R.layout.fragment_user_layout;
-    }
+    protected int getLayoutResID() { return R.layout.fragment_user_layout; }
 
     @Override
     protected void init() {

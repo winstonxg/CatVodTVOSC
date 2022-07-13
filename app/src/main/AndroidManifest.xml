@@ -22,7 +22,7 @@
         android:largeHeap="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.NoActionBar"
+        android:theme="@style/AppTheme.ActionBar"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".ui.activity.HomeActivity"
@@ -36,12 +36,14 @@
         </activity>
         <activity
             android:name=".ui.activity.LivePlayActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape" />
         <activity
             android:name=".ui.activity.DetailActivity"
             android:screenOrientation="landscape" />
         <activity
             android:name=".ui.activity.PlayActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape" />
         <activity
             android:name=".ui.activity.PushActivity"

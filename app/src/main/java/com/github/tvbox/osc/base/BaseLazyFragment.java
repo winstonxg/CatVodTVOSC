@@ -131,7 +131,7 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
             return;
         }
         // 为了代码严谨,如果当前状态与需要设置的状态本来就一致了,就不处理了
-        if (currentVisibleState == isVisible) {
+        if (currentVisibleState == isVisible || rootView == null) {
             return;
         }
         currentVisibleState = isVisible;

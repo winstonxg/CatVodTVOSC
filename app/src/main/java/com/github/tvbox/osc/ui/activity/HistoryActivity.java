@@ -55,7 +55,7 @@ public class HistoryActivity extends BaseActivity {
 
     private void initView() {
         EventBus.getDefault().register(this);
-        tvDel = findViewById(R.id.tvDel);
+        //tvDel = findViewById(R.id.tvDel);
         tvDelTip = findViewById(R.id.tvDelTip);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
