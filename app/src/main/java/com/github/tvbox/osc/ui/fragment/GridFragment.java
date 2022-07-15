@@ -209,4 +209,6 @@ public class GridFragment extends BaseLazyFragment {
         if (gridFilterDialog != null)
             gridFilterDialog.show();
     }
+
+
 }

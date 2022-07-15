@@ -14,6 +14,7 @@ import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.fragment.PlayerFragment;
 import com.github.tvbox.osc.ui.fragment.homes.AbstractHomeFragment;
 import com.github.tvbox.osc.ui.fragment.homes.AssembledFragment;
+import com.github.tvbox.osc.ui.fragment.homes.CatFragment;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.AppUpdate;
 
@@ -39,13 +40,13 @@ public class HomeActivity extends BaseActivity {
         EventBus.getDefault().register(this);
         ControlManager.get().startServer();
         new AppUpdate().CheckLatestVersion(this, false, null);
-        mFrame = findViewById(R.id.mFrame);
-        currentHomeFragment = new AssembledFragment();
-        FrameLayout tempFrame = new FrameLayout(this);
-        tempFrame.setId(HOME_FRAME_ID);
-        mFrame.addView(tempFrame, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        //mFrame = findViewById(R.id.mFrame);
+        currentHomeFragment = new AssembledFragment(); //CatFragment();
+        //FrameLayout tempFrame = new FrameLayout(this);
+        //tempFrame.setId(HOME_FRAME_ID);
+        //mFrame.addView(tempFrame, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         getSupportFragmentManager().beginTransaction()
-                .add(HOME_FRAME_ID, currentHomeFragment, PlayerFragment.FRAGMENT_TAG).disallowAddToBackStack().commit();
+                .add(R.id.mFrame, currentHomeFragment, PlayerFragment.FRAGMENT_TAG).disallowAddToBackStack().commit();
         currentHomeFragment.useCacheConfig = false;
         Intent intent = getIntent();
         if (intent != null && intent.getExtras() != null) {

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbarSize="@dimen/vs_50">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/topLayout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/vs_50"
+            android:layout_marginTop="@dimen/vs_10"
+            android:layout_marginBottom="@dimen/vs_10"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="@dimen/vs_50"
+            android:paddingRight="@dimen/vs_50">
+
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="@dimen/vs_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:gravity="left|center_vertical"
+                android:text="@string/app_name"
+                android:textAlignment="gravity"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/ts_30"
+                android:textStyle="bold" />
+
+            <com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
+                android:id="@+id/tvNote"
+                android:layout_width="0pt"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20pt"
+                android:layout_marginRight="20pt"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:gravity="center_vertical"
+                android:textColor="@android:color/white"
+                android:textSize="28pt"
+                android:visibility="gone" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="@dimen/vs_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:gravity="right|center_vertical"
+                android:textAlignment="gravity"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/ts_28" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/contentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:orientation="vertical">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/mFeatureView"
+                android:name="com.github.tvbox.osc.ui.fragment.UserFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/vs_4"
+                android:layout_marginBottom="@dimen/vs_4"
+                android:nextFocusRight="@id/mViewPager"
+                android:tag="mUserFragment" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/vs_4"
+                android:layout_marginBottom="@dimen/vs_4"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingLeft="@dimen/vs_50"
+                android:paddingRight="@dimen/vs_50">
+
+                <TextView
+                    android:layout_width="@dimen/vs_0"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:gravity="left|center_vertical"
+                    android:text="最近观看"
+                    android:textAlignment="gravity"
+                    android:textColor="@android:color/white"
+                    android:textSize="@dimen/ts_30"
+                    android:textStyle="normal" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="@dimen/vs_0"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:gravity="right|center_vertical"
+                    android:textAlignment="gravity"
+                    android:textColor="@android:color/white"
+                    android:textSize="@dimen/ts_28" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/mHistoryFrameLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/vs_4"
+                android:layout_marginBottom="@dimen/vs_4"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingLeft="@dimen/vs_50"
+                android:paddingRight="@dimen/vs_50">
+
+                <TextView
+                    android:layout_width="@dimen/vs_0"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:gravity="left|center_vertical"
+                    android:text="更新推荐"
+                    android:textAlignment="gravity"
+                    android:textColor="@android:color/white"
+                    android:textSize="@dimen/ts_30"
+                    android:textStyle="normal" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="@dimen/vs_0"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:gravity="right|center_vertical"
+                    android:textAlignment="gravity"
+                    android:textColor="@android:color/white"
+                    android:textSize="@dimen/ts_28" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/mHomeFrameLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            </FrameLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
