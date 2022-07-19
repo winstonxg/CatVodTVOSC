@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.callback.EmptyCallback;
 import com.github.tvbox.osc.callback.LoadingCallback;
 import com.kingja.loadsir.callback.Callback;
@@ -258,6 +260,24 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
     protected void showLoading() {
         if (mLoadService != null) {
             mLoadService.showCallback(LoadingCallback.class);
+        }
+    }
+
+    protected void showLoading(String message) {
+        if (mLoadService != null) {
+            mLoadService.showCallback(LoadingCallback.class);
+            TextView lblMsg = mLoadService.getLoadLayout().findViewById(R.id.lblMsg);
+            if(lblMsg == null) {
+                mLoadService.getLoadLayout().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView lblMsg = mLoadService.getLoadLayout().findViewById(R.id.lblMsg);
+                        lblMsg.setText(message);
+                    }
+                });
+            } else {
+                lblMsg.setText(message);
+            }
         }
     }
 

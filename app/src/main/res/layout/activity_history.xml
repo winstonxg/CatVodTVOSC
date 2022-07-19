@@ -20,6 +20,7 @@
         app:tv_verticalSpacingWithMargins="@dimen/vs_10" />
 
     <LinearLayout
+        android:id="@+id/tvDelTipLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="-40mm"

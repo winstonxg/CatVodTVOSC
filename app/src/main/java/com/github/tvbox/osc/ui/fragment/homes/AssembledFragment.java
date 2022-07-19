@@ -200,6 +200,7 @@ public class AssembledFragment extends AbstractHomeFragment {
         }
 
         private void initViewModel() {
+            showLoading("正在加载首页数据源...");
             sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
             sourceViewModel.sortResult.observe(this, new Observer<AbsSortXml>() {
                 @Override

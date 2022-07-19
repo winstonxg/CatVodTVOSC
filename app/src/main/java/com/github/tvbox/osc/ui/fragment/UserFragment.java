@@ -28,6 +28,7 @@ import org.greenrobot.eventbus.ThreadMode;
  * @description:
  */
 public class UserFragment extends BaseLazyFragment implements View.OnClickListener {
+    private LinearLayout tvVod;
     private LinearLayout tvLive;
     private LinearLayout tvSearch;
     private LinearLayout tvSetting;
@@ -37,10 +38,21 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     private FragmentContainerView selfView;
     private boolean anyItemFocused = false;
     private boolean hasScheduled = false;
+    private boolean showVod = false;
     private final Handler userFragmentHandler = new Handler();
 
     public static UserFragment newInstance() {
         return new UserFragment();
+    }
+
+    public View.OnClickListener vodClickListener = null;
+
+    public UserFragment() {
+        this.showVod = false;
+    }
+
+    public UserFragment(boolean showVod) {
+        this.showVod = showVod;
     }
 
     @Override
@@ -49,18 +61,22 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     @Override
     protected void init() {
         EventBus.getDefault().register(this);
+        tvVod = findViewById(R.id.tvVod);
+        updateShowVod(this.showVod);
         tvLive = findViewById(R.id.tvLive);
         tvSearch = findViewById(R.id.tvSearch);
         tvSetting = findViewById(R.id.tvSetting);
         tvPush = findViewById(R.id.tvPush);
         tvFavorite = findViewById(R.id.tvFavorite);
         tvDouban = findViewById(R.id.tvDouban);
+        tvVod.setOnClickListener(this);
         tvLive.setOnClickListener(this);
         tvSearch.setOnClickListener(this);
         tvSetting.setOnClickListener(this);
         tvPush.setOnClickListener(this);
         tvFavorite.setOnClickListener(this);
         tvDouban.setOnClickListener(this);
+        tvVod.setOnFocusChangeListener(focusChangeListener);
         tvLive.setOnFocusChangeListener(focusChangeListener);
         tvSearch.setOnFocusChangeListener(focusChangeListener);
         tvSetting.setOnFocusChangeListener(focusChangeListener);
@@ -84,10 +100,18 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         }
     };
 
+    public void updateShowVod(boolean showVod) {
+        this.showVod = showVod;
+        if(tvVod != null)
+            tvVod.setVisibility(showVod ? View.VISIBLE : View.GONE);
+    }
+
     @Override
     public void onClick(View v) {
         FastClickCheckUtil.check(v);
-        if (v.getId() == R.id.tvLive) {
+        if(v.getId() == R.id.tvVod && vodClickListener != null) {
+            vodClickListener.onClick(v);
+        } else if (v.getId() == R.id.tvLive) {
             jumpActivity(LivePlayActivity.class);
         } else if (v.getId() == R.id.tvSearch) {
             jumpActivity(SearchActivity.class);

@@ -10,4 +10,14 @@
         android:indeterminateBehavior="repeat"
         android:indeterminateDrawable="@drawable/dkplayer_progress_loading"
         android:indeterminateOnly="true" />
+
+    <TextView
+        android:id="@+id/lblMsg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/vs_50"
+        android:gravity="center_horizontal|top"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/vs_24" />
 </FrameLayout>

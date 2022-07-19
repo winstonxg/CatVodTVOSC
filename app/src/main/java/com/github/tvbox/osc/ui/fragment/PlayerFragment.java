@@ -352,10 +352,20 @@ public class PlayerFragment  extends BaseLazyFragment {
     public void initData(VodInfo vodInfo, String sourceKey) {
         playingUrl = null;
         mVodInfo = vodInfo;
+        playingInfo = clonePlayingVodeInfo(vodInfo);
         this.sourceKey = sourceKey;
         sourceBean = ApiConfig.get().getSource(sourceKey);
         initPlayerCfg();
         play();
+    }
+
+    private VodInfo clonePlayingVodeInfo(VodInfo info) {
+        VodInfo newInfo = new VodInfo();
+        newInfo.sourceKey = info.sourceKey;
+        newInfo.id = info.id;
+        newInfo.playFlag = info.playFlag;
+        newInfo.playIndex = info.playIndex;
+        return newInfo;
     }
 
     void initPlayerCfg() {
@@ -393,9 +403,14 @@ public class PlayerFragment  extends BaseLazyFragment {
     }
 
     private VodInfo mVodInfo;
+    private VodInfo playingInfo;
     private JSONObject mVodPlayerCfg;
     private String sourceKey;
     private SourceBean sourceBean;
+
+    public VodInfo getPlayingVodInfo() {
+        return clonePlayingVodeInfo(playingInfo);
+    }
 
     private void playNext() {
         boolean hasNext = true;
@@ -409,6 +424,7 @@ public class PlayerFragment  extends BaseLazyFragment {
             return;
         }
         mVodInfo.playIndex++;
+        playingInfo.playIndex++;
         play();
     }
 
@@ -424,6 +440,7 @@ public class PlayerFragment  extends BaseLazyFragment {
             return;
         }
         mVodInfo.playIndex--;
+        playingInfo.playIndex--;
         play();
     }
 

@@ -17,7 +17,7 @@ import okhttp3.Response;
 
 public class AppUpdate {
 
-    private static final String versionNo = "0.6.20220711";
+    private static final String versionNo = "0.6.20220714";
     private static final String[] updateUrls = new String[] {
             "https://raw.githubusercontent.com/kensonmiao/CatVodTVOSC_Release/main/",
             "https://codeberg.org/kensonlogin55/CatVodTVOSC_Release/raw/branch/main/"

@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -28,10 +29,15 @@ import java.util.List;
 
 public class HistoryFragment extends BaseLazyFragment {
 
+    private LinearLayout tvDelTipLayout;
     private TextView tvDelTip;
     private TvRecyclerView mGridView;
     private HistoryAdapter historyAdapter;
+    private List<VodInfo> allVodRecord;
     private boolean delMode = false;
+    private boolean shouldShowDelHint = true;
+    private int presentingSize = -1;
+    private int loadSize = 100;
 
     private static final String defaultDelMsg = "长按任意影视项激活删除模式";
     private static final String enabledDelMsg = "点击影视项删除该纪录，返回键退出删除模式";
@@ -39,6 +45,8 @@ public class HistoryFragment extends BaseLazyFragment {
     public static HistoryFragment newInstance() {
         return new HistoryFragment();
     }
+
+    public HistoryFragment() {}
 
     @Override
     protected int getLayoutResID() {
@@ -55,6 +63,13 @@ public class HistoryFragment extends BaseLazyFragment {
         return delMode;
     }
 
+    public void shouldShowDelHint(boolean shouldShow) {
+        this.shouldShowDelHint = shouldShow;
+        if(this.tvDelTipLayout != null) {
+            this.tvDelTipLayout.setVisibility(shouldShow ? View.VISIBLE : View.GONE);
+        }
+    }
+
     public void toggleDelMode() {
         delMode = !delMode;
         historyAdapter.toggleDelMode(delMode);
@@ -62,13 +77,36 @@ public class HistoryFragment extends BaseLazyFragment {
         tvDelTip.setTextColor(getResources().getColor(delMode ? R.color.color_FF0057 : R.color.color_CCFFFFFF));
     }
 
+    public void setLoadSize(int loadSize) {
+        this.loadSize = loadSize;
+        if(rootView != null)
+            initData();
+    }
+
+    public int getLoadSize() {
+        return loadSize;
+    }
+
+    public int getAllRecordSize() {
+        if(this.allVodRecord == null)
+            return 0;
+        return this.allVodRecord.size();
+    }
+
+    public int getPresentingSize() {
+        return presentingSize;
+    }
+
     private void initView() {
         EventBus.getDefault().register(this);
         tvDelTip = findViewById(R.id.tvDelTip);
+        tvDelTipLayout = findViewById(R.id.tvDelTipLayout);
         tvDelTip.setText(defaultDelMsg);
+        tvDelTipLayout.setVisibility(shouldShowDelHint ? View.VISIBLE : View.GONE);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
-        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, isBaseOnWidth() ? 5 : 6));
+        V7GridLayoutManager layoutManager = new V7GridLayoutManager(this.mContext, isBaseOnWidth() ? 5 : 6);
+        mGridView.setLayoutManager(layoutManager);
         historyAdapter = new HistoryAdapter();
         mGridView.setAdapter(historyAdapter);
         historyAdapter.bindToRecyclerView(mGridView);
@@ -104,35 +142,10 @@ public class HistoryFragment extends BaseLazyFragment {
                 FastClickCheckUtil.check(view);
                 VodInfo vodInfo = historyAdapter.getData().get(position);
 
-                //HistoryDialog historyDialog = new HistoryDialog().build(mContext, vodInfo).setOnHistoryListener(new HistoryDialog.OnHistoryListener() {
-                //    @Override
-                //    public void onLook(VodInfo vodInfo) {
-                //        if (vodInfo != null) {
-                //            Bundle bundle = new Bundle();
-                //            bundle.putInt("id", vodInfo.id);
-                //            bundle.putString("sourceKey", vodInfo.sourceKey);
-                //            jumpActivity(DetailActivity.class, bundle);
-                //        }
-                //    }
-
-                //    @Override
-                //    public void onDelete(VodInfo vodInfo) {
-                //        if (vodInfo != null) {
-                //               for (int i = 0; i < historyAdapter.getData().size(); i++) {
-                //                    if (vodInfo.id == historyAdapter.getData().get(i).id) {
-                //                        historyAdapter.remove(i);
-                //                        break;
-                //                    }
-                //                }
-                //                RoomDataManger.deleteVodRecord(vodInfo.sourceKey, vodInfo);
-                //        }
-                //    }
-                //});
-                //historyDialog.show();
-
                 if (vodInfo != null) {
                     if (delMode) {
                         historyAdapter.remove(position);
+                        EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_HISTORY_REFRESH));
                         RoomDataManger.deleteVodRecord(vodInfo.sourceKey, vodInfo);
                     } else {
                         Bundle bundle = new Bundle();
@@ -146,10 +159,20 @@ public class HistoryFragment extends BaseLazyFragment {
     }
 
     private void initData() {
-        List<VodInfo> allVodRecord = RoomDataManger.getAllVodRecord(100);
+        allVodRecord = RoomDataManger.getAllVodRecord(100);
         List<VodInfo> vodInfoList = new ArrayList<>();
+        int recordCount = 0;
         for (VodInfo vodInfo : allVodRecord) {
             vodInfoList.add(vodInfo);
+            if(++recordCount >= loadSize)
+                break;
+        }
+        presentingSize = vodInfoList.size();
+        if(tvDelTipLayout != null) {
+            if (presentingSize == 0)
+                tvDelTipLayout.setVisibility(View.GONE);
+            else
+                tvDelTipLayout.setVisibility(shouldShowDelHint ? View.VISIBLE : View.GONE);
         }
         historyAdapter.setNewData(vodInfoList);
     }

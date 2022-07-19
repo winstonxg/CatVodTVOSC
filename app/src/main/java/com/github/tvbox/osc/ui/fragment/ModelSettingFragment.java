@@ -22,6 +22,7 @@ import com.github.tvbox.osc.ui.dialog.ApiDialog;
 import com.github.tvbox.osc.ui.dialog.BackupDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.XWalkInitDialog;
+import com.github.tvbox.osc.ui.fragment.homes.AbstractHomeFragment;
 import com.github.tvbox.osc.util.AppUpdate;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
@@ -54,6 +55,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
     private TextView tvScale;
     private TextView tvApi;
     private TextView tvHomeApi;
+    private TextView homeView;
     private TextView tvDns;
     private TextView tvSearchView;
     private TextView thirdPartyPlayer;
@@ -83,6 +85,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
         tvScale = findViewById(R.id.tvScaleType);
         tvApi = findViewById(R.id.tvApi);
         tvHomeApi = findViewById(R.id.tvHomeApi);
+        homeView = findViewById(R.id.homeView);
         tvDns = findViewById(R.id.tvDns);
         tvSearchView = findViewById(R.id.tvSearchView);
         thirdPartyPlayer = findViewById(R.id.tv3rdPlay);
@@ -94,6 +97,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
         tvParseWebView.setText(Hawk.get(HawkConfig.PARSE_WEBVIEW, true) ? "系统自带" : "XWalkView");
         tvApi.setText(Hawk.get(HawkConfig.API_URL, ""));
         tvDns.setText(OkGoHelper.dnsHttpsList.get(Hawk.get(HawkConfig.DOH_URL, 0)));
+        homeView.setText(AbstractHomeFragment.lookupHomeViewStyle(Hawk.get(HawkConfig.HOME_VIEW_STYLE, "")).getName());
         //tvHomeRec.setText(getHomeRecName(Hawk.get(HawkConfig.HOME_REC, 0)));
         tvSearchView.setText(getSearchView(Hawk.get(HawkConfig.SEARCH_VIEW, 0)));
         tvHomeApi.setText(ApiConfig.get().getHomeSourceBean().getName());
@@ -190,6 +194,48 @@ public class ModelSettingFragment extends BaseLazyFragment {
                     }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
                     dialog.show();
                 }
+            }
+        });
+        findViewById(R.id.llHomeView).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FastClickCheckUtil.check(view);
+                ArrayList<AbstractHomeFragment.ManagedHomeViewStyle> homeViewStyles = AbstractHomeFragment.getManagedHomeFragments();
+                String currentVal = Hawk.get(HawkConfig.HOME_VIEW_STYLE, homeViewStyles.get(0).getClassName());
+                int defaultPos = 0;
+                for (AbstractHomeFragment.ManagedHomeViewStyle style: homeViewStyles) {
+                    if(style.getClassName().equals(currentVal))
+                        break;
+                    else
+                        defaultPos ++;
+                }
+                if(defaultPos < 0 || defaultPos >= homeViewStyles.size())
+                    defaultPos = 0;
+                SelectDialog<AbstractHomeFragment.ManagedHomeViewStyle> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("请选择主界面样式");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<AbstractHomeFragment.ManagedHomeViewStyle>() {
+                    @Override
+                    public void click(AbstractHomeFragment.ManagedHomeViewStyle value, int pos) {
+                        Hawk.put(HawkConfig.HOME_VIEW_STYLE, value.getClassName());
+                        homeView.setText(value.getName());
+                    }
+
+                    @Override
+                    public String getDisplay(AbstractHomeFragment.ManagedHomeViewStyle val) {
+                        return val.getName();
+                    }
+                }, new DiffUtil.ItemCallback<AbstractHomeFragment.ManagedHomeViewStyle>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull @NotNull AbstractHomeFragment.ManagedHomeViewStyle oldItem, @NonNull @NotNull AbstractHomeFragment.ManagedHomeViewStyle newItem) {
+                        return oldItem.getClassName().equals(newItem.getClassName());
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(@NonNull @NotNull AbstractHomeFragment.ManagedHomeViewStyle oldItem, @NonNull @NotNull AbstractHomeFragment.ManagedHomeViewStyle newItem) {
+                        return oldItem.getClassName().equals(newItem.getClassName());
+                    }
+                }, homeViewStyles, defaultPos);
+                dialog.show();
             }
         });
         findViewById(R.id.llDns).setOnClickListener(new View.OnClickListener() {

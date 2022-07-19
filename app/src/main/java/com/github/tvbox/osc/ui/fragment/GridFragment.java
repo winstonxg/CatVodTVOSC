@@ -24,6 +24,8 @@ import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 
+import java.util.List;
+
 /**
  * @author pj567
  * @date :2020/12/21
@@ -41,6 +43,7 @@ public class GridFragment extends BaseLazyFragment {
     private boolean isTop = true;
     private int spanCount = isBaseOnWidth() ? 5 : 6;
     private BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter;
+    private TvRecyclerView.OnItemListener itemListener;
     private BaseQuickAdapter.OnItemClickListener itemClickListener = new BaseQuickAdapter.OnItemClickListener() {
         @Override
         public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -80,6 +83,10 @@ public class GridFragment extends BaseLazyFragment {
         return this;
     }
 
+    public void SetOnItemListener(TvRecyclerView.OnItemListener itemListener) {
+        this.itemListener = itemListener;
+    }
+
     @Override
     protected int getLayoutResID() {
         return R.layout.fragment_grid;
@@ -108,16 +115,21 @@ public class GridFragment extends BaseLazyFragment {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
                 itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
+                if(itemListener != null)
+                    itemListener.onItemPreSelected(parent, itemView, position);
             }
 
             @Override
             public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
                 itemView.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
+                if(itemListener != null)
+                    itemListener.onItemSelected(parent, itemView, position);
             }
 
             @Override
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
-
+                if(itemListener != null)
+                    itemListener.onItemClick(parent, itemView, position);
             }
         });
         if(itemLongClickListener != null)
@@ -143,6 +155,16 @@ public class GridFragment extends BaseLazyFragment {
     public void setOnItemLongClickListener(BaseQuickAdapter.OnItemLongClickListener listener) {
         this.itemLongClickListener = listener;
         this.adapter.setOnItemLongClickListener(listener);
+    }
+
+    public List<Movie.Video> GetResultList() {
+        if(sourceViewModel == null)
+            return null;
+        AbsXml absXml = sourceViewModel.listResult.getValue();
+        if(absXml != null && absXml.movie != null && absXml.movie.videoList != null && absXml.movie.videoList.size() > 0) {
+            return absXml.movie.videoList;
+        }
+        return null;
     }
 
     private void initViewModel() {

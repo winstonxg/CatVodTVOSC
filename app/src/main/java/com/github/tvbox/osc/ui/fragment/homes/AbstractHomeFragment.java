@@ -15,6 +15,7 @@ import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public abstract class AbstractHomeFragment extends BaseLazyFragment {
@@ -25,6 +26,38 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
     public boolean useCacheConfig = false;
 
+    private static ManagedHomeViewStyle[] managedHomeFragments = new ManagedHomeViewStyle[] {
+            new ManagedHomeViewStyle("AssembledFragment", "集合式"),
+            new ManagedHomeViewStyle("CatFragment", "老猫式")
+    };
+
+    public static class ManagedHomeViewStyle {
+        private String className;
+        private String name;
+        public ManagedHomeViewStyle(String className, String name) {
+            this.className = className;
+            this.name = name;
+        }
+        public String getClassName() { return className; }
+        public String getName() { return name; }
+    }
+
+    public static ArrayList<ManagedHomeViewStyle> getManagedHomeFragments() {
+        ArrayList<ManagedHomeViewStyle> fragments = new ArrayList<>();
+        for (ManagedHomeViewStyle fragment : managedHomeFragments) {
+            fragments.add(fragment);
+        }
+        return fragments;
+    }
+
+    public static ManagedHomeViewStyle lookupHomeViewStyle(String className) {
+        for (ManagedHomeViewStyle style : managedHomeFragments) {
+            if(style.getClassName().equals(className))
+                return style;
+        }
+        return managedHomeFragments[0];
+    }
+
     private Runnable mRunnable = new Runnable() {
         @SuppressLint({"DefaultLocale", "SetTextI18n"})
         @Override
@@ -32,7 +65,8 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
             Date date = new Date();
             @SuppressLint("SimpleDateFormat")
             SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-            tvDate.setText(timeFormat.format(date));
+            if(tvDate != null)
+                tvDate.setText(timeFormat.format(date));
             mHandler.postDelayed(this, 1000);
         }
     };
@@ -42,7 +76,6 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
     protected void initData() {
         if (dataInitOk && jarInitOk) {
-            showLoading();
             sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey());
             if (((BaseActivity)mActivity).hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 LOG.e("有");
@@ -51,9 +84,10 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
             }
             return;
         }
-        showLoading();
         if (dataInitOk && !jarInitOk) {
+            showLoading("正在加载自定义设置...");
             if (!ApiConfig.get().getSpider().isEmpty()) {
+                showLoading("正在加载自定义爬虫代码...");
                 ApiConfig.get().loadJar(useCacheConfig, ApiConfig.get().getSpider(), new ApiConfig.LoadConfigCallback() {
                     @Override
                     public void success() {
@@ -61,8 +95,6 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
                         mHandler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (!useCacheConfig)
-                                    Toast.makeText(mActivity, "自定义jar加载成功", Toast.LENGTH_SHORT).show();
                                 initData();
                             }
                         }, 50);
@@ -88,6 +120,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
             }
             return;
         }
+        showLoading("正在加载索引...");
         ApiConfig.get().loadConfig(useCacheConfig, new ApiConfig.LoadConfigCallback() {
             TipDialog dialog = null;
 
@@ -103,6 +136,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
             @Override
             public void success() {
+                showLoading("正在加载站点规则...");
                 dataInitOk = true;
                 if (ApiConfig.get().getSpider().isEmpty()) {
                     jarInitOk = true;

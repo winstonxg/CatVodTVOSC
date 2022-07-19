@@ -18,6 +18,7 @@ import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.ui.adapter.SettingMenuAdapter;
 import com.github.tvbox.osc.ui.adapter.SettingPageAdapter;
 import com.github.tvbox.osc.ui.fragment.ModelSettingFragment;
+import com.github.tvbox.osc.ui.fragment.homes.AbstractHomeFragment;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.orhanobut.hawk.Hawk;
@@ -44,6 +45,7 @@ public class SettingActivity extends BaseActivity {
     private Handler mHandler = new Handler();
     private String homeSourceKey;
     private String currentApi;
+    private String currentHomeStyle;
     private int homeRec;
     private int dnsOpt;
 
@@ -106,6 +108,7 @@ public class SettingActivity extends BaseActivity {
     }
 
     private void initData() {
+        currentHomeStyle = Hawk.get(HawkConfig.HOME_VIEW_STYLE, AbstractHomeFragment.getManagedHomeFragments().get(0).getClassName());
         currentApi = Hawk.get(HawkConfig.API_URL, "");
         homeSourceKey = ApiConfig.get().getHomeSourceBean().getKey();
         homeRec = Hawk.get(HawkConfig.HOME_REC, 0);
@@ -180,7 +183,8 @@ public class SettingActivity extends BaseActivity {
         if ((homeSourceKey != null && !homeSourceKey.equals(Hawk.get(HawkConfig.HOME_API, ""))) ||
                 !currentApi.equals(Hawk.get(HawkConfig.API_URL, "")) ||
                 homeRec != Hawk.get(HawkConfig.HOME_REC, 0) ||
-                dnsOpt != Hawk.get(HawkConfig.DOH_URL, 0)) {
+                dnsOpt != Hawk.get(HawkConfig.DOH_URL, 0) ||
+                !currentHomeStyle.equals(Hawk.get(HawkConfig.HOME_VIEW_STYLE, AbstractHomeFragment.getManagedHomeFragments().get(0).getClassName()))) {
             AppManager.getInstance().finishAllActivity();
             if (currentApi.equals(Hawk.get(HawkConfig.API_URL, ""))) {
                 Bundle bundle = new Bundle();

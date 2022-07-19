@@ -115,6 +115,7 @@ public class DetailActivity extends BaseActivity {
     public String sourceKey;
     boolean seriesSelect = false;
     private View seriesFlagFocus = null;
+    private int lastSeriesFocusIndex = -1;
     private FrameLayout mPlayerFrame;
     private static PlayerFragment playerFragment;
     private ArrayList<String> seriesGroupOptions = new ArrayList<>();
@@ -307,9 +308,17 @@ public class DetailActivity extends BaseActivity {
                         seriesAdapter.getData().get(position).selected = true;
                         seriesAdapter.notifyItemChanged(position);
                         vodInfo.playIndex = position;
-                        jumpToPlay(true, true);
+                        lastSeriesFocusIndex = position;
+                    }
+                    if(playerFragment != null) {
+                        VodInfo playingInfo = playerFragment.getPlayingVodInfo();
+                        if(playingInfo != null && playingInfo.playFlag.equals(vodInfo.playFlag) && playingInfo.playIndex == vodInfo.playIndex ) {
+                            jumpToPlay(true, false);
+                        } else {
+                            jumpToPlay(true, true);
+                        }
                     } else {
-                        jumpToPlay(true, false);
+                        jumpToPlay(true, true);
                     }
                 }
             }
@@ -405,7 +414,8 @@ public class DetailActivity extends BaseActivity {
             } else {
                 if(newSource)
                     insertVod(sourceKey, vodInfo);
-                playerFragment.initData(vodInfo, sourceKey);
+                if(playerFragment != null)
+                    playerFragment.initData(vodInfo, sourceKey);
             }
         }
     }
@@ -591,9 +601,12 @@ public class DetailActivity extends BaseActivity {
             if (event.obj != null) {
                 if (event.obj instanceof Integer) {
                     int index = (int) event.obj;
-                    if (index != vodInfo.playIndex) {
-                        seriesAdapter.getData().get(vodInfo.playIndex).selected = false;
-                        seriesAdapter.notifyItemChanged(vodInfo.playIndex);
+                    if (index != lastSeriesFocusIndex) {
+                        if(lastSeriesFocusIndex >= 0) {
+                            seriesAdapter.getData().get(lastSeriesFocusIndex).selected = false;
+                            seriesAdapter.notifyItemChanged(lastSeriesFocusIndex);
+                        }
+                        lastSeriesFocusIndex = index;
                         seriesAdapter.getData().get(index).selected = true;
                         seriesAdapter.notifyItemChanged(index);
                         mGridView.setSelection(index);
@@ -778,6 +791,7 @@ public class DetailActivity extends BaseActivity {
         if (videoView != null) {
             videoView.resume();
         }
+
     }
 
     @Override
