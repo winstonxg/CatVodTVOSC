@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.adapter;
 
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -68,7 +69,7 @@ public class GridAdapter extends BaseQuickAdapter<Movie.Video, BaseViewHolder> {
                     .load(DefaultConfig.checkReplaceProxy(item.pic))
                     .transform(new RoundTransformation(MD5.string2MD5(item.pic + "position=" + helper.getLayoutPosition()))
                             .centerCorp(true)
-                            .override(AutoSizeUtils.mm2px(mContext, 300), AutoSizeUtils.mm2px(mContext, 360))
+                            .override(helper.itemView.getWidth(), helper.itemView.getHeight())
                             .roundRadius(AutoSizeUtils.mm2px(mContext, 10), RoundTransformation.RoundType.ALL))
                     .placeholder(R.drawable.img_loading_placeholder)
                     .error(R.drawable.img_loading_placeholder)

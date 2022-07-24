@@ -318,5 +318,10 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
         return true;
     }
 
+    public boolean shouldMoreColumns() {
+        if(getActivity() != null && getActivity() instanceof BaseActivity)
+            return ((BaseActivity) getActivity()).shouldMoreColumns();
+        return false;
+    }
 
 }

@@ -17,6 +17,7 @@ import com.github.tvbox.osc.ui.activity.RecommendActivity;
 import com.github.tvbox.osc.ui.activity.SearchActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
+import com.github.tvbox.osc.util.LOG;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -62,7 +63,6 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     protected void init() {
         EventBus.getDefault().register(this);
         tvVod = findViewById(R.id.tvVod);
-        updateShowVod(this.showVod);
         tvLive = findViewById(R.id.tvLive);
         tvSearch = findViewById(R.id.tvSearch);
         tvSetting = findViewById(R.id.tvSetting);
@@ -83,6 +83,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvPush.setOnFocusChangeListener(focusChangeListener);
         tvFavorite.setOnFocusChangeListener(focusChangeListener);
         tvDouban.setOnFocusChangeListener(focusChangeListener);
+        updateShowVod(this.showVod);
     }
 
     private View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
@@ -95,15 +96,16 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             anyItemFocused = hasFocus;
             if(!hasScheduled) {
                 hasScheduled = true;
-                userFragmentHandler.postDelayed(mFeatureViewRunnable, 50);
+                userFragmentHandler.postDelayed(mFeatureViewRunnable, 10);
             }
         }
     };
 
     public void updateShowVod(boolean showVod) {
         this.showVod = showVod;
-        if(tvVod != null)
+        if(tvVod != null) {
             tvVod.setVisibility(showVod ? View.VISIBLE : View.GONE);
+        }
     }
 
     @Override

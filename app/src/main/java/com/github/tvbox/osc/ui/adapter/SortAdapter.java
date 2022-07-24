@@ -1,5 +1,7 @@
 package com.github.tvbox.osc.ui.adapter;
 
+import androidx.annotation.LayoutRes;
+
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.github.tvbox.osc.R;
@@ -15,6 +17,10 @@ import java.util.ArrayList;
 public class SortAdapter extends BaseQuickAdapter<MovieSort.SortData, BaseViewHolder> {
     public SortAdapter() {
         super(R.layout.item_home_sort, new ArrayList<>());
+    }
+
+    public SortAdapter(@LayoutRes int layoutId) {
+        super(layoutId, new ArrayList<>());
     }
 
     @Override

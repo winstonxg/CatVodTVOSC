@@ -1,15 +1,11 @@
 package com.github.tvbox.osc.ui.fragment;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
@@ -33,7 +29,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -47,9 +42,10 @@ import com.github.tvbox.osc.bean.VodInfo;
 import com.github.tvbox.osc.cache.CacheManager;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.player.controller.VodController;
+import com.github.tvbox.osc.player.thirdparty.DangbeiPlayer;
 import com.github.tvbox.osc.player.thirdparty.MXPlayer;
 import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
-import com.github.tvbox.osc.ui.activity.PlayActivity;
+import com.github.tvbox.osc.player.thirdparty.UCPlayer;
 import com.github.tvbox.osc.util.AdBlocker;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.HawkConfig;
@@ -77,8 +73,6 @@ import org.xwalk.core.XWalkWebResourceRequest;
 import org.xwalk.core.XWalkWebResourceResponse;
 
 import java.io.ByteArrayInputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -104,6 +98,7 @@ public class PlayerFragment  extends BaseLazyFragment {
 
     private String playingUrl;
     private HashMap<String, String> playingHeader;
+    private ParserCallback oneTimeParserCallback = null;
 
     public static final String FRAGMENT_TAG = "mPlayerFragment";
 
@@ -116,6 +111,10 @@ public class PlayerFragment  extends BaseLazyFragment {
     protected void init() {
         initView();
         initViewModel();
+    }
+
+    public interface ParserCallback {
+        void afterParsed(String url);
     }
 
     public VodController getVodController() {
@@ -291,6 +290,14 @@ public class PlayerFragment  extends BaseLazyFragment {
                 callResult = ReexPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
                 break;
             }
+            case 12: {
+                callResult = UCPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
+            case 13: {
+                callResult = DangbeiPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
         }
         if(callResult) {
             Toast toast = Toast.makeText(mContext, "调用外部播放器成功",Toast.LENGTH_SHORT);
@@ -337,6 +344,10 @@ public class PlayerFragment  extends BaseLazyFragment {
                         } else {
                             mController.showParse(false);
                             playUrl(playUrl + url, headers);
+                            if(oneTimeParserCallback != null) {
+                                oneTimeParserCallback.afterParsed(playingUrl);
+                                oneTimeParserCallback = null;
+                            }
                         }
                     } catch (Throwable th) {
                         errorWithRetry("获取播放信息错误", true);
@@ -350,6 +361,11 @@ public class PlayerFragment  extends BaseLazyFragment {
     }
 
     public void initData(VodInfo vodInfo, String sourceKey) {
+        initData(vodInfo, sourceKey, null);
+    }
+
+    public void initData(VodInfo vodInfo, String sourceKey, ParserCallback oneTimeParserCallback) {
+        this.oneTimeParserCallback = oneTimeParserCallback;
         playingUrl = null;
         mVodInfo = vodInfo;
         playingInfo = clonePlayingVodeInfo(vodInfo);

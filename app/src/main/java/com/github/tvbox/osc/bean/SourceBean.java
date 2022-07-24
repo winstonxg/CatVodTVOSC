@@ -13,6 +13,7 @@ public class SourceBean {
     private String playerUrl; // 站点解析Url
     private String ext; // 扩展数据
     private ArrayList<String> categories = null; // 分类&排序
+    private String spider = "default";
 
     public String getKey() {
         return key;
@@ -92,5 +93,16 @@ public class SourceBean {
 
     public void setCategories(ArrayList<String> categories) {
         this.categories = categories;
+    }
+
+    public String getSpider() {
+        return spider;
+    }
+
+    public void setSpider(String spider) {
+        if(spider == null || spider.trim().length() == 0)
+            this.spider = "default";
+        else
+            this.spider = spider;
     }
 }

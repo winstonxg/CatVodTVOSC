@@ -12,7 +12,7 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
-        android:name=".base.App"
+        android:name="com.github.tvbox.osc.base.App"
         android:allowBackup="true"
         android:banner="@drawable/app_banner"
         android:configChanges="orientation|keyboardHidden|screenSize"
@@ -25,7 +25,7 @@
         android:theme="@style/AppTheme.ActionBar"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".ui.activity.HomeActivity"
+            android:name="com.github.tvbox.osc.ui.activity.HomeActivity"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,41 +35,41 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activity.LivePlayActivity"
+            android:name="com.github.tvbox.osc.ui.activity.LivePlayActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.DetailActivity"
+            android:name="com.github.tvbox.osc.ui.activity.DetailActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.PlayActivity"
+            android:name="com.github.tvbox.osc.ui.activity.PlayActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.PushActivity"
+            android:name="com.github.tvbox.osc.ui.activity.PushActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.SearchActivity"
+            android:name="com.github.tvbox.osc.ui.activity.SearchActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.SettingActivity"
+            android:name="com.github.tvbox.osc.ui.activity.SettingActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.HistoryActivity"
+            android:name="com.github.tvbox.osc.ui.activity.HistoryActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.CollectActivity"
+            android:name="com.github.tvbox.osc.ui.activity.CollectActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".ui.activity.RecommendActivity"
+            android:name="com.github.tvbox.osc.ui.activity.RecommendActivity"
             android:screenOrientation="landscape" />
 
-        <receiver android:name=".receiver.SearchReceiver">
+        <receiver android:name="com.github.tvbox.osc.receiver.SearchReceiver">
             <intent-filter>
                 <action android:name="android.content.movie.search.Action" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".receiver.CustomWebReceiver">
+        <receiver android:name="com.github.tvbox.osc.receiver.CustomWebReceiver">
             <intent-filter>
                 <action android:name="android.content.movie.custom.web.Action" />
             </intent-filter>

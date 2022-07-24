@@ -2,27 +2,45 @@ package com.github.tvbox.osc.ui.fragment.homes;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+
+import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
+import com.github.tvbox.osc.bean.SourceBean;
+import com.github.tvbox.osc.ui.activity.HomeActivity;
+import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
+import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.TipDialog;
+import com.github.tvbox.osc.util.AppManager;
+import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.orhanobut.hawk.Hawk;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
     protected SourceViewModel sourceViewModel;
     protected TextView tvDate;
     protected Handler mHandler = new Handler();
+    protected TextView tvQuickApi;
+    private boolean newChangeApi = false;
 
     public boolean useCacheConfig = false;
 
@@ -58,6 +76,46 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
         return managedHomeFragments[0];
     }
 
+    protected void initView() {
+        tvQuickApi = findViewById(R.id.tvQuickApi);
+        if(tvQuickApi != null) {
+            tvQuickApi.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    List<SourceBean> sites = ApiConfig.get().getSourceBeanList();
+                    if (sites.size() > 0) {
+                        SelectDialog<SourceBean> dialog = new SelectDialog<>(mActivity);
+                        dialog.setTip("请选择首页数据源");
+                        dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<SourceBean>() {
+                            @Override
+                            public void click(SourceBean value, int pos) {
+                                ApiConfig.get().setSourceBean(value);
+                                newChangeApi = true;
+                                AppManager.getInstance().finishAllActivity();
+                            }
+
+                            @Override
+                            public String getDisplay(SourceBean val) {
+                                return val.getName();
+                            }
+                        }, new DiffUtil.ItemCallback<SourceBean>() {
+                            @Override
+                            public boolean areItemsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
+                                return oldItem == newItem;
+                            }
+
+                            @Override
+                            public boolean areContentsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
+                                return oldItem.getKey().equals(newItem.getKey());
+                            }
+                        }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
+                        dialog.show();
+                    }
+                }
+            });
+        }
+    }
+
     private Runnable mRunnable = new Runnable() {
         @SuppressLint({"DefaultLocale", "SetTextI18n"})
         @Override
@@ -82,13 +140,20 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
             } else {
                 LOG.e("无");
             }
+            if(tvQuickApi != null) {
+                tvQuickApi.setText(ApiConfig.get().getHomeSourceBean().getName());
+                tvQuickApi.setVisibility(View.VISIBLE);
+            }
             return;
         }
         if (dataInitOk && !jarInitOk) {
             showLoading("正在加载自定义设置...");
             if (!ApiConfig.get().getSpider().isEmpty()) {
                 showLoading("正在加载自定义爬虫代码...");
-                ApiConfig.get().loadJar(useCacheConfig, ApiConfig.get().getSpider(), new ApiConfig.LoadConfigCallback() {
+                ApiConfig.get().loadJar(useCacheConfig,
+                        ApiConfig.get().getHomeSourceBean().getSpider(),
+                        ApiConfig.get().getSpider(),
+                        new ApiConfig.LoadConfigCallback() {
                     @Override
                     public void success() {
                         jarInitOk = true;
@@ -234,4 +299,11 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
     public abstract boolean pressBack();
     public abstract boolean dispatchKey(KeyEvent event);
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(this.newChangeApi)
+            jumpActivity(HomeActivity.class);
+    }
 }

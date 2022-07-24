@@ -9,8 +9,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 
+import com.github.catvod.crawler.JarLoader;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
+import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.IJKCode;
@@ -28,11 +30,16 @@ import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.OkGoHelper;
 import com.github.tvbox.osc.util.PlayerHelper;
+import com.lzy.okgo.OkGo;
+import com.lzy.okgo.callback.AbsCallback;
+import com.lzy.okgo.model.Response;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,6 +68,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
     private TextView thirdPartyPlayer;
     private LinearLayout thirdPartyPlayLayout;
     private TextView tvVersion;
+    private TextView tv2kAdapter;
 
     public static ModelSettingFragment newInstance() {
         return new ModelSettingFragment().setArguments();
@@ -91,9 +99,11 @@ public class ModelSettingFragment extends BaseLazyFragment {
         thirdPartyPlayer = findViewById(R.id.tv3rdPlay);
         thirdPartyPlayLayout = findViewById(R.id.thirdPartyPlay);
         tvVersion = findViewById(R.id.tvVersion);
+        tv2kAdapter = findViewById(R.id.tv2kAdapter);
 
         tvMediaCodec.setText(Hawk.get(HawkConfig.IJK_CODEC, ""));
         tvDebugOpen.setText(Hawk.get(HawkConfig.DEBUG_OPEN, false) ? "已打开" : "已关闭");
+        tv2kAdapter.setText(Hawk.get(HawkConfig.ENABLE_2K_ADAPTER, false) ? "已打开" : "已关闭");
         tvParseWebView.setText(Hawk.get(HawkConfig.PARSE_WEBVIEW, true) ? "系统自带" : "XWalkView");
         tvApi.setText(Hawk.get(HawkConfig.API_URL, ""));
         tvDns.setText(OkGoHelper.dnsHttpsList.get(Hawk.get(HawkConfig.DOH_URL, 0)));
@@ -156,7 +166,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 new AppUpdate().CheckLatestVersion(ModelSettingFragment.this.mActivity, true, new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        Toast.makeText(mActivity, "已经是最新版本", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, "已经是最新版本", Toast.LENGTH_SHORT).show();
                         return null;
                     }
                 });
@@ -236,6 +246,80 @@ public class ModelSettingFragment extends BaseLazyFragment {
                     }
                 }, homeViewStyles, defaultPos);
                 dialog.show();
+            }
+        });
+        findViewById(R.id.ll2kAdapter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FastClickCheckUtil.check(view);
+                List<String> options = Arrays.asList(new String[] { "关闭", "开启" });
+                boolean enable2KAdapter = Hawk.get(HawkConfig.ENABLE_2K_ADAPTER, false);
+                SelectDialog<String> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("是否开启大屏幕适应");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<String>() {
+                    @Override
+                    public void click(String value, int pos) {
+                        Hawk.put(HawkConfig.ENABLE_2K_ADAPTER, pos == 0 ? false : true);
+                        Toast.makeText(mContext, "重启后全局生效。", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public String getDisplay(String val) {
+                        return val;
+                    }
+                }, null, options, enable2KAdapter? 1 : 0);
+                dialog.show();
+            }
+        });
+        findViewById(R.id.llBackground).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String requestBackgroundUrl = ApiConfig.get().getRequestBackgroundUrl();
+                if(requestBackgroundUrl == null) {
+                    Toast.makeText(mContext, "没有设置壁纸源，请添加参数wallpaper。", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                File cache = new File(App.getInstance().getCacheDir().getAbsolutePath() + "/temp_wallpaper.jpg");
+                Toast.makeText(mContext, "正在获取壁纸...", Toast.LENGTH_LONG).show();
+                OkGo.<File>get(requestBackgroundUrl).execute(new AbsCallback<File>() {
+
+                    @Override
+                    public File convertResponse(okhttp3.Response response) throws Throwable {
+                        File cacheDir = cache.getParentFile();
+                        if (!cacheDir.exists())
+                            cacheDir.mkdirs();
+                        if (cache.exists())
+                            cache.delete();
+                        FileOutputStream fos = new FileOutputStream(cache);
+                        fos.write(response.body().bytes());
+                        fos.flush();
+                        fos.close();
+                        return cache;
+                    }
+
+                    @Override
+                    public void onSuccess(Response<File> response) {
+                        if (response.body().exists()) {
+                            Hawk.put(HawkConfig.CUSTOM_WALLPAPER, true);
+                            ((BaseActivity)mActivity).updateBackground();
+                        } else {
+                            Toast.makeText(mContext, "下载壁纸错误。", Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Response<File> response) {
+                        super.onError(response);
+                        Toast.makeText(mContext, "下载壁纸错误。", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+        findViewById(R.id.llResetBackground).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Hawk.put(HawkConfig.CUSTOM_WALLPAPER, false);
+                ((BaseActivity)mActivity).updateBackground();
             }
         });
         findViewById(R.id.llDns).setOnClickListener(new View.OnClickListener() {
@@ -548,6 +632,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 dialog.show();
             }
         });
+        findViewById(R.id.llHomeApi).requestFocus();
         SettingActivity.callback = new SettingActivity.DevModeCallback() {
             @Override
             public void onChange() {

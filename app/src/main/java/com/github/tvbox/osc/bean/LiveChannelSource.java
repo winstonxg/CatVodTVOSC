@@ -1,7 +1,5 @@
 package com.github.tvbox.osc.bean;
 
-import java.util.ArrayList;
-
 /**
  * @author Kenson
  * @date :2022/7/4

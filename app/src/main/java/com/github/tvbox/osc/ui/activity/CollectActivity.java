@@ -59,7 +59,7 @@ public class CollectActivity extends BaseActivity {
         tvDelTip.setText(defaultDelMsg);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
-        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, isBaseOnWidth() ? 5 : 6));
+        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, shouldMoreColumns() ? 5 : 6));
         collectAdapter = new CollectAdapter();
         mGridView.setAdapter(collectAdapter);
         collectAdapter.bindToRecyclerView(mGridView);

@@ -1,6 +1,5 @@
 package com.github.tvbox.osc.ui.adapter;
 
-import android.graphics.Color;
 import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;

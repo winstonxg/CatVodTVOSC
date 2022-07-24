@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -191,9 +192,32 @@ public class SourceViewModel extends ViewModel {
                 public void run() {
                     try {
                         Spider sp = ApiConfig.get().getCSP(homeSourceBean);
-                        if(sortData.id.equals("_home"))
-                            json(listResult, sp.homeContent(false), homeSourceBean.getKey());
-                        else
+                        if(sortData.id.equals("_home")) {
+                            String data1 = sp.homeContent(false);
+                            String data2 = sp.homeVideoContent();
+                            JsonObject dataObj1;
+                            if(data1 != null && data1.length() > 0)
+                                try {
+                                    dataObj1 = JsonParser.parseString(data1).getAsJsonObject();
+                                } catch (Exception ex) {
+                                    dataObj1 = new JsonObject();
+                                }
+                            else
+                                dataObj1 = new JsonObject();
+                            JsonObject dataObj2;
+                            if(data2 != null && data2.length() > 0)
+                                try {
+                                    dataObj2 = JsonParser.parseString(data2).getAsJsonObject();
+                                } catch (Exception ex) {
+                                    dataObj2 = new JsonObject();
+                                }
+                            else
+                                dataObj2 = new JsonObject();
+                            for(Map.Entry<String, JsonElement> prop : dataObj2.entrySet()) {
+                                dataObj1.add(prop.getKey(), prop.getValue());
+                            }
+                            json(listResult, dataObj1.toString(), homeSourceBean.getKey());
+                        } else
                             json(listResult, sp.categoryContent(sortData.id, page + "", true, sortData.filterSelect), homeSourceBean.getKey());
                     } catch (Throwable th) {
                         th.printStackTrace();

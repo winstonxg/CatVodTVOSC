@@ -6,14 +6,15 @@ import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.player.IjkMediaPlayer;
 import com.github.tvbox.osc.player.render.SurfaceRenderViewFactory;
+import com.github.tvbox.osc.player.thirdparty.DangbeiPlayer;
 import com.github.tvbox.osc.player.thirdparty.MXPlayer;
 import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
+import com.github.tvbox.osc.player.thirdparty.UCPlayer;
 import com.orhanobut.hawk.Hawk;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -212,6 +213,12 @@ public class PlayerHelper {
         }
         if(ReexPlayer.getPackageInfo() != null) {
             AVAILABLE_3RD_PLAYERS.put(11, "Reex Player");
+        }
+        if(UCPlayer.getPackageInfo() != null) {
+            AVAILABLE_3RD_PLAYERS.put(12, "UC浏览器");
+        }
+        if(DangbeiPlayer.getPackageInfo() != null) {
+            AVAILABLE_3RD_PLAYERS.put(13, "当贝播放器");
         }
     }
 

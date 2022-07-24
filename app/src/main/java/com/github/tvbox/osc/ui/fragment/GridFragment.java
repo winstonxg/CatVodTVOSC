@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.fragment;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
@@ -19,7 +20,6 @@ import com.github.tvbox.osc.ui.adapter.GridAdapter;
 import com.github.tvbox.osc.ui.dialog.GridFilterDialog;
 import com.github.tvbox.osc.ui.tv.widget.LoadMoreView;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
-import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
@@ -32,6 +32,11 @@ import java.util.List;
  * @description:
  */
 public class GridFragment extends BaseLazyFragment {
+
+    public interface GridDataCallback {
+        void onDataReceived(SourceViewModel viewModel);
+    }
+
     private MovieSort.SortData sortData = null;
     private TvRecyclerView mGridView;
     private Class<SourceViewModel> viewoModelClass;
@@ -41,9 +46,10 @@ public class GridFragment extends BaseLazyFragment {
     private int maxPage = 1;
     private boolean isLoad = false;
     private boolean isTop = true;
-    private int spanCount = isBaseOnWidth() ? 5 : 6;
+    private int spanCount = 0;
     private BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter;
     private TvRecyclerView.OnItemListener itemListener;
+    private GridDataCallback dataCallback;
     private BaseQuickAdapter.OnItemClickListener itemClickListener = new BaseQuickAdapter.OnItemClickListener() {
         @Override
         public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -83,6 +89,10 @@ public class GridFragment extends BaseLazyFragment {
         return this;
     }
 
+    public void OnDataUpdate(GridDataCallback callback) {
+        this.dataCallback = callback;
+    }
+
     public void SetOnItemListener(TvRecyclerView.OnItemListener itemListener) {
         this.itemListener = itemListener;
     }
@@ -100,6 +110,7 @@ public class GridFragment extends BaseLazyFragment {
     }
 
     private void initView() {
+        spanCount = !shouldMoreColumns() ? 5 : 6;
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
         mGridView.setAdapter(adapter);
@@ -114,6 +125,7 @@ public class GridFragment extends BaseLazyFragment {
         mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
+                itemView.findViewById(R.id.mItemFrame).setBackgroundColor(Color.TRANSPARENT);
                 itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
                 if(itemListener != null)
                     itemListener.onItemPreSelected(parent, itemView, position);
@@ -121,6 +133,7 @@ public class GridFragment extends BaseLazyFragment {
 
             @Override
             public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
+                itemView.findViewById(R.id.mItemFrame).setBackground(getResources().getDrawable(R.drawable.shape_user_focus));
                 itemView.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
                 if(itemListener != null)
                     itemListener.onItemSelected(parent, itemView, position);
@@ -192,6 +205,8 @@ public class GridFragment extends BaseLazyFragment {
                 } else {
                     adapter.loadMoreComplete();
                 }
+                if(GridFragment.this.dataCallback != null)
+                    GridFragment.this.dataCallback.onDataReceived(sourceViewModel);
             }
         });
     }

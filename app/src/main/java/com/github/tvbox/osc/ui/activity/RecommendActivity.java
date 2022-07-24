@@ -26,8 +26,6 @@ import com.github.tvbox.osc.ui.fragment.GridFragment;
 import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
 import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
 import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
-import com.github.tvbox.osc.util.DefaultConfig;
-import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.RecommendViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;

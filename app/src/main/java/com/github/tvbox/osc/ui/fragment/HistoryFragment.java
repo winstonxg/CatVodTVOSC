@@ -35,7 +35,7 @@ public class HistoryFragment extends BaseLazyFragment {
     private HistoryAdapter historyAdapter;
     private List<VodInfo> allVodRecord;
     private boolean delMode = false;
-    private boolean shouldShowDelHint = true;
+    private boolean shouldShowDelHint = false;
     private int presentingSize = -1;
     private int loadSize = 100;
 
@@ -105,7 +105,7 @@ public class HistoryFragment extends BaseLazyFragment {
         tvDelTipLayout.setVisibility(shouldShowDelHint ? View.VISIBLE : View.GONE);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
-        V7GridLayoutManager layoutManager = new V7GridLayoutManager(this.mContext, isBaseOnWidth() ? 5 : 6);
+        V7GridLayoutManager layoutManager = new V7GridLayoutManager(this.mContext, !shouldMoreColumns() ? 5 : 6);
         mGridView.setLayoutManager(layoutManager);
         historyAdapter = new HistoryAdapter();
         mGridView.setAdapter(historyAdapter);
@@ -113,12 +113,14 @@ public class HistoryFragment extends BaseLazyFragment {
         mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
+                itemView.findViewById(R.id.mItemFrame).setBackgroundColor(Color.TRANSPARENT);
                 itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
             }
 
             @Override
             public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
-                itemView.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
+                itemView.findViewById(R.id.mItemFrame).setBackground(getResources().getDrawable(R.drawable.shape_user_focus));
+                itemView.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
             }
 
             @Override

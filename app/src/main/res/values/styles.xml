@@ -16,6 +16,7 @@
         <item name="android:keepScreenOn">true</item>
         <!--        <item name="android:windowBackground">@drawable/main_bg</item>-->
         <item name="android:windowBackground">@drawable/app_bg</item>
+        <item name="android:navigationBarColor">@color/color_99000000</item>
     </style>
     <style name="AppTheme.NoActionBar">
         <item name="android:windowActionBar">false</item>

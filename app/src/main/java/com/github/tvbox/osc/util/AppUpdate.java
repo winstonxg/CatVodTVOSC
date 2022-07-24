@@ -1,30 +1,27 @@
 package com.github.tvbox.osc.util;
 
 import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Handler;
 
+import com.github.tvbox.osc.BuildConfig;
 import com.github.tvbox.osc.ui.dialog.UpdateDialog;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.AbsCallback;
 import com.lzy.okgo.request.GetRequest;
 import com.orhanobut.hawk.Hawk;
 
-import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import okhttp3.Response;
 
 public class AppUpdate {
 
-    private static final String versionNo = "0.6.20220714";
     private static final String[] updateUrls = new String[] {
             "https://raw.githubusercontent.com/kensonmiao/CatVodTVOSC_Release/main/",
             "https://codeberg.org/kensonlogin55/CatVodTVOSC_Release/raw/branch/main/"
     };
 
     public static String getCurrentVersionNo() {
-        return versionNo;
+        return BuildConfig.VERSION_NAME;
     }
 
     public void CheckLatestVersion(Context context, Boolean forceToShow, Callable<Void> hasNoUpdateCall) {
@@ -56,7 +53,7 @@ public class AppUpdate {
                         String ignoredVersion = Hawk.get(HawkConfig.FORGET_NEW_VERSION, null);
                         if(!forceToShow && splitData[0].equals(ignoredVersion))
                             return;
-                        String[] localVersionNo = versionNo.split("\\.");
+                        String[] localVersionNo = getCurrentVersionNo().split("\\.");
                         String[] remoteVersionNo = splitData[0].split("\\.");
                         if(remoteVersionNo.length >localVersionNo.length) {
                             showUpdateDialog(context, updateUrls[sourceIndex], splitData);

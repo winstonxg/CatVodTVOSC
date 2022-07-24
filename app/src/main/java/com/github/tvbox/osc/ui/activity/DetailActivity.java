@@ -4,23 +4,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentContainerView;
-import androidx.fragment.app.FragmentManager;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -36,10 +33,11 @@ import com.github.tvbox.osc.cache.RoomDataManger;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.picasso.RoundTransformation;
 import com.github.tvbox.osc.player.controller.VodController;
-import com.github.tvbox.osc.ui.adapter.GridAdapter;
+import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
 import com.github.tvbox.osc.ui.adapter.SeriesAdapter;
 import com.github.tvbox.osc.ui.adapter.SeriesFlagAdapter;
 import com.github.tvbox.osc.ui.dialog.QuickSearchDialog;
+import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.fragment.PlayerFragment;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
@@ -54,17 +52,15 @@ import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.AbsCallback;
 import com.lzy.okgo.model.Response;
 import com.orhanobut.hawk.Hawk;
-import com.owen.tvrecyclerview.widget.ListLayoutManager;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
-import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 import com.squareup.picasso.Picasso;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -119,6 +115,8 @@ public class DetailActivity extends BaseActivity {
     private FrameLayout mPlayerFrame;
     private static PlayerFragment playerFragment;
     private ArrayList<String> seriesGroupOptions = new ArrayList<>();
+    private SelectDialog<Integer> thirdPlayerDialog;
+    private Handler mHandler = new Handler();
 
     private static final int DETAIL_PLAYER_FRAME_ID = 9999999;
 
@@ -196,7 +194,7 @@ public class DetailActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 FastClickCheckUtil.check(v);
-                jumpToPlay(true, false);
+                jumpToPlay(true, false, null);
             }
         });
         tvQuickSearch.setOnClickListener(new View.OnClickListener() {
@@ -313,14 +311,46 @@ public class DetailActivity extends BaseActivity {
                     if(playerFragment != null) {
                         VodInfo playingInfo = playerFragment.getPlayingVodInfo();
                         if(playingInfo != null && playingInfo.playFlag.equals(vodInfo.playFlag) && playingInfo.playIndex == vodInfo.playIndex ) {
-                            jumpToPlay(true, false);
+                            jumpToPlay(true, false, null);
                         } else {
-                            jumpToPlay(true, true);
+                            jumpToPlay(true, true, null);
                         }
                     } else {
-                        jumpToPlay(true, true);
+                        jumpToPlay(true, true, null);
                     }
                 }
+            }
+        });
+        seriesAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
+                open3rdPlayerSelectDialog(new ThirdPlayerSelectDialogCallback() {
+                    @Override
+                    public void onSelected(int selectedType) {
+                        if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
+                            if (vodInfo.playIndex != position) {
+                                seriesAdapter.getData().get(vodInfo.playIndex).selected = false;
+                                seriesAdapter.notifyItemChanged(vodInfo.playIndex);
+                                seriesAdapter.getData().get(position).selected = true;
+                                seriesAdapter.notifyItemChanged(position);
+                                vodInfo.playIndex = position;
+                                lastSeriesFocusIndex = position;
+                            }
+                            if(playerFragment != null) {
+                                VodInfo playingInfo = playerFragment.getPlayingVodInfo();
+                                jumpToPlay(false, true, new PlayerFragment.ParserCallback() {
+                                    @Override
+                                    public void afterParsed(String url) {
+                                        if(url != null && url.length() > 0) {
+                                            playerFragment.playInOtherPlayer(selectedType);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+                return true;
             }
         });
         mSeriesGroupView.setOnItemListener(new TvRecyclerView.OnItemListener() {
@@ -363,8 +393,61 @@ public class DetailActivity extends BaseActivity {
                 }
             }
         });
+        tv3rdPlay.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                open3rdPlayerSelectDialog(new ThirdPlayerSelectDialogCallback() {
+                    @Override
+                    public void onSelected(int selectedType) {
+                        playerFragment.playInOtherPlayer(selectedType);
+                    }
+                });
+                return true;
+            }
+        });
         init3rdPlayerButton();
         setLoadSir(llLayout);
+    }
+
+    private interface ThirdPlayerSelectDialogCallback {
+        void onSelected(int selectedType);
+    }
+
+    private void open3rdPlayerSelectDialog(ThirdPlayerSelectDialogCallback callback) {
+        Integer[] types = PlayerHelper.getAvailable3rdPlayerTypes();
+        if(types == null || types.length == 0)
+            return;
+        Integer currentVal = Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, types[0]);
+        int defaultPos = Arrays.binarySearch(types, currentVal);
+        if(defaultPos < 0)
+            defaultPos = 0;
+        thirdPlayerDialog = new SelectDialog<>(DetailActivity.this);
+        thirdPlayerDialog.setTip("请选择外部播放器");
+        thirdPlayerDialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<Integer>() {
+            @Override
+            public void click(Integer value, int pos) {
+                if(callback != null)
+                    callback.onSelected(value);
+                thirdPlayerDialog.dismiss();
+                thirdPlayerDialog = null;
+            }
+
+            @Override
+            public String getDisplay(Integer val) {
+                return PlayerHelper.get3rdPlayerName(val);
+            }
+        }, new DiffUtil.ItemCallback<Integer>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
+                return oldItem.intValue() == newItem.intValue();
+            }
+
+            @Override
+            public boolean areContentsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
+                return oldItem.intValue() == newItem.intValue();
+            }
+        }, Arrays.asList(types), defaultPos);
+        thirdPlayerDialog.show();
     }
 
     private void init3rdPlayerButton() {
@@ -394,7 +477,7 @@ public class DetailActivity extends BaseActivity {
 
     private List<Runnable> pauseRunnable = null;
 
-    private void jumpToPlay(boolean shouldOpenActivity, boolean newSource) {
+    private void jumpToPlay(boolean shouldOpenActivity, boolean newSource, PlayerFragment.ParserCallback callback) {
         if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
             if(shouldOpenActivity) {
                 getSupportFragmentManager().beginTransaction().remove(playerFragment).commit();
@@ -415,7 +498,7 @@ public class DetailActivity extends BaseActivity {
                 if(newSource)
                     insertVod(sourceKey, vodInfo);
                 if(playerFragment != null)
-                    playerFragment.initData(vodInfo, sourceKey);
+                    playerFragment.initData(vodInfo, sourceKey, callback);
             }
         }
     }
@@ -552,7 +635,7 @@ public class DetailActivity extends BaseActivity {
                         mGridViewFlag.scrollToPosition(flagScrollTo);
 
                         refreshList();
-                        jumpToPlay(false, true);
+                        jumpToPlay(false, true, null);
                         // startQuickSearch();
                     } else {
                         mGridViewFlag.setVisibility(View.GONE);
@@ -807,6 +890,12 @@ public class DetailActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+
+        if(thirdPlayerDialog != null) {
+            thirdPlayerDialog.dismiss();
+            thirdPlayerDialog = null;
+        }
+
         if (seriesSelect) {
             if (seriesFlagFocus != null && !seriesFlagFocus.isFocused()) {
                 seriesFlagFocus.requestFocus();

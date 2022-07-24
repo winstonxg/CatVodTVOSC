@@ -23,8 +23,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
+import me.jessyan.autosize.utils.AutoSizeUtils;
+
 public class GridFilterDialog extends BaseDialog {
     private LinearLayout filterRoot;
+    private ArrayList<MovieSort.SortFilter> filters;
 
     public GridFilterDialog(@NonNull @NotNull Context context) {
         super(context);
@@ -50,7 +53,7 @@ public class GridFilterDialog extends BaseDialog {
     }
 
     public void setData(MovieSort.SortData sortData) {
-        ArrayList<MovieSort.SortFilter> filters = sortData.filters;
+        filters = sortData.filters;
         for (MovieSort.SortFilter filter : filters) {
             View line = LayoutInflater.from(getContext()).inflate(R.layout.item_grid_filter, null);
             ((TextView) line.findViewById(R.id.filterName)).setText(filter.name);
@@ -95,7 +98,8 @@ public class GridFilterDialog extends BaseDialog {
         WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
         layoutParams.gravity = Gravity.BOTTOM;
         layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        layoutParams.height = AutoSizeUtils.mm2px(
+                this.getContext(), 50 * filters.size() + 40);   //ViewGroup.LayoutParams.WRAP_CONTENT;
         layoutParams.dimAmount = 0f;
         getWindow().getDecorView().setPadding(0, 0, 0, 0);
         getWindow().setAttributes(layoutParams);

@@ -1,14 +1,9 @@
 package com.github.tvbox.osc.ui.fragment.homes;
 
-import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.IntEvaluator;
 import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +11,6 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
@@ -33,7 +27,6 @@ import com.github.tvbox.osc.bean.AbsSortXml;
 import com.github.tvbox.osc.bean.MovieSort;
 import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
 import com.github.tvbox.osc.ui.adapter.SortAdapter;
-import com.github.tvbox.osc.ui.dialog.TipDialog;
 import com.github.tvbox.osc.ui.fragment.GridFragment;
 import com.github.tvbox.osc.ui.fragment.HistoryFragment;
 import com.github.tvbox.osc.ui.fragment.UserFragment;
@@ -41,9 +34,7 @@ import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
 import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
 import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
 import com.github.tvbox.osc.ui.tv.widget.ViewObj;
-import com.github.tvbox.osc.util.AppUpdate;
 import com.github.tvbox.osc.util.DefaultConfig;
-import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
@@ -83,7 +74,9 @@ public class AssembledFragment extends AbstractHomeFragment {
             initData();
         }
 
-        private void initView() {
+        @Override
+        protected void initView() {
+            super.initView();
             this.topLayout = findViewById(R.id.topLayout);
             this.tvDate = findViewById(R.id.tvDate);
             this.contentLayout = findViewById(R.id.contentLayout);
@@ -237,6 +230,12 @@ public class AssembledFragment extends AbstractHomeFragment {
                 mViewPager.setPageTransformer(true, new DefaultTransformer());
                 mViewPager.setAdapter(pageAdapter);
                 mViewPager.setCurrentItem(currentSelected, false);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFeatureView.requestFocus();
+                    }
+                }, 500);
             }
         }
 

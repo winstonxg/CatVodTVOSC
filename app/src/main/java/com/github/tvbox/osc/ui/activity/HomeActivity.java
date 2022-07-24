@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.animation.AccelerateInterpolator;
-import android.widget.FrameLayout;
 
 import androidx.viewpager.widget.ViewPager;
 
@@ -16,10 +15,8 @@ import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
-import com.github.tvbox.osc.ui.fragment.PlayerFragment;
 import com.github.tvbox.osc.ui.fragment.homes.AbstractHomeFragment;
 import com.github.tvbox.osc.ui.fragment.homes.AssembledFragment;
-import com.github.tvbox.osc.ui.fragment.homes.CatFragment;
 import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
 import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
 import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
@@ -35,8 +32,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-
-import me.jessyan.autosize.utils.AutoSizeUtils;
 
 public class HomeActivity extends BaseActivity {
 

@@ -1,21 +1,26 @@
 package com.github.tvbox.osc.ui.dialog;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
 import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.util.AppUpdate;
 import com.github.tvbox.osc.util.HawkConfig;
@@ -67,7 +72,6 @@ public class UpdateDialog extends BaseDialog {
         btnUpdateNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(baseActivity, "正在下载新版本...", Toast.LENGTH_SHORT).show();
                 startUpdate();
                 UpdateDialog.this.cancel();
             }
@@ -91,6 +95,14 @@ public class UpdateDialog extends BaseDialog {
         if(this.versionInfo.VersionNo == null || this.versionInfo.VersionNo.length() <= 0)
             return;
 
+        if(Build.VERSION.SDK_INT >= 23) {
+            if (App.getInstance().checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(baseActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                this.dismiss();
+                return;
+            }
+        }
+
         String packageName = this.getContext().getPackageName();
         File sdcardDir = Environment.getExternalStorageDirectory(); // /storage/emulated/0/
         String appApkDir = sdcardDir + File.separator + "Android" + File.separator + "data" + File.separator + packageName + File.separator;
@@ -104,8 +116,8 @@ public class UpdateDialog extends BaseDialog {
 
         String url = this.versionInfo.Source + this.versionInfo.VersionNo + ".apk";
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.setDescription("TV Box 更新版本 " + this.versionInfo.VersionNo + " 来自Github");
-        request.setTitle("TV Box");
+        request.setDescription("TV猫盒 更新版本 " + this.versionInfo.VersionNo + " 来自Github");
+        request.setTitle("TV猫盒");
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
 
         Uri destination = FileProvider
@@ -135,6 +147,8 @@ public class UpdateDialog extends BaseDialog {
             }
         };
         baseActivity.registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        Toast.makeText(baseActivity, "正在下载新版本...", Toast.LENGTH_SHORT).show();
+        this.dismiss();
     }
 
 }

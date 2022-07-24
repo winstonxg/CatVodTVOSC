@@ -1,7 +1,5 @@
 package com.github.tvbox.osc.viewmodel;
 
-import android.util.Log;
-
 import androidx.lifecycle.MutableLiveData;
 
 import com.github.tvbox.osc.bean.AbsJson;
@@ -11,7 +9,6 @@ import com.github.tvbox.osc.bean.AbsXml;
 import com.github.tvbox.osc.bean.Movie;
 import com.github.tvbox.osc.bean.MovieSort;
 import com.github.tvbox.osc.event.RefreshEvent;
-import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.util.UA;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -24,7 +21,6 @@ import com.lzy.okgo.callback.AbsCallback;
 import com.lzy.okgo.callback.Callback;
 import com.lzy.okgo.model.Response;
 import com.lzy.okgo.request.GetRequest;
-import com.lzy.okgo.request.base.Request;
 
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
@@ -36,7 +32,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.seimicrawler.xpath.JXDocument;
 import org.seimicrawler.xpath.JXNode;

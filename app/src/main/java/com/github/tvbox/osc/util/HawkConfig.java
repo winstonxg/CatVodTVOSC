@@ -30,4 +30,6 @@ public class HawkConfig {
     public static final String FORGET_NEW_VERSION = "forget_new_version";
     public static final String DISPLAY_LOADING_SPEED = "display_loading_speed";
     public static final String HOME_VIEW_STYLE = "home_view_style";
+    public static final String ENABLE_2K_ADAPTER = "2k_adapter";
+    public static final String CUSTOM_WALLPAPER = "custom_wallpaper";
 }

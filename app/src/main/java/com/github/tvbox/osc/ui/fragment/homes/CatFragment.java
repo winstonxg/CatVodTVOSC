@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.fragment.homes;
 
+import android.graphics.Color;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +58,7 @@ public class CatFragment extends AbstractHomeFragment {
 
     private FrameLayout mLoadingFrame;
     private FrameLayout mCategoryFrame;
-    private TvRecyclerView mGridView;
+    private TvRecyclerView mCategoryGridView;
     private NoScrollViewPager mViewPager;
     private ScrollView mScrollView;
     private LinearLayout contentLayout;
@@ -92,11 +93,13 @@ public class CatFragment extends AbstractHomeFragment {
         initData();
     }
 
-    private void initView() {
+    @Override
+    protected void initView() {
+        super.initView();
         EventBus.getDefault().register(this);
         this.mLoadingFrame = findViewById(R.id.mLoadingFrame);
         this.mCategoryFrame = findViewById(R.id.mCategoryFrame);
-        this.mGridView = findViewById(R.id.mGridView);
+        this.mCategoryGridView = findViewById(R.id.mCategoryGridView);
         this.mViewPager = findViewById(R.id.mViewPager);
         this.mScrollView = findViewById(R.id.mScrollView);
         this.tvDate = findViewById(R.id.tvDate);
@@ -110,22 +113,18 @@ public class CatFragment extends AbstractHomeFragment {
         userFragment = (UserFragment)fragmentManager.findFragmentByTag("mUserFragment");
         userFragment.updateShowVod(true);
         userFragment.SetFragmentView(mFeatureView);
+        mCategoryFrame.setVisibility(View.GONE);
         userFragment.vodClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mCategoryFrame.setVisibility(View.VISIBLE);
-                mScrollView.setVisibility(View.INVISIBLE);
+                mScrollView.setVisibility(View.GONE);
+                if(mCategoryGridView.getSelectedPosition() == RecyclerView.NO_POSITION)
+                    mCategoryGridView.setSelection(0);
             }
         };
-        this.sortAdapter = new SortAdapter();
+        this.sortAdapter = new SortAdapter(R.layout.item_home_sort_cat);
         this.initCategorySection();
-        this.homeAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                displayHomeContents();
-            }
-        });
         this.btnExpandHist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -148,41 +147,36 @@ public class CatFragment extends AbstractHomeFragment {
         } catch (Exception e) {
         }
         setLoadSir(this.mLoadingFrame);
-        //mHandler.postDelayed(mFindFocus, 500);
     }
 
     private void initCategorySection() {
-        this.mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, V7LinearLayoutManager.VERTICAL, false));
-        this.mGridView.setSpacingWithMargins(0, AutoSizeUtils.dp2px(this.mContext, 2.0f));
-        this.mGridView.setAdapter(this.sortAdapter);
-        this.mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
+        this.mCategoryGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, V7LinearLayoutManager.VERTICAL, false));
+        this.mCategoryGridView.setSpacingWithMargins(0, AutoSizeUtils.dp2px(this.mContext, 2.0f));
+        this.mCategoryGridView.setAdapter(this.sortAdapter);
+        this.mCategoryGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             public void onItemPreSelected(TvRecyclerView tvRecyclerView, View view, int position) {
                 if (view != null && !isRight) {
                     view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start();
                     TextView textView = view.findViewById(R.id.tvTitle);
                     textView.getPaint().setFakeBoldText(false);
-                    textView.setTextColor(CatFragment.this.getResources().getColor(R.color.color_BBFFFFFF));
+                    textView.setTextColor(getResources().getColor(R.color.color_CCFFFFFF));
                     textView.invalidate();
+                    view.findViewById(R.id.mSortLayout).setBackgroundColor(Color.TRANSPARENT);
                     view.findViewById(R.id.tvFilter).setVisibility(View.GONE);
-                    view.findViewById(R.id.tvFocusedBar).setVisibility(View.INVISIBLE);
                 }
             }
 
             public void onItemSelected(TvRecyclerView tvRecyclerView, View view, int position) {
                 if (view != null) {
-                    if(CatFragment.this.sortFocusView != null) {
-                        CatFragment.this.sortFocusView.findViewById(R.id.tvFocusedBar).setVisibility(View.INVISIBLE);
-                    }
                     CatFragment.this.isRight = false;
                     CatFragment.this.sortChange = true;
-                    view.animate().scaleX(1.1f).scaleY(1.1f).setInterpolator(new BounceInterpolator()).setDuration(300).start();
+                    view.findViewById(R.id.mSortLayout).setBackgroundColor(Color.argb(68, 0, 0, 0));
                     TextView textView = view.findViewById(R.id.tvTitle);
                     textView.getPaint().setFakeBoldText(true);
-                    textView.setTextColor(CatFragment.this.getResources().getColor(R.color.color_FFFFFF));
+                    textView.setTextColor(getResources().getColor(R.color.color_FFFFFF));
                     textView.invalidate();
                     if (!sortAdapter.getItem(position).filters.isEmpty())
                         view.findViewById(R.id.tvFilter).setVisibility(View.VISIBLE);
-                    view.findViewById(R.id.tvFocusedBar).setVisibility(View.INVISIBLE);
                     CatFragment.this.sortFocusView = view;
                     CatFragment.this.sortFocused = position;
                     mHandler.removeCallbacks(mDataRunnable);
@@ -200,10 +194,9 @@ public class CatFragment extends AbstractHomeFragment {
                 }
             }
         });
-        this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
+        this.mCategoryGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
             public final boolean onInBorderKeyEvent(int direction, View view) {
                 if(direction == View.FOCUS_RIGHT || direction == View.FOCUS_UP) {
-                    view.findViewById(R.id.tvFocusedBar).setVisibility(View.VISIBLE);
                     isRight = true;
                 }
                 if (direction != View.FOCUS_DOWN) {
@@ -219,7 +212,7 @@ public class CatFragment extends AbstractHomeFragment {
         this.sortAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             public final void onItemChildClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
                 if (view.getId() == R.id.tvTitle) {
-                    mGridView.smoothScrollToPosition(position);
+                    mCategoryGridView.smoothScrollToPosition(position);
                     if (view.getParent() != null) {
                         ViewGroup viewGroup = (ViewGroup) view.getParent();
                         sortFocusView = viewGroup;
@@ -244,7 +237,7 @@ public class CatFragment extends AbstractHomeFragment {
                 if (absXml != null && absXml.classes != null && absXml.classes.sortList != null) {
                     sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml.classes.sortList, false));
                 } else {
-                    sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true));
+                    sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), false));
                 }
                 initViewPager(absXml);
             }
@@ -257,12 +250,10 @@ public class CatFragment extends AbstractHomeFragment {
             historyFragment.setLoadSize(100);
             imgExpandHistIcon.animate().setDuration(250).rotation(180);
         } else {
-            historyFragment.setLoadSize(isBaseOnWidth() ? 5 : 6);
+            historyFragment.setLoadSize(!shouldMoreColumns() ? 5 : 6);
             imgExpandHistIcon.animate().setDuration(250).rotation(0);
         }
         updateHistoryFrameSize(trimSize);
-//            view.setNestedScrollingEnabled(false);
-//            view.requestLayout();
     }
 
     public void updateHistoryFrameSize(boolean isTrimSize) {
@@ -274,9 +265,9 @@ public class CatFragment extends AbstractHomeFragment {
             imgExpandHistIcon.animate().setDuration(250).rotation(180);
             int presentingSize = historyFragment.getPresentingSize();
             view.getLayoutParams().height = AutoSizeUtils.mm2px(
-                    this.mContext, (float)Math.ceil(((float)presentingSize)/(isBaseOnWidth() ? 5 : 6)) * 266);
+                    this.mContext, (float)Math.ceil(((float)presentingSize)/(!shouldMoreColumns() ? 5 : 6)) * 266);
         } else {
-            historyFragment.setLoadSize(isBaseOnWidth() ? 5 : 6);
+            historyFragment.setLoadSize(!shouldMoreColumns() ? 5 : 6);
             imgExpandHistIcon.animate().setDuration(250).rotation(0);
             view.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
         }
@@ -293,13 +284,15 @@ public class CatFragment extends AbstractHomeFragment {
                 List<Movie.Video> results = homeFragment.GetResultList();
                 TvRecyclerView view = mHomeFrame.findViewById(R.id.mGridView);
                 view.setNestedScrollingEnabled(false);
-                if(results.size() > 0) {
+                if(results != null && results.size() > 0) {
                     view.getLayoutParams().height = AutoSizeUtils.mm2px(
-                            CatFragment.this.mContext, (float)Math.ceil(((float)results.size())/(isBaseOnWidth() ? 5 : 6)) * 266);
+                            CatFragment.this.mContext, (float)Math.ceil(((float)results.size())/(!shouldMoreColumns() ? 5 : 6)) * 266);
                 } else {
                     view.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
                 }
                 view.requestLayout();
+                mFeatureView.findViewById(R.id.tvVod).clearFocus();
+                mFeatureView.requestFocus();
             }
         });
     }
@@ -307,7 +300,7 @@ public class CatFragment extends AbstractHomeFragment {
     private void initViewPager(AbsSortXml absXml) {
         showLoading("正在加载首页数据源...");
         historyFragment = new HistoryFragment();
-        historyFragment.setLoadSize(isBaseOnWidth() ? 5 : 6);
+        historyFragment.setLoadSize(!shouldMoreColumns() ? 5 : 6);
         getChildFragmentManager().beginTransaction()
                 .add(R.id.mHistoryFrameLayout, historyFragment, "mHistoryFragment").disallowAddToBackStack().commit();
         this.mHistoryFrame.post(new Runnable() {
@@ -318,11 +311,14 @@ public class CatFragment extends AbstractHomeFragment {
                 historyRView.setOnItemListener(new TvRecyclerView.OnItemListener() {
                     @Override
                     public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
-
+                        itemView.findViewById(R.id.mItemFrame).setBackgroundColor(Color.TRANSPARENT);
+                        itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
                     }
 
                     @Override
                     public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
+                        itemView.findViewById(R.id.mItemFrame).setBackground(getResources().getDrawable(R.drawable.shape_user_focus));
+                        itemView.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
                         mScrollView.smoothScrollTo(0, itemView.getBottom() - itemView.getHeight() / 2);
                     }
 
@@ -333,7 +329,20 @@ public class CatFragment extends AbstractHomeFragment {
                 });
             }
         });
+        if(ApiConfig.get().getHomeSourceBean().getApi() == null) {
+            showSuccess();
+            mLoadingFrame.setVisibility(View.GONE);
+            mScrollView.setVisibility(View.VISIBLE);
+            mScrollView.scrollTo(0, 0);
+            return;
+        }
         homeFragment = GridFragment.newInstance(new MovieSort.SortData("_home", "首页"), homeAdapter, SourceViewModel.class);
+        homeFragment.OnDataUpdate(new GridFragment.GridDataCallback() {
+            @Override
+            public void onDataReceived(SourceViewModel viewModel) {
+                displayHomeContents();
+            }
+        });
         homeFragment.SetOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
@@ -367,12 +376,11 @@ public class CatFragment extends AbstractHomeFragment {
                     FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator());
                     field.set(mViewPager, scroller);
                     scroller.setmDuration(300);
+                    mViewPager.setPageTransformer(true, new DefaultTransformer());
+                    mViewPager.setAdapter(pageAdapter);
+                    mViewPager.setCurrentItem(currentSelected, false);
                 } catch (Exception e) {
                 }
-                mViewPager.setPageTransformer(true, new DefaultTransformer());
-                mViewPager.setAdapter(pageAdapter);
-                mViewPager.setCurrentItem(currentSelected, false);
-                mCategoryFrame.setVisibility(View.INVISIBLE);
             }
         }
     }
@@ -382,7 +390,7 @@ public class CatFragment extends AbstractHomeFragment {
             historyFragment.toggleDelMode();
             return false;
         } if(mCategoryFrame.getVisibility() == View.VISIBLE) {
-            mCategoryFrame.setVisibility(View.INVISIBLE);
+            mCategoryFrame.setVisibility(View.GONE);
             mScrollView.setVisibility(View.VISIBLE);
             return false;
         } else
@@ -424,7 +432,7 @@ public class CatFragment extends AbstractHomeFragment {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    int colCount = isBaseOnWidth() ? 5 : 6;
+                    int colCount = !shouldMoreColumns() ? 5 : 6;
                     if(historyFragment.getAllRecordSize() <= colCount)
                         updateHistoryFrameSize(false);
                     else
@@ -437,7 +445,7 @@ public class CatFragment extends AbstractHomeFragment {
 
     private void updateBtnExpandHist() {
 
-        if(historyFragment.getAllRecordSize() <= (isBaseOnWidth() ? 5 : 6)) {
+        if(historyFragment.getAllRecordSize() <= (!shouldMoreColumns() ? 5 : 6)) {
             btnExpandHist.setVisibility(View.GONE);
         } else {
             btnExpandHist.setVisibility(View.VISIBLE);

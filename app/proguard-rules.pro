@@ -191,6 +191,7 @@
 
 # 实体类
 #-keep class com.github.tvbox.osc.bean.** { *; }
+-keep class com.github.tvbox.osc.ui.fragment.homes.**{*;}
 #CardView
 -keep class com.github.tvbox.osc.ui.tv.widget.card.**{*;}
 #ViewObj

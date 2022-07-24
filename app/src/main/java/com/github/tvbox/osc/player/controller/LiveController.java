@@ -6,17 +6,13 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.tvbox.osc.R;
-import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.PlayerHelper;
 import com.orhanobut.hawk.Hawk;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import xyz.doikki.videoplayer.player.VideoView;
 
