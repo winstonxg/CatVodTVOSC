@@ -3,6 +3,7 @@ package com.github.tvbox.osc.ui.adapter;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -81,16 +82,26 @@ public class HistoryAdapter extends BaseQuickAdapter<VodInfo, BaseViewHolder> {
         // helper.setText(R.id.tvActor, item.actor);
         ImageView ivThumb = helper.getView(R.id.ivThumb);
         //由于部分电视机使用glide报错
+        //由于部分电视机使用glide报错
         if (!TextUtils.isEmpty(item.pic)) {
-            Picasso.get()
-                    .load(DefaultConfig.checkReplaceProxy(item.pic))
-                    .transform(new RoundTransformation(MD5.string2MD5(item.pic + item.name))
-                            .centerCorp(true)
-                            .override(helper.itemView.getWidth(), helper.itemView.getHeight())
-                            .roundRadius(AutoSizeUtils.mm2px(mContext, 10), RoundTransformation.RoundType.ALL))
-                    .placeholder(R.drawable.img_loading_placeholder)
-                    .error(R.drawable.img_loading_placeholder)
-                    .into(ivThumb);
+            FrameLayout innerFrame = helper.getView(R.id.mItemInnerFrame);
+            innerFrame.post(new Runnable() {
+                @Override
+                public void run() {
+                    innerFrame.getLayoutParams().height = (int)(innerFrame.getWidth() * 1.44171779);
+                    innerFrame.requestLayout();
+                    Picasso.get()
+                            .load(DefaultConfig.checkReplaceProxy(item.pic))
+                            .transform(new RoundTransformation(MD5.string2MD5(item.pic + "position=" + helper.getLayoutPosition()))
+                                    .centerCorp(true)
+                                    .override(AutoSizeUtils.mm2px(mContext,277), AutoSizeUtils.mm2px(mContext,400))
+                                    .roundRadius(AutoSizeUtils.mm2px(mContext, 10), RoundTransformation.RoundType.ALL))
+                            .placeholder(R.drawable.img_loading_placeholder)
+                            .error(R.drawable.img_loading_placeholder)
+                            .into(ivThumb);
+
+                }
+            });
         } else {
             ivThumb.setImageResource(R.drawable.img_loading_placeholder);
         }

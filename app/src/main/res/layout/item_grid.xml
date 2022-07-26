@@ -9,6 +9,7 @@
     android:padding="@dimen/vs_1">
 
     <FrameLayout
+        android:id="@+id/mItemInnerFrame"
         android:layout_width="match_parent"
         android:layout_height="@dimen/vs_250"
         android:clipChildren="true">

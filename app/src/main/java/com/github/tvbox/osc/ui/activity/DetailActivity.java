@@ -117,6 +117,7 @@ public class DetailActivity extends BaseActivity {
     private ArrayList<String> seriesGroupOptions = new ArrayList<>();
     private SelectDialog<Integer> thirdPlayerDialog;
     private Handler mHandler = new Handler();
+    private View currentSeriesGroupView;
 
     private static final int DETAIL_PLAYER_FRAME_ID = 9999999;
 
@@ -313,7 +314,7 @@ public class DetailActivity extends BaseActivity {
                         if(playingInfo != null && playingInfo.playFlag.equals(vodInfo.playFlag) && playingInfo.playIndex == vodInfo.playIndex ) {
                             jumpToPlay(true, false, null);
                         } else {
-                            jumpToPlay(true, true, null);
+                            jumpToPlay(false, true, null);
                         }
                     } else {
                         jumpToPlay(true, true, null);
@@ -358,6 +359,7 @@ public class DetailActivity extends BaseActivity {
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
                 TextView txtView = itemView.findViewById(R.id.tvSeries);
                 txtView.setTextColor(Color.WHITE);
+                currentSeriesGroupView = null;
             }
 
             @Override
@@ -366,15 +368,29 @@ public class DetailActivity extends BaseActivity {
                 txtView.setTextColor(mContext.getResources().getColor(R.color.color_02F8E1));
                 if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
                     int targetPos = position * 20;
-                    if (vodInfo.playIndex != targetPos) {
-                        mGridView.scrollToPosition(targetPos);
-                    }
+                    mGridView.scrollToPosition(targetPos);
                 }
+                currentSeriesGroupView = itemView;
             }
 
             @Override
-            public void onItemClick(TvRecyclerView parent, View itemView, int position) {
-
+            public void onItemClick(TvRecyclerView parent, View itemView, int position) { }
+        });
+        seriesGroupAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                FastClickCheckUtil.check(view);
+                if(currentSeriesGroupView != null) {
+                    TextView txtView = currentSeriesGroupView.findViewById(R.id.tvSeries);
+                    txtView.setTextColor(Color.WHITE);
+                }
+                TextView newTxtView = view.findViewById(R.id.tvSeries);
+                newTxtView.setTextColor(mContext.getResources().getColor(R.color.color_02F8E1));
+                if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
+                    int targetPos =  position * 20;
+                    mGridView.scrollToPosition(targetPos);
+                }
+                currentSeriesGroupView = view;
             }
         });
         mPlayerFrame.post(new Runnable() {

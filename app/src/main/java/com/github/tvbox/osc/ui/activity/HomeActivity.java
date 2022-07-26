@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.activity;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -39,6 +40,8 @@ public class HomeActivity extends BaseActivity {
     private HomePageAdapter pageAdapter;
     private AbstractHomeFragment currentHomeFragment;
     private static final int HOME_FRAME_ID = 9999997;
+
+    private boolean isChaningApi = false;
 
     @Override
     protected int getLayoutResID() {
@@ -114,19 +117,22 @@ public class HomeActivity extends BaseActivity {
                 newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 HomeActivity.this.startActivity(newIntent);
             }
+        } else if(event.type == RefreshEvent.HOME_BEAN_QUICK_CHANGE) {
+            isChaningApi = true;
         }
     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        return currentHomeFragment.dispatchKey(event) && super.dispatchKeyEvent(event);
+        return super.dispatchKeyEvent(event) && currentHomeFragment.dispatchKey(event);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
-        AppManager.getInstance().appExit(0);
+        if(!isChaningApi)
+            AppManager.getInstance().appExit(0);
         ControlManager.get().stopServer();
     }
 

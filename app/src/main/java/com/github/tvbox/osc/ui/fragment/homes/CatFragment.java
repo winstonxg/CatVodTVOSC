@@ -1,6 +1,8 @@
 package com.github.tvbox.osc.ui.fragment.homes;
 
 import android.graphics.Color;
+import android.os.Build;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +15,7 @@ import android.widget.OverScroller;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
@@ -40,6 +43,7 @@ import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
 import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
 import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
 import com.github.tvbox.osc.util.DefaultConfig;
+import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
@@ -60,7 +64,7 @@ public class CatFragment extends AbstractHomeFragment {
     private FrameLayout mCategoryFrame;
     private TvRecyclerView mCategoryGridView;
     private NoScrollViewPager mViewPager;
-    private ScrollView mScrollView;
+    private NestedScrollView mScrollView;
     private LinearLayout contentLayout;
     private LinearLayout btnExpandHist;
     private ImageView imgExpandHistIcon;
@@ -79,6 +83,10 @@ public class CatFragment extends AbstractHomeFragment {
     private boolean sortChange = false;
     private int currentSelected = 0;
     private int sortFocused = 0;
+    private TvRecyclerView homeContentView;
+    private View currentSelectedHomeItem;
+    private int screenHeight = 0;
+
     public View sortFocusView = null;
 
     @Override
@@ -114,6 +122,9 @@ public class CatFragment extends AbstractHomeFragment {
         userFragment.updateShowVod(true);
         userFragment.SetFragmentView(mFeatureView);
         mCategoryFrame.setVisibility(View.GONE);
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        mActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        screenHeight = displayMetrics.heightPixels;
         userFragment.vodClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -258,41 +269,41 @@ public class CatFragment extends AbstractHomeFragment {
 
     public void updateHistoryFrameSize(boolean isTrimSize) {
         TvRecyclerView view = mHistoryFrame.findViewById(R.id.mGridView);
-        if(view == null)
-            return;
-        if(isTrimSize) {
-            historyFragment.setLoadSize(100);
-            imgExpandHistIcon.animate().setDuration(250).rotation(180);
-            int presentingSize = historyFragment.getPresentingSize();
-            view.getLayoutParams().height = AutoSizeUtils.mm2px(
-                    this.mContext, (float)Math.ceil(((float)presentingSize)/(!shouldMoreColumns() ? 5 : 6)) * 266);
-        } else {
-            historyFragment.setLoadSize(!shouldMoreColumns() ? 5 : 6);
-            imgExpandHistIcon.animate().setDuration(250).rotation(0);
-            view.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
+        view.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        view.requestLayout();
     }
 
     private void displayHomeContents() {
         mHomeFrame.post(new Runnable() {
             @Override
             public void run() {
-                showSuccess();
                 mLoadingFrame.setVisibility(View.GONE);
                 mScrollView.setVisibility(View.VISIBLE);
-                mScrollView.scrollTo(0, 0);
-                List<Movie.Video> results = homeFragment.GetResultList();
-                TvRecyclerView view = mHomeFrame.findViewById(R.id.mGridView);
-                view.setNestedScrollingEnabled(false);
-                if(results != null && results.size() > 0) {
-                    view.getLayoutParams().height = AutoSizeUtils.mm2px(
-                            CatFragment.this.mContext, (float)Math.ceil(((float)results.size())/(!shouldMoreColumns() ? 5 : 6)) * 266);
-                } else {
-                    view.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                }
-                view.requestLayout();
-                mFeatureView.findViewById(R.id.tvVod).clearFocus();
-                mFeatureView.requestFocus();
+                homeContentView = mHomeFrame.findViewById(R.id.mGridView);
+                homeContentView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mScrollView.scrollTo(0, 0);
+                        mFeatureView.findViewById(R.id.tvVod).clearFocus();
+                        mFeatureView.requestFocus();
+                        showSuccess();
+                        mScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
+                            @Override
+                            public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                                if(mScrollView.getVisibility() != View.VISIBLE)
+                                    return;
+                                if(scrollY > oldScrollY && currentSelectedHomeItem != null && scrollY > mHomeFrame.getTop() + currentSelectedHomeItem.getTop()) {
+                                    homeContentView.setSelection(homeContentView.getSelectedPosition() + (shouldMoreColumns() ? 6 : 5));
+                                }
+                                else if(scrollY < oldScrollY && currentSelectedHomeItem != null &&
+                                        scrollY + screenHeight < mHomeFrame.getTop() + currentSelectedHomeItem.getBottom()) {
+                                    currentSelectedHomeItem = null;
+                                    homeContentView.setSelection(homeContentView.getSelectedPosition() - (shouldMoreColumns() ? 6 : 5));
+                                }
+                            }
+                        });
+                    }
+                }, 500);
             }
         });
     }
@@ -346,12 +357,17 @@ public class CatFragment extends AbstractHomeFragment {
         homeFragment.SetOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
-
+                if(mScrollView.getScrollY() < mHomeFrame.getTop()) {
+                    currentSelectedHomeItem = null;
+                }
             }
 
             @Override
             public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
-                mScrollView.smoothScrollTo(0, mHomeFrame.getTop() + itemView.getBottom() - itemView.getHeight() / 2 - 230);
+                if(mScrollView.getVisibility() == View.VISIBLE) {
+                    currentSelectedHomeItem = itemView;
+                    mScrollView.smoothScrollTo(0, mHomeFrame.getTop() + itemView.getBottom() - itemView.getHeight() / 2 - screenHeight / 2 + 140);
+                }
             }
 
             @Override
@@ -412,6 +428,7 @@ public class CatFragment extends AbstractHomeFragment {
 
     public boolean dispatchKey(KeyEvent event) {
         return true;
+
     }
 
     @Override

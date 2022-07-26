@@ -17,7 +17,9 @@ import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.SourceBean;
+import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.ui.activity.HomeActivity;
+import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.TipDialog;
@@ -27,6 +29,7 @@ import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.orhanobut.hawk.Hawk;
 
+import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
@@ -40,7 +43,6 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
     protected TextView tvDate;
     protected Handler mHandler = new Handler();
     protected TextView tvQuickApi;
-    private boolean newChangeApi = false;
 
     public boolean useCacheConfig = false;
 
@@ -90,8 +92,11 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
                             @Override
                             public void click(SourceBean value, int pos) {
                                 ApiConfig.get().setSourceBean(value);
-                                newChangeApi = true;
+                                EventBus.getDefault().post(new RefreshEvent(RefreshEvent.HOME_BEAN_QUICK_CHANGE, true));
                                 AppManager.getInstance().finishAllActivity();
+                                Bundle bundle = new Bundle();
+                                bundle.putBoolean("useCache", true);
+                                jumpActivity(HomeActivity.class, bundle);
                             }
 
                             @Override
@@ -299,11 +304,4 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
     public abstract boolean pressBack();
     public abstract boolean dispatchKey(KeyEvent event);
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if(this.newChangeApi)
-            jumpActivity(HomeActivity.class);
-    }
 }

@@ -394,7 +394,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scrollbarFadeDuration="50"
-                app:tv_horizontalSpacingWithMargins="@dimen/vs_10" />
+                app:tv_horizontalSpacingWithMargins="@dimen/vs_10"
+                app:tv_selectedItemIsCentered="true" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
