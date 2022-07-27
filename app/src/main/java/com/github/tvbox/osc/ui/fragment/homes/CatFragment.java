@@ -125,6 +125,7 @@ public class CatFragment extends AbstractHomeFragment {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         mActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenHeight = displayMetrics.heightPixels;
+        mHomeFrame.setVisibility(View.GONE);
         userFragment.vodClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -287,6 +288,7 @@ public class CatFragment extends AbstractHomeFragment {
                         mFeatureView.findViewById(R.id.tvVod).clearFocus();
                         mFeatureView.requestFocus();
                         showSuccess();
+                        mHomeFrame.setVisibility(View.VISIBLE);
                         mScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
                             @Override
                             public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -428,7 +430,6 @@ public class CatFragment extends AbstractHomeFragment {
 
     public boolean dispatchKey(KeyEvent event) {
         return true;
-
     }
 
     @Override

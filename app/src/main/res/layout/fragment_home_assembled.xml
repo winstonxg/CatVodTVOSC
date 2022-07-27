@@ -12,41 +12,31 @@
         android:layout_marginBottom="@dimen/vs_10"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingLeft="@dimen/vs_50"
+        android:paddingLeft="@dimen/vs_40"
         android:paddingRight="@dimen/vs_50">
 
-        <TextView
-            android:id="@+id/tvName"
+        <FrameLayout
             android:layout_width="@dimen/vs_0"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            android:gravity="left|center_vertical"
-            android:text="@string/app_name"
-            android:textAlignment="gravity"
-            android:textColor="@android:color/white"
-            android:textSize="@dimen/ts_30"
-            android:textStyle="bold" />
+            android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/tvQuickApi"
-            android:layout_width="@dimen/vs_0"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="@dimen/vs_20"
-            android:layout_marginLeft="@dimen/vs_20"
-            android:layout_weight="2"
-            android:background="@drawable/item_source_change_focus"
-            android:focusable="true"
-            android:gravity="center"
-            android:paddingLeft="@dimen/vs_20"
-            android:paddingTop="@dimen/vs_10"
-            android:paddingRight="@dimen/vs_20"
-            android:paddingBottom="@dimen/vs_10"
-            android:textColor="@color/color_CCFFFFFF"
-            android:textSize="@dimen/ts_20"
-            android:visibility="gone" />
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/item_source_change_focus"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:gravity="left|center_vertical"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingRight="@dimen/vs_10"
+                android:text="@string/app_name"
+                android:textAlignment="gravity"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/ts_30"
+                android:textStyle="bold" />
+        </FrameLayout>
 
         <com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
             android:id="@+id/tvNote"
@@ -65,13 +55,13 @@
         <Space
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="4" />
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="@dimen/vs_0"
             android:layout_height="match_parent"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:gravity="right|center_vertical"

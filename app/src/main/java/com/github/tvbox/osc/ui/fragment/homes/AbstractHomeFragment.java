@@ -42,7 +42,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
     protected SourceViewModel sourceViewModel;
     protected TextView tvDate;
     protected Handler mHandler = new Handler();
-    protected TextView tvQuickApi;
+    protected TextView tvName;
 
     public boolean useCacheConfig = false;
 
@@ -79,9 +79,14 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
     }
 
     protected void initView() {
-        tvQuickApi = findViewById(R.id.tvQuickApi);
-        if(tvQuickApi != null) {
-            tvQuickApi.setOnClickListener(new View.OnClickListener() {
+        tvName = findViewById(R.id.tvName);
+
+    }
+
+    private void bindQuickApiChange() {
+        if(tvName != null) {
+            tvName.setText(getResources().getText(R.string.app_name) + " - " + ApiConfig.get().getHomeSourceBean().getName());
+            tvName.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     List<SourceBean> sites = ApiConfig.get().getSourceBeanList();
@@ -145,10 +150,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
             } else {
                 LOG.e("无");
             }
-            if(tvQuickApi != null) {
-                tvQuickApi.setText(ApiConfig.get().getHomeSourceBean().getName());
-                tvQuickApi.setVisibility(View.VISIBLE);
-            }
+            bindQuickApiChange();
             return;
         }
         if (dataInitOk && !jarInitOk) {

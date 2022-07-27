@@ -135,15 +135,22 @@ public class RecommendGridAdapter extends BaseQuickAdapter<Movie.Video, BaseView
         }
         //由于部分电视机使用glide报错
         if (!TextUtils.isEmpty(item.pic)) {
-            Picasso.get()
-                    .load(DefaultConfig.checkReplaceProxy(item.pic))
-                    .transform(new RoundTransformation(MD5.string2MD5(item.pic + "position=" + helper.getLayoutPosition()))
-                            .centerCorp(true)
-                            .override(AutoSizeUtils.mm2px(mContext, 300), AutoSizeUtils.mm2px(mContext, 360))
-                            .roundRadius(AutoSizeUtils.mm2px(mContext, 10), RoundTransformation.RoundType.LEFT))
-                    .placeholder(R.drawable.img_loading_placeholder)
-                    .error(R.drawable.img_loading_placeholder)
-                    .into(ivThumb);
+            ivThumb.post(new Runnable() {
+                @Override
+                public void run() {
+                    ivThumb.getLayoutParams().width = (int)(ivThumb.getHeight() * 0.693617);
+                    ivThumb.requestLayout();
+                    Picasso.get()
+                            .load(DefaultConfig.checkReplaceProxy(item.pic))
+                            .transform(new RoundTransformation(MD5.string2MD5(item.pic + "position=" + helper.getLayoutPosition()))
+                                    .centerCorp(true)
+                                    .override(ivThumb.getWidth(), ivThumb.getHeight())
+                                    .roundRadius(AutoSizeUtils.mm2px(mContext, 10), RoundTransformation.RoundType.LEFT))
+                            .placeholder(R.drawable.img_loading_placeholder)
+                            .error(R.drawable.img_loading_placeholder)
+                            .into(ivThumb);
+                }
+            });
         } else {
             ivThumb.setImageResource(R.drawable.img_loading_placeholder);
         }

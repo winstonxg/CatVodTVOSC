@@ -46,7 +46,7 @@ public class GridFragment extends BaseLazyFragment {
     private int maxPage = 1;
     private boolean isLoad = false;
     private boolean isTop = true;
-    private int spanCount = 0;
+    private Integer spanCount = null;
     private BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter;
     private TvRecyclerView.OnItemListener itemListener;
     private GridDataCallback dataCallback;
@@ -110,7 +110,8 @@ public class GridFragment extends BaseLazyFragment {
     }
 
     private void initView() {
-        spanCount = !shouldMoreColumns() ? 5 : 6;
+        if(spanCount == null)
+            spanCount = !shouldMoreColumns() ? 5 : 6;
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
         mGridView.setAdapter(adapter);

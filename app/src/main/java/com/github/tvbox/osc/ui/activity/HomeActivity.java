@@ -4,8 +4,10 @@ package com.github.tvbox.osc.ui.activity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.animation.AccelerateInterpolator;
+import android.widget.TextView;
 
 import androidx.viewpager.widget.ViewPager;
 
@@ -24,6 +26,7 @@ import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.AppUpdate;
 import com.github.tvbox.osc.util.HawkConfig;
+import com.github.tvbox.osc.util.LOG;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,6 +45,8 @@ public class HomeActivity extends BaseActivity {
     private static final int HOME_FRAME_ID = 9999997;
 
     private boolean isChaningApi = false;
+    private TextView tvName;
+    private Handler mHandler = new Handler();
 
     @Override
     protected int getLayoutResID() {
@@ -86,6 +91,12 @@ public class HomeActivity extends BaseActivity {
         mViewPager.setPageTransformer(true, new DefaultTransformer());
         mViewPager.setAdapter(pageAdapter);
         mViewPager.setCurrentItem(0, false);
+        mViewPager.post(new Runnable() {
+            @Override
+            public void run() {
+                tvName = currentHomeFragment.findViewById(R.id.tvName);
+            }
+        });
     }
 
     @Override
@@ -124,12 +135,19 @@ public class HomeActivity extends BaseActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if(tvName != null && event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_MENU)
+        {
+            tvName.callOnClick();
+            return false;
+        }
         return super.dispatchKeyEvent(event) && currentHomeFragment.dispatchKey(event);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(currentHomeFragment != null)
+            currentHomeFragment.onDestroy();
         EventBus.getDefault().unregister(this);
         if(!isChaningApi)
             AppManager.getInstance().appExit(0);
