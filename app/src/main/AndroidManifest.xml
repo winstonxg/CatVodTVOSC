@@ -63,6 +63,9 @@
         <activity
             android:name="com.github.tvbox.osc.ui.activity.RecommendActivity"
             android:screenOrientation="landscape" />
+        <activity
+            android:name="com.github.tvbox.osc.ui.activity.DriveActivity"
+            android:screenOrientation="landscape" />
 
         <receiver android:name="com.github.tvbox.osc.receiver.SearchReceiver">
             <intent-filter>

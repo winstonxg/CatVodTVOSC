@@ -439,6 +439,7 @@ public class DetailActivity extends BaseActivity {
             defaultPos = 0;
         thirdPlayerDialog = new SelectDialog<>(DetailActivity.this);
         thirdPlayerDialog.setTip("请选择外部播放器");
+        thirdPlayerDialog.setItemCheckDisplay(false);
         thirdPlayerDialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<Integer>() {
             @Override
             public void click(Integer value, int pos) {
@@ -863,8 +864,10 @@ public class DetailActivity extends BaseActivity {
                 searchExecutorService.shutdownNow();
                 searchExecutorService = null;
             }
-            if(playerFragment != null)
+            if(playerFragment != null) {
                 playerFragment.destroy();
+                playerFragment = null;
+            }
         } catch (Throwable th) {
             th.printStackTrace();
         }
@@ -910,6 +913,7 @@ public class DetailActivity extends BaseActivity {
         if(thirdPlayerDialog != null) {
             thirdPlayerDialog.dismiss();
             thirdPlayerDialog = null;
+            return;
         }
 
         if (seriesSelect) {

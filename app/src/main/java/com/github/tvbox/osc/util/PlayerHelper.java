@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.util;
 
+import android.app.Activity;
 import android.content.Context;
 
 import com.github.tvbox.osc.api.ApiConfig;
@@ -15,6 +16,7 @@ import com.orhanobut.hawk.Hawk;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -220,6 +222,29 @@ public class PlayerHelper {
         if(DangbeiPlayer.getPackageInfo() != null) {
             AVAILABLE_3RD_PLAYERS.put(13, "当贝播放器");
         }
+    }
+
+    public static boolean playOn3rdPlayer(int playerType, Activity mActivity, String playingUrl, String playTitle, String playSubtitle, HashMap<String, String> playingHeader) {
+        boolean callResult = false;
+        switch (playerType) {
+            case 10: {
+                callResult = MXPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
+            case 11: {
+                callResult = ReexPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
+            case 12: {
+                callResult = UCPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
+            case 13: {
+                callResult = DangbeiPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
+                break;
+            }
+        }
+        return callResult;
     }
 
     public static Integer[] getAvailable3rdPlayerTypes() {

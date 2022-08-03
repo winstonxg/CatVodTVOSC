@@ -42,6 +42,9 @@ public class PlayActivity extends BaseActivity {
         tempFrame.setId(DETAIL_PLAYER_FRAME_ID);
         mPlayFrame.addView(tempFrame, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         playerFragment = DetailActivity.getManagedPlayerFragment();
+        if(playerFragment == null) {
+            playerFragment = new PlayerFragment();
+        }
         getSupportFragmentManager().beginTransaction()
                 .add(DETAIL_PLAYER_FRAME_ID, playerFragment, PlayerFragment.FRAGMENT_TAG).disallowAddToBackStack().commit();
         Intent intent = getIntent();
@@ -68,8 +71,12 @@ public class PlayActivity extends BaseActivity {
             return;
         }
         super.onBackPressed();
-        getSupportFragmentManager().beginTransaction()
-                .remove(playerFragment).commit();
+        if(DetailActivity.getManagedPlayerFragment() != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .remove(playerFragment).commit();
+        } else {
+            playerFragment.destroy();
+        }
     }
 
     @Override

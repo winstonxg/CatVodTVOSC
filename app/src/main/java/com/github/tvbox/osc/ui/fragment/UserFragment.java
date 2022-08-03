@@ -11,6 +11,7 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.event.ServerEvent;
 import com.github.tvbox.osc.ui.activity.CollectActivity;
+import com.github.tvbox.osc.ui.activity.DriveActivity;
 import com.github.tvbox.osc.ui.activity.LivePlayActivity;
 import com.github.tvbox.osc.ui.activity.PushActivity;
 import com.github.tvbox.osc.ui.activity.RecommendActivity;
@@ -36,6 +37,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     private LinearLayout tvPush;
     private LinearLayout tvFavorite;
     private LinearLayout tvDouban;
+    private LinearLayout tvDrive;
     private FragmentContainerView selfView;
     private boolean anyItemFocused = false;
     private boolean hasScheduled = false;
@@ -69,6 +71,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvPush = findViewById(R.id.tvPush);
         tvFavorite = findViewById(R.id.tvFavorite);
         tvDouban = findViewById(R.id.tvDouban);
+        tvDrive = findViewById(R.id.tvDrive);
         tvVod.setOnClickListener(this);
         tvLive.setOnClickListener(this);
         tvSearch.setOnClickListener(this);
@@ -76,6 +79,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvPush.setOnClickListener(this);
         tvFavorite.setOnClickListener(this);
         tvDouban.setOnClickListener(this);
+        tvDrive.setOnClickListener(this);
         tvVod.setOnFocusChangeListener(focusChangeListener);
         tvLive.setOnFocusChangeListener(focusChangeListener);
         tvSearch.setOnFocusChangeListener(focusChangeListener);
@@ -83,6 +87,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvPush.setOnFocusChangeListener(focusChangeListener);
         tvFavorite.setOnFocusChangeListener(focusChangeListener);
         tvDouban.setOnFocusChangeListener(focusChangeListener);
+        tvDrive.setOnFocusChangeListener(focusChangeListener);;
         updateShowVod(this.showVod);
     }
 
@@ -125,6 +130,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             jumpActivity(CollectActivity.class);
         } else if (v.getId() == R.id.tvDouban) {
             jumpActivity(RecommendActivity.class);
+        } else if(v.getId() == R.id.tvDrive) {
+            jumpActivity(DriveActivity.class);
         }
     }
 

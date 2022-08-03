@@ -55,6 +55,9 @@ import com.github.tvbox.osc.util.PlayerHelper;
 import com.github.tvbox.osc.util.XWalkUtils;
 import com.github.tvbox.osc.util.thunder.Thunder;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.AbsCallback;
 import com.lzy.okgo.model.HttpHeaders;
@@ -140,7 +143,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         mPlayLoadTip = findViewById(R.id.play_load_tip);
         mPlayLoading = findViewById(R.id.play_loading);
         mPlayLoadErr = findViewById(R.id.play_load_error);
-        mController = new VodController(this.mContext);
+        mController = new VodController(this.mContext, this);
         mController.setCanChangePosition(true);
         mController.setEnableInNormal(true);
         mController.setGestureEnabled(true);
@@ -176,7 +179,7 @@ public class PlayerFragment  extends BaseLazyFragment {
                 String preProgressKey = progressKey;
                 PlayerFragment.this.playNext();
                 if (rmProgress && preProgressKey != null)
-                    CacheManager.delete(MD5.string2MD5(preProgressKey), 0);
+                    CacheManager.delete(MD5.string2MD5(preProgressKey));
             }
 
             @Override
@@ -199,7 +202,7 @@ public class PlayerFragment  extends BaseLazyFragment {
             @Override
             public void replay() {
                 autoRetryCount = 0;
-                String progressKey = mVodInfo.sourceKey + mVodInfo.id + mVodInfo.playFlag + mVodInfo.playIndex;
+                String progressKey = playingUrl; //mVodInfo.sourceKey + mVodInfo.id + mVodInfo.playFlag + mVodInfo.playIndex;
                 replayKey = progressKey;
                 play();
             }
@@ -280,25 +283,7 @@ public class PlayerFragment  extends BaseLazyFragment {
             toast.show();
             return;
         }
-        boolean callResult = false;
-        switch (playerType) {
-            case 10: {
-                callResult = MXPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
-                break;
-            }
-            case 11: {
-                callResult = ReexPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
-                break;
-            }
-            case 12: {
-                callResult = UCPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
-                break;
-            }
-            case 13: {
-                callResult = DangbeiPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
-                break;
-            }
-        }
+        boolean callResult = PlayerHelper.playOn3rdPlayer(playerType, mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
         if(callResult) {
             Toast toast = Toast.makeText(mContext, "调用外部播放器成功",Toast.LENGTH_SHORT);
             toast.show();
@@ -482,6 +467,22 @@ public class PlayerFragment  extends BaseLazyFragment {
 
         playUrl(null, null);
         String progressKey = mVodInfo.sourceKey + mVodInfo.id + mVodInfo.playFlag + mVodInfo.playIndex;
+        if(vs.url.startsWith("tvbox-drive://")) {
+            mController.showParse(false);
+            HashMap<String, String> headers = null;
+            if(mVodInfo.playerCfg != null && mVodInfo.playerCfg.length() > 0) {
+                JsonObject playerConfig = JsonParser.parseString(mVodInfo.playerCfg).getAsJsonObject();
+                if(playerConfig.has("headers")) {
+                    headers = new HashMap<>();
+                    for (JsonElement headerEl: playerConfig.getAsJsonArray("headers")) {
+                        JsonObject headerJson = headerEl.getAsJsonObject();
+                        headers.put(headerJson.get("name").getAsString(), headerJson.get("value").getAsString());
+                    }
+                }
+            }
+            playUrl(vs.url.replace("tvbox-drive://", ""), headers);
+            return;
+        }
         if (Thunder.play(vs.url, new Thunder.ThunderCallback() {
             @Override
             public void status(int code, String info) {

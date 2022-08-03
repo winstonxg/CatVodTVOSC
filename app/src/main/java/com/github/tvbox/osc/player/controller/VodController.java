@@ -20,6 +20,7 @@ import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.bean.ParseBean;
 import com.github.tvbox.osc.ui.activity.DetailActivity;
 import com.github.tvbox.osc.ui.adapter.ParseAdapter;
+import com.github.tvbox.osc.ui.fragment.PlayerFragment;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.PlayerHelper;
 import com.orhanobut.hawk.Hawk;
@@ -41,8 +42,12 @@ import xyz.doikki.videoplayer.util.PlayerUtils;
 import static xyz.doikki.videoplayer.util.PlayerUtils.stringForTime;
 
 public class VodController extends BaseController {
-    public VodController(@NonNull @NotNull Context context) {
+
+    private PlayerFragment playerFragment;
+
+    public VodController(@NonNull @NotNull Context context, PlayerFragment playerFragment) {
         super(context);
+        this.playerFragment = playerFragment;
         mHandlerCallback = new HandlerCallback() {
             @Override
             public void callback(Message msg) {
@@ -359,7 +364,7 @@ public class VodController extends BaseController {
                 Integer[] types = PlayerHelper.getAvailable3rdPlayerTypes();
                 if(types.length > 0) {
                     Integer selectedType = Hawk.get(HawkConfig.THIRD_PARTY_PLAYER, types[0]);
-                    DetailActivity.getManagedPlayerFragment().playInOtherPlayer(selectedType);
+                    VodController.this.playerFragment.playInOtherPlayer(selectedType);
                 }
             }
         });
