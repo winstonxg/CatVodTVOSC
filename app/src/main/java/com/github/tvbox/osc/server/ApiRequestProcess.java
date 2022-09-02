@@ -247,7 +247,11 @@ public class ApiRequestProcess implements RequestProcess {
                                     return;
                                 bundle.putString("sourceKey", sourceKey);
                                 if(detailActivity != null) {
-                                    appManager.backActivity(DetailActivity.class);
+                                    Activity currentActivity = appManager.currentActivity();
+                                    if(currentActivity instanceof PlayActivity)
+                                        ((PlayActivity)currentActivity).onBackPressed();
+                                    else
+                                        appManager.backActivity(DetailActivity.class);
                                     EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_VOD_PLAY, bundle));
                                 } else {
                                     ((BaseActivity) AppManager.getInstance().currentActivity()).jumpActivity(DetailActivity.class, bundle);
