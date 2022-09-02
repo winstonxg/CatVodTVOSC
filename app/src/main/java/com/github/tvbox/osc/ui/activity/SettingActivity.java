@@ -15,12 +15,14 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
+import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.SettingMenuAdapter;
 import com.github.tvbox.osc.ui.adapter.SettingPageAdapter;
 import com.github.tvbox.osc.ui.fragment.ModelSettingFragment;
 import com.github.tvbox.osc.ui.fragment.homes.AbstractHomeFragment;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.HawkConfig;
+import com.google.gson.JsonObject;
 import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
@@ -46,6 +48,7 @@ public class SettingActivity extends BaseActivity {
     private String homeSourceKey;
     private String currentApi;
     private String currentHomeStyle;
+    private boolean enabledRemoteControl;
     private int homeRec;
     private int dnsOpt;
 
@@ -113,6 +116,7 @@ public class SettingActivity extends BaseActivity {
         homeSourceKey = ApiConfig.get().getHomeSourceBean().getKey();
         homeRec = Hawk.get(HawkConfig.HOME_REC, 0);
         dnsOpt = Hawk.get(HawkConfig.DOH_URL, 0);
+        enabledRemoteControl = Hawk.get(HawkConfig.REMOTE_CONTROL, true);
         List<String> sortList = new ArrayList<>();
         sortList.add("设置其他");
         sortAdapter.setNewData(sortList);
@@ -184,13 +188,17 @@ public class SettingActivity extends BaseActivity {
                 !currentApi.equals(Hawk.get(HawkConfig.API_URL, "")) ||
                 homeRec != Hawk.get(HawkConfig.HOME_REC, 0) ||
                 dnsOpt != Hawk.get(HawkConfig.DOH_URL, 0) ||
-                !currentHomeStyle.equals(Hawk.get(HawkConfig.HOME_VIEW_STYLE, AbstractHomeFragment.getManagedHomeFragments().get(0).getClassName()))) {
+                !currentHomeStyle.equals(Hawk.get(HawkConfig.HOME_VIEW_STYLE, AbstractHomeFragment.getManagedHomeFragments().get(0).getClassName())) ||
+                enabledRemoteControl != Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
             AppManager.getInstance().finishAllActivity();
             if (currentApi.equals(Hawk.get(HawkConfig.API_URL, ""))) {
                 Bundle bundle = new Bundle();
                 bundle.putBoolean("useCache", true);
                 jumpActivity(HomeActivity.class, bundle);
             } else {
+                JsonObject msg = new JsonObject();
+                msg.addProperty("type", "updateApiUrl");
+                ControlManager.get().getSocketServer().sendToAll(msg);
                 jumpActivity(HomeActivity.class);
             }
         } else {

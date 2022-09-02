@@ -183,8 +183,10 @@ public class ApiConfig {
 
         if (!md5.isEmpty() || useCache) {
             if (cache.exists() && (useCache || MD5.getFileMd5(cache).equalsIgnoreCase(md5))) {
-                if(jarLoaders.containsKey(spiderKey))
+                if(jarLoaders.containsKey(spiderKey)) {
                     callback.success();
+                    return;
+                }
                 JarLoader jarLoader = new JarLoader(spiderKey);
                 if (jarLoader.load(cache.getAbsolutePath())) {
                     jarLoaders.put(spiderKey, jarLoader);
@@ -281,6 +283,14 @@ public class ApiConfig {
             sb.setExt(DefaultConfig.safeJsonString(obj, "ext", ""));
             sb.setCategories(DefaultConfig.safeJsonStringList(obj, "categories"));
             sb.setSpider(DefaultConfig.safeJsonString(obj, "spider", null));
+            if(obj.has("jar"))
+                sb.setSpider(DefaultConfig.safeJsonString(obj, "jar", null));
+            String spiderKey = sb.getSpider();
+            if(spiderKey.startsWith("http") || spiderKey.startsWith("clan")) {
+                spiderKey = MD5.string2MD5(spiderKey);
+                spiders.put(spiderKey, sb.getSpider());
+                sb.setSpider(spiderKey);
+            }
             if (firstSite == null)
                 firstSite = sb;
             sourceBeanList.put(siteKey, sb);
@@ -296,6 +306,8 @@ public class ApiConfig {
         // 需要使用vip解析的flag
         vipParseFlags = DefaultConfig.safeJsonStringList(infoJson, "flags");
         // 解析地址
+        if(parseBeanList != null)
+            parseBeanList.clear();
         for (JsonElement opt : infoJson.get("parses").getAsJsonArray()) {
             JsonObject obj = (JsonObject) opt;
             ParseBean pb = new ParseBean();

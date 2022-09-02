@@ -5,6 +5,17 @@
     android:background="@drawable/shape_user_focus"
     android:focusable="true">
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="@dimen/vs_50"
+        android:layout_height="@dimen/vs_50"
+        android:layout_gravity="center"
+        android:indeterminateBehavior="repeat"
+        android:indeterminateDrawable="@drawable/dkplayer_progress_loading"
+        android:indeterminateOnly="true"
+        android:tag="vod_control_loading"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tvName"
         android:layout_width="match_parent"

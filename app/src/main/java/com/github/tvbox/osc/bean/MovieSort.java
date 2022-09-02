@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author pj567
@@ -51,7 +52,28 @@ public class MovieSort implements Serializable {
     public static class SortFilter {
         public String key;
         public String name;
-        public LinkedHashMap<String, String> values;
+        private LinkedHashMap<String, String> values;
+        public List<FilterOption> options;
+
+        public LinkedHashMap<String, String> getValues() {
+            return values;
+        }
+
+        public void setValues(LinkedHashMap<String, String> values) {
+            this.values = values;
+            options = new ArrayList<>();
+            for(Map.Entry<String, String> entry : values.entrySet()) {
+                FilterOption fo = new FilterOption();
+                fo.key = entry.getKey();
+                fo.value = entry.getValue();
+                options.add(fo);
+            }
+        }
+    }
+
+    public static class FilterOption {
+        public String key;
+        public String value;
     }
 
 }

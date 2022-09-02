@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.IntEvaluator;
 import android.animation.ObjectAnimator;
+import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -27,6 +29,7 @@ import com.github.tvbox.osc.bean.LiveChannelItem;
 import com.github.tvbox.osc.bean.LivePlayerManager;
 import com.github.tvbox.osc.bean.LiveSettingGroup;
 import com.github.tvbox.osc.bean.LiveSettingItem;
+import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.player.controller.LiveController;
 import com.github.tvbox.osc.ui.adapter.LiveChannelGroupAdapter;
 import com.github.tvbox.osc.ui.adapter.LiveChannelItemAdapter;
@@ -45,6 +48,10 @@ import com.lzy.okgo.model.Response;
 import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -95,6 +102,7 @@ public class LivePlayActivity extends BaseActivity {
 
     @Override
     protected void init() {
+        EventBus.getDefault().register(this);
         setLoadSir(findViewById(R.id.live_root));
         mVideoView = findViewById(R.id.mVideoView);
 
@@ -820,26 +828,50 @@ public class LivePlayActivity extends BaseActivity {
         });
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void refresh(RefreshEvent event) {
+        if (event.type == RefreshEvent.TYPE_LIVEPLAY_UPDATE) {
+            Bundle bundle = (Bundle) event.obj;
+            int channelGroupIndex = bundle.getInt("groupIndex", 0);
+            int liveChannelIndex = bundle.getInt("channelIndex", 0);
+            if(channelGroupIndex != liveChannelGroupAdapter.getSelectedGroupIndex())
+                selectChannelGroup(channelGroupIndex, true, liveChannelIndex);
+            else {
+                clickLiveChannel(liveChannelIndex);
+                mChannelGroupView.scrollToPosition(channelGroupIndex);
+                mLiveChannelView.scrollToPosition(liveChannelIndex);
+                playChannel(channelGroupIndex, liveChannelIndex, false);
+            }
+        }
+    }
+
     private void initLiveState() {
         String lastChannelName = Hawk.get(HawkConfig.LIVE_CHANNEL, "");
 
         int lastChannelGroupIndex = -1;
         int lastLiveChannelIndex = -1;
-        for (LiveChannelGroup liveChannelGroup : liveChannelGroupList) {
-            for (LiveChannelItem liveChannelItem : liveChannelGroup.getLiveChannels()) {
-                if (liveChannelItem.getChannelName().equals(lastChannelName)) {
-                    lastChannelGroupIndex = liveChannelGroup.getGroupIndex();
-                    lastLiveChannelIndex = liveChannelItem.getChannelIndex();
-                    break;
+        Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            Bundle bundle = intent.getExtras();
+            lastChannelGroupIndex = bundle.getInt("groupIndex", 0);
+            lastLiveChannelIndex = bundle.getInt("channelIndex", 0);
+        } else {
+            for (LiveChannelGroup liveChannelGroup : liveChannelGroupList) {
+                for (LiveChannelItem liveChannelItem : liveChannelGroup.getLiveChannels()) {
+                    if (liveChannelItem.getChannelName().equals(lastChannelName)) {
+                        lastChannelGroupIndex = liveChannelGroup.getGroupIndex();
+                        lastLiveChannelIndex = liveChannelItem.getChannelIndex();
+                        break;
+                    }
                 }
+                if (lastChannelGroupIndex != -1) break;
             }
-            if (lastChannelGroupIndex != -1) break;
-        }
-        if (lastChannelGroupIndex == -1) {
-            lastChannelGroupIndex = getFirstNoPasswordChannelGroup();
-            if (lastChannelGroupIndex == -1)
-                lastChannelGroupIndex = 0;
-            lastLiveChannelIndex = 0;
+            if (lastChannelGroupIndex == -1) {
+                lastChannelGroupIndex = getFirstNoPasswordChannelGroup();
+                if (lastChannelGroupIndex == -1)
+                    lastChannelGroupIndex = 0;
+                lastLiveChannelIndex = 0;
+            }
         }
 
         livePlayerManager.init(mVideoView);

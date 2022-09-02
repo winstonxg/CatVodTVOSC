@@ -8,6 +8,7 @@ import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.player.IjkMediaPlayer;
 import com.github.tvbox.osc.player.render.SurfaceRenderViewFactory;
 import com.github.tvbox.osc.player.thirdparty.DangbeiPlayer;
+import com.github.tvbox.osc.player.thirdparty.KodiPlayer;
 import com.github.tvbox.osc.player.thirdparty.MXPlayer;
 import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
 import com.github.tvbox.osc.player.thirdparty.UCPlayer;
@@ -222,6 +223,9 @@ public class PlayerHelper {
         if(DangbeiPlayer.getPackageInfo() != null) {
             AVAILABLE_3RD_PLAYERS.put(13, "当贝播放器");
         }
+        if(KodiPlayer.getPackageInfo() != null) {
+            AVAILABLE_3RD_PLAYERS.put(14, "Kodi");
+        }
     }
 
     public static boolean playOn3rdPlayer(int playerType, Activity mActivity, String playingUrl, String playTitle, String playSubtitle, HashMap<String, String> playingHeader) {
@@ -242,6 +246,9 @@ public class PlayerHelper {
             case 13: {
                 callResult = DangbeiPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
                 break;
+            }
+            case 14: {
+                callResult = KodiPlayer.run(mActivity, playingUrl, playTitle, playSubtitle, playingHeader);
             }
         }
         return callResult;
@@ -266,5 +273,15 @@ public class PlayerHelper {
             return (speed / 1024) + "KB/s";
         else
             return speed + "B/s";
+    }
+
+    public static String getDeviceTypeName(int type) {
+        switch (type) {
+            case 0:
+                return "电视";
+            case 1:
+                return "手机";
+        }
+        return "未定义";
     }
 }

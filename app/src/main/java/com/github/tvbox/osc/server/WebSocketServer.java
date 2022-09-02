@@ -1,92 +1,187 @@
-package fi.iki.elonen.samples.echo;
+package com.github.tvbox.osc.server;
 
-/*
- * #%L
- * NanoHttpd-Websocket
- * %%
- * Copyright (C) 2012 - 2015 nanohttpd
- * %%
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 
- * 3. Neither the name of the nanohttpd nor the names of its contributors
- *    may be used to endorse or promote products derived from this software without
- *    specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * #L%
- */
+import android.app.Activity;
+import android.content.Context;
+import android.os.Handler;
+
+import com.github.tvbox.osc.base.BaseActivity;
+import com.github.tvbox.osc.bean.VodInfo;
+import com.github.tvbox.osc.ui.activity.DetailActivity;
+import com.github.tvbox.osc.ui.activity.PlayActivity;
+import com.github.tvbox.osc.ui.fragment.PlayerFragment;
+import com.github.tvbox.osc.util.AppManager;
+import com.github.tvbox.osc.util.HawkConfig;
+import com.github.tvbox.osc.util.VodSearch;
+import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.orhanobut.hawk.Hawk;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
+import xyz.doikki.videoplayer.player.VideoView;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 4/23/14 at 10:31 PM
  */
-public class DebugWebSocketServer extends NanoWSD {
+public class WebSocketServer extends NanoWSD {
 
     /**
      * logger to log to.
      */
-    private static final Logger LOG = Logger.getLogger(DebugWebSocketServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(WebSocketServer.class.getName());
+    private static List<NoticeWebSocket> connected = new ArrayList<>();
+    private Context mContext;
+    private Handler mHandler;
 
-    private final boolean debug;
+    public static int serverPort = 9878;
 
-    public DebugWebSocketServer(int port, boolean debug) {
+    public Handler getHandler() {
+        return mHandler;
+    }
+
+    public WebSocketServer(int port, Context mContext) {
         super(port);
-        this.debug = debug;
+        this.mContext = mContext;
+        mHandler = new Handler(this.mContext.getMainLooper());
+    }
+
+    public void sendToAll(JsonObject object) {
+        if(!Hawk.get(HawkConfig.REMOTE_CONTROL, true))
+            return;
+        String sentData = object.toString();
+        new Thread() {
+            @Override
+            public void run() {
+                synchronized (connected) {
+                    for (WebSocket socket : connected) {
+                        try {
+                            socket.send(sentData);
+                        } catch (Exception ex) {
+                            try {
+                                socket.close(CloseCode.InvalidFramePayloadData, "error", false);
+                            } catch (Exception ex2) {
+                            }
+                        }
+                    }
+                }
+            }
+        }.start();
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        synchronized (WebSocketServer.connected) {
+            for(WebSocket socket:connected) {
+                try {
+                    socket.close(CloseCode.GoingAway, "close", false);
+                } catch (IOException e) {
+
+                }
+            }
+            connected.clear();
+        }
     }
 
     @Override
     protected WebSocket openWebSocket(IHTTPSession handshake) {
-        return new DebugWebSocket(this, handshake);
+        NoticeWebSocket newSocket = new NoticeWebSocket(this, handshake);
+        return newSocket;
     }
 
-    private static class DebugWebSocket extends WebSocket {
+    public static class NoticeWebSocket extends WebSocket {
 
-        private final DebugWebSocketServer server;
+        private static final byte[] PING_PAYLOAD = "1337DEADBEEFC001".getBytes();
 
-        public DebugWebSocket(DebugWebSocketServer server, IHTTPSession handshakeRequest) {
+        private final WebSocketServer server;
+        private TimerTask ping = null;
+
+        public NoticeWebSocket(WebSocketServer server, IHTTPSession handshakeRequest) {
             super(handshakeRequest);
             this.server = server;
         }
 
         @Override
         protected void onOpen() {
+            synchronized (WebSocketServer.connected) {
+                WebSocketServer.connected.add(this);
+            }
+            if (ping == null) {
+                ping = new TimerTask() {
+                    @Override
+                    public void run(){
+                        try { ping(PING_PAYLOAD); }
+                        catch (IOException e) { ping.cancel(); }
+                    }
+                };
+                new Timer().schedule(ping, 1000, 2000);
+            }
         }
 
         @Override
         protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {
-            if (server.debug) {
-                System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
-                        + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+            synchronized (WebSocketServer.connected) {
+                WebSocketServer.connected.remove(this);
             }
+            try {
+                if (ping != null) ping.cancel();
+            }catch (Exception ex) {}
         }
 
         @Override
         protected void onMessage(WebSocketFrame message) {
             try {
                 message.setUnmasked();
+                JsonObject backData = JsonParser.parseString(message.getTextPayload()).getAsJsonObject();
+                String type = backData.get("type").getAsString();
+                if(type != null) {
+                    String[] classAndMethod = type.split("\\-");
+                    if(classAndMethod.length == 2) {
+                        try {
+                            Class processor = Class.forName("com.github.tvbox.osc.server.socketprocessors." + classAndMethod[0] + "Processor");
+                            if(processor != null) {
+                                java.lang.reflect.Method matchedMethod = null;
+                                for (java.lang.reflect.Method method : processor.getMethods()) {
+                                    if(method.getName().equalsIgnoreCase(classAndMethod[1])) {
+                                        matchedMethod = method;
+                                        break;
+                                    }
+                                }
+                                if(matchedMethod != null) {
+                                    Class<?>[] paramTypes = matchedMethod.getParameterTypes();
+                                    List<Object> params = new ArrayList<>();
+                                    for(Class paramType : paramTypes) {
+                                        if(paramType == JsonObject.class)
+                                            params.add(backData);
+                                        else if(paramType == NoticeWebSocket.class)
+                                            params.add(this);
+                                        else
+                                            params.add(null);
+                                    }
+                                    matchedMethod.invoke(processor.newInstance(), params.toArray());
+                                }
+                            }
+                        }catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
                 sendFrame(message);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -95,28 +190,27 @@ public class DebugWebSocketServer extends NanoWSD {
 
         @Override
         protected void onPong(WebSocketFrame pong) {
-            if (server.debug) {
-                System.out.println("P " + pong);
-            }
+
         }
 
         @Override
         protected void onException(IOException exception) {
-            DebugWebSocketServer.LOG.log(Level.SEVERE, "exception occured", exception);
+            WebSocketServer.LOG.log(Level.SEVERE, "exception occured", exception);
         }
 
         @Override
         protected void debugFrameReceived(WebSocketFrame frame) {
-            if (server.debug) {
-                System.out.println("R " + frame);
-            }
+
         }
 
         @Override
         protected void debugFrameSent(WebSocketFrame frame) {
-            if (server.debug) {
-                System.out.println("S " + frame);
-            }
+
         }
+    }
+
+    private class VodProcessor {
+
+
     }
 }

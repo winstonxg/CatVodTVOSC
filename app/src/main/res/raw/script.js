@@ -2,6 +2,10 @@ function search() {
     doAction('search', { word: $('#search_key_word').val() });
 }
 
+function backgroundSearch() {
+    runBackgroundSearch($('#search_key_word').val());
+}
+
 function api() {
     doAction('api', { url: $('#diy_api_url').val() });
 }
@@ -72,13 +76,13 @@ let current_file = '';
 function selectFile(path, canDel) {
     current_file = path;
     if (canDel)
-        $("#delFileBtn").show();
+        $("#delFileBtn").fadeIn();
     else
-        $("#delFileBtn").hide();
+        $("#delFileBtn").fadeOut();
     // $("#fileUrl0")[0].value = current_remote.replace('clan://', 'http://') + 'file/' + current_file;
     $("#fileUrl1")[0].value = "clan://localhost/" + current_file;
     $("#fileUrl2")[0].value = current_remote + current_file;
-    $("#fileInfoDialog").show();
+    $("#fileInfoDialog").fadeIn();
 }
 
 function fileToApi(type) {
@@ -90,11 +94,11 @@ function fileToApi(type) {
 }
 
 function hideFileInfo() {
-    $("#fileInfoDialog").hide();
+    $("#fileInfoDialog").fadeOut();
 }
 
 function listFile(path) {
-    $('#loadingToast').show();
+    $('#loadingToast').fadeIn();
     $.get('/file/' + path, function (res) {
         let info = JSON.parse(res);
         let parent = info.parent;
@@ -110,9 +114,9 @@ function listFile(path) {
             add_file(tpl_top(parent));
 
         if (canDel) {
-            $('#delCurFolder').show();
+            $('#delCurFolder').fadeIn();
         } else {
-            $('#delCurFolder').hide();
+            $('#delCurFolder').fadeOut();
         }
 
         array.forEach(node => {
@@ -122,15 +126,15 @@ function listFile(path) {
                 add_file(tpl_file(node.name, node.time, node.path, canDel));
             }
         });
-        $('#loadingToast').hide();
+        $('#loadingToast').fadeOut();
     })
 }
 
 function warnToast(msg) {
     $('#warnToastContent').html(msg);
-    $('#warnToast').show();
+    $('#warnToast').fadeIn();
     setTimeout(() => {
-        $('#warnToast').hide();
+        $('#warnToast').fadeOut();
     }, 1000);
 }
 
@@ -147,11 +151,11 @@ function uploadTip() {
         tip += (files[i].name) + ',';
     }
     $('#uploadTipContent').html(tip);
-    $('#uploadTip').show();
+    $('#uploadTip').fadeIn();
 }
 
 function doUpload(yes) {
-    $('#uploadTip').hide();
+    $('#uploadTip').fadeOut();
     if (yes == 1) {
         let files = $('#file_uploader')[0].files;
         if (files.length <= 0)
@@ -161,7 +165,7 @@ function doUpload(yes) {
         for (i = 0; i < files.length; i++) {
             formData.append("files-" + i, files[i]);
         }
-        $('#loadingToast').show();
+        $('#loadingToast').fadeIn();
         $.ajax({
             url: '/upload',
             type: 'post',
@@ -169,7 +173,7 @@ function doUpload(yes) {
             processData: false,
             contentType: false,
             complete: function () {
-                $('#loadingToast').hide();
+                $('#loadingToast').fadeOut();
                 listFile(current_root);
             }
         });
@@ -177,18 +181,18 @@ function doUpload(yes) {
 }
 
 function newFolder() {
-    $('#newFolder').show();
+    $('#newFolder').fadeIn();
 }
 
 function doNewFolder(yes) {
-    $('#newFolder').hide();
+    $('#newFolder').fadeOut();
     if (yes == 1) {
         let name = $('#newFolderContent')[0].value.trim();
         if (name.length <= 0)
             return false;
-        $('#loadingToast').show();
+        $('#loadingToast').fadeIn();
         $.post('/newFolder', { path: current_root, name: '' + name }, function (data) {
-            $('#loadingToast').hide();
+            $('#loadingToast').fadeOut();
             listFile(current_root);
         });
     }
@@ -197,15 +201,15 @@ function doNewFolder(yes) {
 
 function delFolder() {
     $('#delFolderContent').html('是否删除 ' + current_root);
-    $('#delFolder').show();
+    $('#delFolder').fadeIn();
 }
 
 function doDelFolder(yes) {
-    $('#delFolder').hide();
+    $('#delFolder').fadeOut();
     if (yes == 1) {
-        $('#loadingToast').show();
+        $('#loadingToast').fadeIn();
         $.post('/delFolder', { path: current_root }, function (data) {
-            $('#loadingToast').hide();
+            $('#loadingToast').fadeOut();
             listFile(current_parent);
         });
     }
@@ -213,15 +217,15 @@ function doDelFolder(yes) {
 
 function delFolder() {
     $('#delFolderContent').html('是否删除 ' + current_root);
-    $('#delFolder').show();
+    $('#delFolder').fadeIn();
 }
 
 function doDelFolder(yes) {
-    $('#delFolder').hide();
+    $('#delFolder').fadeOut();
     if (yes == 1) {
-        $('#loadingToast').show();
+        $('#loadingToast').fadeIn();
         $.post('/delFolder', { path: current_root }, function (data) {
-            $('#loadingToast').hide();
+            $('#loadingToast').fadeOut();
             listFile(current_parent);
         });
     }
@@ -230,15 +234,15 @@ function doDelFolder(yes) {
 function delFile() {
     hideFileInfo();
     $('#delFileContent').html('是否删除 ' + current_file);
-    $('#delFile').show();
+    $('#delFile').fadeIn();
 }
 
 function doDelFile(yes) {
-    $('#delFile').hide();
+    $('#delFile').fadeOut();
     if (yes == 1) {
-        $('#loadingToast').show();
+        $('#loadingToast').fadeIn();
         $.post('/delFile', { path: current_file }, function (data) {
-            $('#loadingToast').hide();
+            $('#loadingToast').fadeOut();
             listFile(current_root);
         });
     }
@@ -249,25 +253,317 @@ function showPanel(id) {
     $(tab).attr('aria-selected', 'true').addClass('weui-bar__item_on');
     $(tab).siblings('.weui-bar__item_on').removeClass('weui-bar__item_on').attr('aria-selected', 'false');
     var panelId = '#' + $(tab).attr('aria-controls');
-    if (id === 3 && current_remote.length === 0) {
+    if (id === 6 && current_remote.length === 0) {
         listFile('')
     }
     $(panelId).css('display', 'block');
     $(panelId).siblings('.weui-tab__panel').css('display', 'none');
 }
 
+function closeDialog(o){
+    const $jsDialogWrap = o.parents('.js_dialog_wrap');
+    if($jsDialogWrap.attr("onclose"))
+        eval($jsDialogWrap.attr("onclose"));
+    $jsDialogWrap.attr('aria-hidden','true').attr('aria-modal','false').removeAttr('tabindex');
+    $jsDialogWrap.fadeOut(300);
+    $jsDialogWrap.find('.js_dialog').removeClass('weui-half-screen-dialog_show');
+    setTimeout(function(){
+      $('#' + $jsDialogWrap.attr('ref')).trigger('focus');
+    }, 300);
+  }
+
+var $sliderTrack = $('#sliderTrack'),
+    $sliderHandler = $('#sliderHandler'),
+    $sliderValue = $('#sliderValue')
+    isSliderDragging = false;;
+
 $(function () {
+
+    var totalLen = $('#sliderInner').width(),
+        startLeft = 0,
+        startX = 0;
+
+    $sliderHandler
+        .on('touchstart', function (e) {
+            startLeft = parseInt($sliderHandler[0].style.left) * totalLen / 100;
+            startX = e.originalEvent.changedTouches[0].clientX;
+            isSliderDragging = true;
+        })
+        .on('touchmove', function(e){
+            var dist = startLeft + e.originalEvent.changedTouches[0].clientX - startX,
+                percent;
+            dist = dist < 0 ? 0 : dist > totalLen ? totalLen : dist;
+            percent =  dist / totalLen * 100;
+            $sliderTrack.css('width', percent + '%');
+            $sliderHandler.css('left', percent + '%');
+            var durationNum = $sliderHandler.data("duration");
+            var duration = parseInt(durationNum / 60000) + ":" + parseInt(durationNum % 60000 / 1000).toLocaleString('en-US', {
+                minimumIntegerDigits: 2,
+                useGrouping: false
+              });
+            var positionNum = durationNum * (percent / 100);
+            var position = parseInt(positionNum / 60000) + ":" + parseInt(positionNum % 60000 / 1000).toLocaleString('en-US', {
+                minimumIntegerDigits: 2,
+                useGrouping: false
+              });
+            $sliderValue.text(position + "/" + duration);
+            e.preventDefault();
+        })
+        .on('touchend', function(e) {
+            isSliderDragging = false;
+            var dist = startLeft + e.originalEvent.changedTouches[0].clientX - startX,
+                percent;
+            dist = dist < 0 ? 0 : dist > totalLen ? totalLen : dist;
+            percent =  dist / totalLen * 100;
+            mainSocket.send(JSON.stringify({ type: 'Vod-seek', percent: percent }));
+        });
+    
+    $(".page").addClass("js_show");
     $('.weui-tabbar__item').on('click', function () {
         showPanel(parseInt($(this).attr('id').substr(3)));
     });
+    $('.js_dialog_wrap').on('touchmove', function(e) {
+        //e.preventDefault();
+    });
+    $('.js_close').on('click', function() {
+      closeDialog($(this));
+    });
+    $('.weui-navbar__item').on('click', function () {
+        $(this).attr('aria-selected','true').addClass('weui-bar__item_on');
+        $(this).siblings('.weui-bar__item_on').removeClass('weui-bar__item_on').attr('aria-selected','false');
+        var panelId = '#' + $(this).attr('aria-controls');
+        $(panelId).css('display','block');
+        $(panelId).siblings('.weui-tab__panel').css('display','none');
+    });
+    $('#loadingToast').fadeIn();
+    updateApiList(() => {
+        $('#loadingToast').fadeOut();
+    });
+    updateChannelGroup();
+    $("body").on("change", "#vodSelect", function() {
+        $('#loadingToast').fadeIn();
+        getHomeData(this.value, () => {
+            $('#loadingToast').fadeOut();
+        });
+    });
+    $("body").on("change", "#categorySelect", function() {
+        $('#loadingToast').fadeIn();
+        getVodData(this.value, "", true, () => {
+            $('#loadingToast').fadeOut();
+        });
+    });
+    $("#panel2").on("scroll", function() {
+        if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 134) {
+            getVodData($("#categorySelect").val(), "", false);
+        }
+    });
+    $("body").on('click', '#btnVodFilterOpen', function(){
+        var vodFilterDialog = $("#vodFilterDialog");
+        vodFilterDialog.fadeIn(200);
+        vodFilterDialog.find(".js_dialog").addClass('weui-half-screen-dialog_show');
+        setTimeout(function(){
+            vodFilterDialog.attr('aria-hidden','false');
+            vodFilterDialog.attr('aria-modal','true');
+            vodFilterDialog.attr('tabindex','0');
+            vodFilterDialog.trigger('focus');
+        },200);
+    });
+    $("body").on('click', "#btnConfirmFilter", function() {
+        var selectors = $(".vod-filter-select");
+        var filters = [];
+        selectors.each(index => {
+            var jqSelector = $(selectors[index]);
+            if(jqSelector.val()) {
+                filters.push({ k: jqSelector.data("key"), v: jqSelector.val() });
+            }
+        });
+        var filterStr = "";
+        if(filters.length > 0)
+            filterStr = JSON.stringify(filters);
+        var base64Filter = btoa(unescape(encodeURIComponent(filterStr)));
+        if(base64Filter != currentVodData.filter) {
+            $("#vodFilterDialog").find(".js_close").trigger("click");
+            $('#loadingToast').fadeIn();
+            getVodData($("#categorySelect").val(), filterStr, true, () => {
+                $('#loadingToast').fadeOut();
+            });
+        }
+    });
+    $("body").on('click', ".vodItem", function() {
+        var vodData = $(this).data("voddata");
+        playVod(currentVodData.sourceKey, vodData.id, vodData.name);
+    });
+    $("body").on('click', '.player .close-vod', function() {
+        $("#playerPopDialogWrap").find(".js_close").trigger("click");
+        $("#closeVodVideo").fadeIn();
+    });
+    $("body").on('click', '.player .fa-expand, .player .fa-compress', function() {
+        var isFullscreen = $(this).hasClass("fa-expand");
+        mainSocket.send(JSON.stringify({type: 'Vod-fullscreen', isFullscreen: isFullscreen}));
+    });
+    $("body").on('click', '.player .fa-backward-step, .player .fa-forward-step', function() {
+        var isNext = $(this).hasClass("fa-forward-step");
+        mainSocket.send(JSON.stringify({type: 'Vod-gotopos', way: isNext ? 'next' : 'previous'}));
+    });
+    $("body").on('click', '.player .fa-circle-play, .player .fa-circle-pause', function() {
+        var isPlay = $(this).hasClass("fa-circle-play");
+        mainSocket.send(JSON.stringify({type: 'Vod-playpause', isPlay: isPlay}));
+    });
+    $("body").on('click', '#playing .expand-info', function() {
+        var playerPopDialog = $("#playerPopDialogWrap");
+        $("#playerPopSliderBox").append($("#playingSliderBox").children());
+        playerPopDialog.fadeIn(200);
+        playerPopDialog.find(".js_dialog").addClass('weui-half-screen-dialog_show');
+        setTimeout(function(){
+            playerPopDialog.attr('aria-hidden','false');
+            playerPopDialog.attr('aria-modal','true');
+            playerPopDialog.attr('tabindex','0');
+            playerPopDialog.trigger('focus');
+        },200);
+    });
+    $("body").on('click', '.seriesFlags > *', function(){
+        $('.seriesFlags > *').removeClass("selected");
+        var _this = $(this);
+        _this.addClass("selected");
+        var data = _this.data("info");
+        updateSeries(data.name);
+    });
+    $("body").on('click', '.series > *:not(selected)', function(){
+        $('.seriesFlags > *').removeClass("selected");
+        var _this = $(this);
+        _this.addClass("selected");
+        var index = _this.data("index");
+        var flagName = _this.data("flag");
+        mainSocket.send(JSON.stringify({type: 'Vod-gotopos', way: JSON.stringify({ flag: flagName, index: index })}));
+    });
+    $("body").on('click', '.parsers:not(.hide) > *:not(selected)', function(){
+        var allParsers = $('.parsers > *');
+        allParsers.removeClass("selected");
+        var _this = $(this);
+        _this.addClass("selected");
+        var index = allParsers.index(this);
+        mainSocket.send(JSON.stringify({type: 'Vod-parser', index: index}));
+    });
+    $("body").on('change', '.vodSpeed, .vodScale, .vodPlayer, .vodIjkCodes', function(){
+        var _this = $(this);
+        var sentData = {type: 'Vod-playerconfig'};
+        sentData[_this.data("name")] = _this.val();
+        mainSocket.send(JSON.stringify(sentData));
+    });
+    $("body").on('click', '.backendResult', function() {
+        var vodData = $(this).data("voddata");
+        playVod(vodData.sourceKey, vodData.id, vodData.name);
+    });
+    $("body").on('change', '#liveGroupSelect', function() {
+        updateChannelList($(this).val());
+    });
+    $("body").on('click', '#btnPlayLive', function() {
+        playLive(
+            $("#liveGroupSelect").val(), 
+            $("#channelSelect").val(), 
+            $("#channelSelect option:selected").text());
+    });
 });
 
+function closePlayingVod(shouldClose) {
+    $("#closeVodVideo").fadeOut();
+    if(shouldClose)
+        mainSocket.send(JSON.stringify({type: 'Vod-close'}));
+}
+
+function onHidingPlayerDialog() {
+    $("#playingSliderBox").append($("#playerPopSliderBox").children());
+}
+
 var url = window.location.href;
-if (url.indexOf('push.html') > 0)
-    showPanel(2);
-else if (url.indexOf('api.html') > 0)
-    showPanel(3);
-else if (url.indexOf('all.html') > 0)
-    showPanel(3);
+if (url.indexOf('push') > 0)
+    showPanel(4);
+else if (url.indexOf('api') > 0)
+    showPanel(6);
 else
     showPanel(1);
+
+var mainSocket;
+
+function openSocket() {
+    if(mainSocket && (mainSocket.readyState == WebSocket.OPEN || mainSocket.readyState == WebSocket.CONNECTING))
+        mainSocket.close();
+    $.get('/websocket-address', (data) => {
+        if(!data) {
+            $("#btnSearchBackend, #searchResultTabs, #tab2, #tab3, #tab5").css("display", "none");
+            return;
+        }
+        mainSocket = new WebSocket(data);
+        mainSocket.onmessage = onSocketMessageReceive;
+        mainSocket.onclose = onSocketClose;
+        var socketWait = function() {
+            if(mainSocket.readyState == 1) {
+                var data = $(".player").data("info");
+                if(data && data.playState > playerState.STATE_PREPARED[0]) {
+                    mainSocket.send(JSON.stringify({type: 'Vod-playing'}));
+                }
+            }
+            if(mainSocket.readyState <= 0)
+                window.setTimeout(socketWait, 5);
+        }
+        window.setTimeout(socketWait, 5)
+        
+    }).fail(() => {
+        $("#playerPopDialogWrap").find(".js_close").trigger("click");
+        updatePlaying(false);
+        onSocketClose(null);
+    });
+}
+
+function onSocketMessageReceive(event) {
+    if(event.data) {
+        var dataObj = JSON.parse(event.data);
+        if(dataObj.type == "updateApiUrl")
+            window.setTimeout(() => updateApiList(), 5000);
+        else if(dataObj.type == "ctrl") {
+            if(!isSliderDragging && dataObj.state >= playerState.STATE_PLAYING[0]) {
+                updateVodProgress(dataObj);
+            }
+            updatePlayerState(dataObj.state);
+        } else if(dataObj.type == "detail") {
+            var tryCount = 0;
+            if(dataObj.state == "activated") {
+                var retryFunc = function(succeeded) {
+                    if(!succeeded && tryCount < 5) {
+                        getPlaying(retryFunc);
+                        tryCount++;
+                    }
+                };
+                getPlaying(retryFunc);
+            } else if(dataObj.state == "deactivated") {
+                $("#playerPopDialogWrap").find(".js_close").trigger("click");
+                updatePlaying(false);
+            }
+            updateFullscreen(dataObj.fullscreen);
+        } else if(dataObj.type == "vod-update-info") {
+            dataObj.type = undefined;
+            updatePlayInfo(dataObj);
+        } else if(dataObj.type == 'parser-change') {
+            $(".parsers > div").removeClass("selected");
+            $(".parsers > div").each(function(){
+                var _this = $(this);
+                if(_this.text() == dataObj.parser) {
+                    _this.addClass('selected');
+                    return false;
+                }
+            });
+        } else if(dataObj.type == "back-search") {
+            updateBackgroundResult(dataObj);
+        } else if(dataObj.type == "search") {
+            updateForegroundResult(dataObj);
+        }
+    }
+}
+
+function onSocketClose(event) {
+    window.setTimeout(() => openSocket(), 1000);
+}
+
+openSocket();
+initParserData();
+getPlaying();

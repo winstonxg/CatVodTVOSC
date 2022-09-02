@@ -33,4 +33,6 @@ public class HawkConfig {
     public static final String ENABLE_2K_ADAPTER = "2k_adapter";
     public static final String CUSTOM_WALLPAPER = "custom_wallpaper";
     public static final String STORAGE_DRIVE_SORT = "storage_drive_sort";
+    public static final String TV_TYPE = "tv_type";
+    public static final String REMOTE_CONTROL = "remote_control";
 }

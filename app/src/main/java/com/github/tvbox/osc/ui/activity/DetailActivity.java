@@ -33,6 +33,8 @@ import com.github.tvbox.osc.cache.RoomDataManger;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.picasso.RoundTransformation;
 import com.github.tvbox.osc.player.controller.VodController;
+import com.github.tvbox.osc.server.ControlManager;
+import com.github.tvbox.osc.server.WebSocketServer;
 import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
 import com.github.tvbox.osc.ui.adapter.SeriesAdapter;
 import com.github.tvbox.osc.ui.adapter.SeriesFlagAdapter;
@@ -48,6 +50,7 @@ import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.AbsCallback;
 import com.lzy.okgo.model.Response;
@@ -121,6 +124,10 @@ public class DetailActivity extends BaseActivity {
 
     private static final int DETAIL_PLAYER_FRAME_ID = 9999999;
 
+    public VodInfo getVodInfo() {
+        return vodInfo;
+    }
+
     @Override
     protected int getLayoutResID() {
         return R.layout.activity_detail;
@@ -184,6 +191,11 @@ public class DetailActivity extends BaseActivity {
                     vodInfo.reverseSort = !vodInfo.reverseSort;
                     vodInfo.reverse();
                     vodInfo.playIndex = vodInfo.seriesMap.get(vodInfo.playFlag).size() - 1 - vodInfo.playIndex;
+                    JsonObject jsonObject = new JsonObject();
+                    jsonObject.addProperty("type", "vod-update-info");
+                    jsonObject.addProperty("reverseSort", vodInfo.reverseSort);
+                    jsonObject.addProperty("playIndex", vodInfo.playIndex);
+                    ControlManager.get().getSocketServer().sendToAll(jsonObject);
                     insertVod(sourceKey, vodInfo);
                     seriesAdapter.notifyDataSetChanged();
                     Collections.reverse(seriesGroupOptions);
@@ -425,6 +437,13 @@ public class DetailActivity extends BaseActivity {
         setLoadSir(llLayout);
     }
 
+    private void sendScreenChange(boolean isFullscreen) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("type", "detail");
+        jsonObject.addProperty("fullscreen", isFullscreen);
+        ControlManager.get().getSocketServer().sendToAll(jsonObject);
+    }
+
     private interface ThirdPlayerSelectDialogCallback {
         void onSelected(int selectedType);
     }
@@ -494,7 +513,7 @@ public class DetailActivity extends BaseActivity {
 
     private List<Runnable> pauseRunnable = null;
 
-    private void jumpToPlay(boolean shouldOpenActivity, boolean newSource, PlayerFragment.ParserCallback callback) {
+    public void jumpToPlay(boolean shouldOpenActivity, boolean newSource, PlayerFragment.ParserCallback callback) {
         if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
             if(shouldOpenActivity) {
                 getSupportFragmentManager().beginTransaction().remove(playerFragment).commit();
@@ -511,6 +530,7 @@ public class DetailActivity extends BaseActivity {
                 bundle.putString("sourceKey", sourceKey);
                 bundle.putSerializable("VodInfo", vodInfo);
                 jumpActivity(PlayActivity.class, bundle);
+                sendScreenChange(true);
             } else {
                 if(newSource)
                     insertVod(sourceKey, vodInfo);
@@ -518,6 +538,11 @@ public class DetailActivity extends BaseActivity {
                     playerFragment.initData(vodInfo, sourceKey, callback);
             }
         }
+    }
+
+    public void updateSeriesFlagPosition(int index) {
+        refreshList();
+        seriesFlagAdapter.notifyDataSetChanged();
     }
 
     void refreshList() {
@@ -653,6 +678,10 @@ public class DetailActivity extends BaseActivity {
 
                         refreshList();
                         jumpToPlay(false, true, null);
+                        JsonObject updateNotice = new JsonObject();
+                        updateNotice.addProperty("type", "detail");
+                        updateNotice.addProperty("state", "activated");
+                        ControlManager.get().getSocketServer().sendToAll(updateNotice);
                         // startQuickSearch();
                     } else {
                         mGridViewFlag.setVisibility(View.GONE);
@@ -737,6 +766,9 @@ public class DetailActivity extends BaseActivity {
             } catch (Exception e) {
                 searchData(null);
             }
+        } else if(event.type == RefreshEvent.TYPE_VOD_PLAY) {
+            Bundle bundle = (Bundle) event.obj;
+            loadDetail(bundle.getString("id", null), bundle.getString("sourceKey", ""));
         }
     }
 
@@ -871,6 +903,10 @@ public class DetailActivity extends BaseActivity {
         } catch (Throwable th) {
             th.printStackTrace();
         }
+        JsonObject updateNotice = new JsonObject();
+        updateNotice.addProperty("type", "detail");
+        updateNotice.addProperty("state", "deactivated");
+        ControlManager.get().getSocketServer().sendToAll(updateNotice);
         OkGo.getInstance().cancelTag("fenci");
         OkGo.getInstance().cancelTag("detail");
         OkGo.getInstance().cancelTag("quick_search");
@@ -893,7 +929,7 @@ public class DetailActivity extends BaseActivity {
         if (videoView != null) {
             videoView.resume();
         }
-
+        sendScreenChange(false);
     }
 
     @Override

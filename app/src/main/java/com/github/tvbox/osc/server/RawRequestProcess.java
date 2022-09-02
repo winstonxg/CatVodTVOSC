@@ -14,10 +14,10 @@ import fi.iki.elonen.NanoHTTPD;
  * @description: 资源文件加载
  */
 public class RawRequestProcess implements RequestProcess {
-    private Context mContext;
-    private String fileName;
-    private int resourceId;
-    private String mimeType;
+    protected Context mContext;
+    protected String fileName;
+    protected int resourceId;
+    protected String mimeType;
 
     public RawRequestProcess(Context context, String fileName, int resourceId, String mimeType) {
         this.mContext = context;

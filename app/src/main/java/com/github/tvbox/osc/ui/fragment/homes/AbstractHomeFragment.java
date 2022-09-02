@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,15 +19,18 @@ import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.SourceBean;
 import com.github.tvbox.osc.event.RefreshEvent;
+import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.activity.HomeActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.TipDialog;
+import com.github.tvbox.osc.ui.tv.QRCodeGen;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.google.gson.JsonObject;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
@@ -43,6 +47,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
     protected TextView tvDate;
     protected Handler mHandler = new Handler();
     protected TextView tvName;
+    protected ImageView ivQRCode;
 
     public boolean useCacheConfig = false;
 
@@ -78,9 +83,9 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
         return managedHomeFragments[0];
     }
 
-    protected void initView() {
-        tvName = findViewById(R.id.tvName);
-
+    protected void refreshQRCode() {
+        String address = ControlManager.get().getAddress(false);
+        ivQRCode.setImageBitmap(QRCodeGen.generateBitmap(address, 100, 100));
     }
 
     private void bindQuickApiChange() {
@@ -144,6 +149,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
     protected void initData() {
         if (dataInitOk && jarInitOk) {
+            showLoading("正在加载首页数据源...");
             sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey());
             if (((BaseActivity)mActivity).hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 LOG.e("有");

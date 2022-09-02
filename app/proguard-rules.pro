@@ -201,8 +201,13 @@
 -keep class jcifs.** { *; }
 -dontwarn jcifs.**
 
+-keep class com.xunlei.downloadlib.** {*;}
+
+# web socket proceesors
+-keep class com.github.tvbox.osc.server.socketprocessors.**{*;}
+
 # 实体类
-#-keep class com.github.tvbox.osc.bean.** { *; }
+-keep class com.github.tvbox.osc.bean.** { *; }
 -keep class com.github.tvbox.osc.ui.fragment.homes.**{*;}
 #CardView
 -keep class com.github.tvbox.osc.ui.tv.widget.card.**{*;}

@@ -140,7 +140,9 @@ public class HomeActivity extends BaseActivity {
             tvName.callOnClick();
             return false;
         }
-        return super.dispatchKeyEvent(event) && currentHomeFragment.dispatchKey(event);
+        boolean superDKE = super.dispatchKeyEvent(event);
+        boolean fragDKE = currentHomeFragment.dispatchKey(event);
+        return superDKE || fragDKE;
     }
 
     @Override
@@ -149,9 +151,10 @@ public class HomeActivity extends BaseActivity {
         if(currentHomeFragment != null)
             currentHomeFragment.onDestroy();
         EventBus.getDefault().unregister(this);
-        if(!isChaningApi)
+        if(!isChaningApi) {
             AppManager.getInstance().appExit(0);
-        ControlManager.get().stopServer();
+            ControlManager.get().stopServer();
+        }
     }
 
 }

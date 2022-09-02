@@ -46,12 +46,14 @@ import com.github.tvbox.osc.player.thirdparty.DangbeiPlayer;
 import com.github.tvbox.osc.player.thirdparty.MXPlayer;
 import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
 import com.github.tvbox.osc.player.thirdparty.UCPlayer;
+import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.util.AdBlocker;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.util.MD5;
 import com.github.tvbox.osc.util.PlayerHelper;
+import com.github.tvbox.osc.util.UA;
 import com.github.tvbox.osc.util.XWalkUtils;
 import com.github.tvbox.osc.util.thunder.Thunder;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
@@ -189,6 +191,10 @@ public class PlayerFragment  extends BaseLazyFragment {
 
             @Override
             public void changeParse(ParseBean pb) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("type", "parser-change");
+                jsonObject.addProperty("parser", pb.getName());
+                ControlManager.get().getSocketServer().sendToAll(jsonObject);
                 autoRetryCount = 0;
                 doParse(pb);
             }
@@ -308,6 +314,7 @@ public class PlayerFragment  extends BaseLazyFragment {
                         String flag = info.optString("flag");
                         String url = info.getString("url");
                         HashMap<String, String> headers = null;
+                        webUserAgent = null;
                         if (info.has("header")) {
                             try {
                                 JSONObject hds = new JSONObject(info.getString("header"));
@@ -318,6 +325,9 @@ public class PlayerFragment  extends BaseLazyFragment {
                                         headers = new HashMap<>();
                                     }
                                     headers.put(key, hds.getString(key));
+                                    if (key.equalsIgnoreCase("user-agent") || key.equalsIgnoreCase("ua")) {
+                                        webUserAgent = hds.getString(key).trim();
+                                    }
                                 }
                             } catch (Throwable th) {
 
@@ -413,7 +423,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         return clonePlayingVodeInfo(playingInfo);
     }
 
-    private void playNext() {
+    public void playNext() {
         boolean hasNext = true;
         if (mVodInfo == null || mVodInfo.seriesMap.get(mVodInfo.playFlag) == null) {
             hasNext = false;
@@ -429,7 +439,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         play();
     }
 
-    private void playPrevious() {
+    public void playPrevious() {
         boolean hasPre = true;
         if (mVodInfo == null || mVodInfo.seriesMap.get(mVodInfo.playFlag) == null) {
             hasPre = false;
@@ -459,6 +469,11 @@ public class PlayerFragment  extends BaseLazyFragment {
     }
 
     public void play() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("type", "vod-update-info");
+        jsonObject.addProperty("playFlag", mVodInfo.playFlag);
+        jsonObject.addProperty("playIndex", mVodInfo.playIndex);
+        ControlManager.get().getSocketServer().sendToAll(jsonObject);
         VodInfo.VodSeries vs = mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.playIndex);
         EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_REFRESH, mVodInfo.playIndex));
         setTip("正在获取播放信息", true, false);
@@ -512,6 +527,7 @@ public class PlayerFragment  extends BaseLazyFragment {
     private String progressKey;
     private String parseFlag;
     private String webUrl;
+    private String webUserAgent;
 
     private void initParse(String flag, boolean useParse, String playUrl, final String url) {
         parseFlag = flag;
@@ -843,14 +859,25 @@ public class PlayerFragment  extends BaseLazyFragment {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                String ua = webUserAgent;
                 if (mXwalkWebView != null) {
                     mXwalkWebView.stopLoading();
-                    mXwalkWebView.clearCache(true);
+                    //mXwalkWebView.clearCache(true);
+                    if(ua != null && !ua.isEmpty()) {
+                        mXwalkWebView.getSettings().setUserAgentString(ua);
+                    } else {
+                        mXwalkWebView.getSettings().setUserAgentString(UA.random());
+                    }
                     mXwalkWebView.loadUrl(url);
                 }
                 if (mSysWebView != null) {
                     mSysWebView.stopLoading();
-                    mSysWebView.clearCache(true);
+                    if(ua != null && !ua.isEmpty()) {
+                        mSysWebView.getSettings().setUserAgentString(ua);
+                    } else {
+                        mSysWebView.getSettings().setUserAgentString(UA.random());
+                    }
+                    //mSysWebView.clearCache(true);
                     mSysWebView.loadUrl(url);
                 }
             }
@@ -866,7 +893,7 @@ public class PlayerFragment  extends BaseLazyFragment {
                     mXwalkWebView.stopLoading();
                     mXwalkWebView.loadUrl("about:blank");
                     if (destroy) {
-                        mXwalkWebView.clearCache(true);
+                        //mXwalkWebView.clearCache(true);
                         mXwalkWebView.removeAllViews();
                         mXwalkWebView.onDestroy();
                         mXwalkWebView = null;
@@ -876,7 +903,7 @@ public class PlayerFragment  extends BaseLazyFragment {
                     mSysWebView.stopLoading();
                     mSysWebView.loadUrl("about:blank");
                     if (destroy) {
-                        mSysWebView.clearCache(true);
+                        //mSysWebView.clearCache(true);
                         mSysWebView.removeAllViews();
                         mSysWebView.destroy();
                         mSysWebView = null;
@@ -972,7 +999,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         /* 添加webView配置 */
         //设置编码
         settings.setDefaultTextEncodingName("utf-8");
@@ -1132,7 +1159,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         settings.setLoadWithOverviewMode(true);
         settings.setBuiltInZoomControls(true);
         settings.setSupportZoom(false);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         // settings.setUserAgentString(ANDROID_UA);
 
         webView.setBackgroundColor(Color.BLACK);

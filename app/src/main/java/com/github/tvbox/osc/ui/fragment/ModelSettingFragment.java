@@ -18,9 +18,11 @@ import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.bean.SourceBean;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
+import com.github.tvbox.osc.ui.adapter.ApiHistoryDialogAdapter;
 import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
 import com.github.tvbox.osc.ui.dialog.AboutDialog;
 import com.github.tvbox.osc.ui.dialog.ApiDialog;
+import com.github.tvbox.osc.ui.dialog.ApiHistoryDialog;
 import com.github.tvbox.osc.ui.dialog.BackupDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.XWalkInitDialog;
@@ -69,6 +71,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
     private LinearLayout thirdPartyPlayLayout;
     private TextView tvVersion;
     private TextView tv2kAdapter;
+    private TextView tvType;
+    private TextView tvRemoteControl;
 
     public static ModelSettingFragment newInstance() {
         return new ModelSettingFragment().setArguments();
@@ -100,6 +104,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
         thirdPartyPlayLayout = findViewById(R.id.thirdPartyPlay);
         tvVersion = findViewById(R.id.tvVersion);
         tv2kAdapter = findViewById(R.id.tv2kAdapter);
+        tvType = findViewById(R.id.tvType);
+        tvRemoteControl = findViewById(R.id.tvRemoteControl);
 
         tvMediaCodec.setText(Hawk.get(HawkConfig.IJK_CODEC, ""));
         tvDebugOpen.setText(Hawk.get(HawkConfig.DEBUG_OPEN, false) ? "已打开" : "已关闭");
@@ -115,6 +121,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
         tvPlay.setText(PlayerHelper.getPlayerName(Hawk.get(HawkConfig.PLAY_TYPE, 0)));
         tvRender.setText(PlayerHelper.getRenderName(Hawk.get(HawkConfig.PLAY_RENDER, 0)));
         tvVersion.setText(AppUpdate.getCurrentVersionNo());
+        tvType.setText(PlayerHelper.getDeviceTypeName(Hawk.get(HawkConfig.TV_TYPE, 0)));
+        tvRemoteControl.setText(Hawk.get(HawkConfig.REMOTE_CONTROL, true) ? "已打开" : "已关闭");
 
         findViewById(R.id.llDebug).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -629,6 +637,93 @@ public class ModelSettingFragment extends BaseLazyFragment {
                         return oldItem.intValue() == newItem.intValue();
                     }
                 }, Arrays.asList(types), defaultPos);
+                dialog.show();
+            }
+        });
+        findViewById(R.id.llTvType).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FastClickCheckUtil.check(view);
+                int defaultPos = Hawk.get(HawkConfig.TV_TYPE, 0);
+                ArrayList<Integer> types = new ArrayList<>();
+                types.add(0);
+                types.add(1);
+                SelectDialog<Integer> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("请选择设备类型");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<Integer>() {
+                    @Override
+                    public void click(Integer value, int pos) {
+                        Hawk.put(HawkConfig.TV_TYPE, value);
+                        tvType.setText(PlayerHelper.getDeviceTypeName(value));
+                        PlayerHelper.init();
+                    }
+
+                    @Override
+                    public String getDisplay(Integer val) {
+                        return PlayerHelper.getDeviceTypeName(val);
+                    }
+                }, new DiffUtil.ItemCallback<Integer>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
+                        return oldItem.intValue() == newItem.intValue();
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(@NonNull @NotNull Integer oldItem, @NonNull @NotNull Integer newItem) {
+                        return oldItem.intValue() == newItem.intValue();
+                    }
+                }, types, defaultPos);
+                dialog.show();
+            }
+        });
+        findViewById(R.id.llRemoteControl).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                List<String> options = Arrays.asList(new String[] { "开启", "关闭" });
+                boolean selectedVal = Hawk.get(HawkConfig.REMOTE_CONTROL, true);
+                FastClickCheckUtil.check(view);
+                SelectDialog<String> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("是否开启网页遥控");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<String>() {
+                    @Override
+                    public void click(String value, int pos) {
+                        Hawk.put(HawkConfig.REMOTE_CONTROL, pos == 0 ? true : false);
+                        tvRemoteControl.setText(pos == 0 ? "已打开" : "已关闭");
+                    }
+
+                    @Override
+                    public String getDisplay(String val) {
+                        return val;
+                    }
+                }, null, options, selectedVal ? 0 : 1);
+                dialog.show();
+            }
+        });
+        findViewById(R.id.llApiHistory).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ArrayList<String> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<String>());
+                if (history.isEmpty())
+                    return;
+                String current = Hawk.get(HawkConfig.API_URL, "");
+                int idx = 0;
+                if (history.contains(current))
+                    idx = history.indexOf(current);
+                ApiHistoryDialog dialog = new ApiHistoryDialog(getContext());
+                dialog.setTip("历史配置列表");
+                dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
+                    @Override
+                    public void click(String value) {
+                        Hawk.put(HawkConfig.API_URL, value);
+                        tvApi.setText(value);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void del(String value, ArrayList<String> data) {
+                        Hawk.put(HawkConfig.API_HISTORY, data);
+                    }
+                }, history, idx);
                 dialog.show();
             }
         });

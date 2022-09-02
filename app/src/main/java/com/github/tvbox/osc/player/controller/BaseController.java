@@ -104,13 +104,13 @@ public abstract class BaseController extends BaseVideoController implements Gest
         mSlideInfo = findViewWithTag("vod_control_slide_info");
         mLoading = findViewWithTag("vod_control_loading");
         mPauseRoot = findViewWithTag("vod_control_pause");
-        mPauseTime = findViewWithTag("vod_control_pause_t");
+        //mPauseTime = findViewWithTag("vod_control_pause_t");
     }
 
     @Override
     protected void setProgress(int duration, int position) {
         super.setProgress(duration, position);
-        mPauseTime.setText(PlayerUtils.stringForTime(position) + " / " + PlayerUtils.stringForTime(duration));
+        //mPauseTime.setText(PlayerUtils.stringForTime(position) + " / " + PlayerUtils.stringForTime(duration));
     }
 
     @Override

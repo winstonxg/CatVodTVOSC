@@ -1,6 +1,5 @@
 package com.github.tvbox.osc.ui.fragment;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
@@ -39,7 +38,7 @@ public class GridFragment extends BaseLazyFragment {
 
     private MovieSort.SortData sortData = null;
     private TvRecyclerView mGridView;
-    private Class<SourceViewModel> viewoModelClass;
+    private Class<SourceViewModel> viewModelClass;
     private SourceViewModel sourceViewModel;
     private GridFilterDialog gridFilterDialog;
     private int page = 1;
@@ -70,6 +69,12 @@ public class GridFragment extends BaseLazyFragment {
         return fragment;
     }
 
+    public static GridFragment newInstance(MovieSort.SortData sortData, SourceViewModel model) {
+        GridFragment fragment = new GridFragment().setArguments(sortData, new GridAdapter(), SourceViewModel.class, null);
+        fragment.sourceViewModel = model;
+        return fragment;
+    }
+
     public static GridFragment newInstance(MovieSort.SortData sortData, BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter, Class viewModelClass) {
         GridFragment fragment = new GridFragment().setArguments(sortData, adapter, viewModelClass, null);
         return fragment;
@@ -83,7 +88,7 @@ public class GridFragment extends BaseLazyFragment {
     public GridFragment setArguments(MovieSort.SortData sortData, BaseQuickAdapter<Movie.Video, BaseViewHolder> adapter, Class viewModelClass, Integer spanCount) {
         this.sortData = sortData;
         this.adapter = adapter;
-        this.viewoModelClass = viewModelClass;
+        this.viewModelClass = viewModelClass;
         if(spanCount != null)
             this.spanCount = spanCount;
         return this;
@@ -182,34 +187,40 @@ public class GridFragment extends BaseLazyFragment {
     }
 
     private void initViewModel() {
-        sourceViewModel = new ViewModelProvider(this).get(viewoModelClass);
-        sourceViewModel.listResult.observe(this, new Observer<AbsXml>() {
-            @Override
-            public void onChanged(AbsXml absXml) {
-                if (absXml != null && absXml.movie != null && absXml.movie.videoList != null && absXml.movie.videoList.size() > 0) {
-                    if (page == 1) {
-                        showSuccess();
-                        isLoad = true;
-                        adapter.setNewData(absXml.movie.videoList);
+        if(sourceViewModel == null)
+            sourceViewModel = new ViewModelProvider(this).get(viewModelClass);
+        if(sortData.id.equals("_home")) {
+            showSuccess();
+            isLoad = true;
+            adapter.setNewData(sourceViewModel.sortResult.getValue().list.videoList);
+        }else
+            sourceViewModel.listResult.observe(this, new Observer<AbsXml>() {
+                @Override
+                public void onChanged(AbsXml absXml) {
+                    if (absXml != null && absXml.movie != null && absXml.movie.videoList != null && absXml.movie.videoList.size() > 0) {
+                        if (page == 1) {
+                            showSuccess();
+                            isLoad = true;
+                            adapter.setNewData(absXml.movie.videoList);
+                        } else {
+                            adapter.addData(absXml.movie.videoList);
+                        }
+                        page++;
+                        maxPage = absXml.movie.pagecount;
                     } else {
-                        adapter.addData(absXml.movie.videoList);
+                        if (page == 1) {
+                            showEmpty();
+                        }
                     }
-                    page++;
-                    maxPage = absXml.movie.pagecount;
-                } else {
-                    if (page == 1) {
-                        showEmpty();
+                    if (page > maxPage) {
+                        adapter.loadMoreEnd();
+                    } else {
+                        adapter.loadMoreComplete();
                     }
+                    if(GridFragment.this.dataCallback != null)
+                        GridFragment.this.dataCallback.onDataReceived(sourceViewModel);
                 }
-                if (page > maxPage) {
-                    adapter.loadMoreEnd();
-                } else {
-                    adapter.loadMoreComplete();
-                }
-                if(GridFragment.this.dataCallback != null)
-                    GridFragment.this.dataCallback.onDataReceived(sourceViewModel);
-            }
-        });
+            });
     }
 
     public boolean isLoad() {
@@ -217,9 +228,11 @@ public class GridFragment extends BaseLazyFragment {
     }
 
     private void initData() {
-        showLoading();
-        isLoad = false;
-        sourceViewModel.getList(sortData, page);
+        if(!sortData.id.equals("_home")) {
+            showLoading();
+            isLoad = false;
+            sourceViewModel.getList(sortData, page);
+        }
     }
 
     public boolean isTop() {

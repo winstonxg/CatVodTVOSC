@@ -2,6 +2,7 @@ package com.github.tvbox.osc.ui.fragment;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.LinearLayout;
@@ -195,6 +196,14 @@ public class HistoryFragment extends BaseLazyFragment {
     public void refresh(RefreshEvent event) {
         if (event.type == RefreshEvent.TYPE_HISTORY_REFRESH) {
             initData();
+            if(delMode && allVodRecord.size() > 0) {
+                mGridView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mGridView.setSelection(0);
+                    }
+                }, 10);
+            }
         }
     }
 }

@@ -8,10 +8,13 @@ import android.os.Environment;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.event.ServerEvent;
+import com.github.tvbox.osc.server.socketprocessors.SearchProcessor;
 import com.github.tvbox.osc.util.FileUtils;
+import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.OkGoHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -67,6 +70,7 @@ public class RemoteServer extends NanoHTTPD {
         getRequestList.add(new RawRequestProcess(this.mContext, "/index.html", R.raw.index, NanoHTTPD.MIME_HTML));
         getRequestList.add(new RawRequestProcess(this.mContext, "/style.css", R.raw.style, "text/css"));
         getRequestList.add(new RawRequestProcess(this.mContext, "/ui.css", R.raw.ui, "text/css"));
+        getRequestList.add(new RawRequestProcess(this.mContext, "/api.js", R.raw.api, "application/x-javascript"));
         getRequestList.add(new RawRequestProcess(this.mContext, "/jquery.js", R.raw.jquery, "application/x-javascript"));
         getRequestList.add(new RawRequestProcess(this.mContext, "/script.js", R.raw.script, "application/x-javascript"));
         getRequestList.add(new RawRequestProcess(this.mContext, "/favicon.ico", R.drawable.app_icon, "image/x-icon"));
@@ -80,12 +84,14 @@ public class RemoteServer extends NanoHTTPD {
     public void start(int timeout, boolean daemon) throws IOException {
         isStarted = true;
         super.start(timeout, daemon);
+        SearchProcessor.init();
         EventBus.getDefault().post(new ServerEvent(ServerEvent.SERVER_SUCCESS));
     }
 
     @Override
     public void stop() {
         super.stop();
+        SearchProcessor.get().destroy();
         isStarted = false;
     }
 
@@ -97,7 +103,12 @@ public class RemoteServer extends NanoHTTPD {
             if (fileName.indexOf('?') >= 0) {
                 fileName = fileName.substring(0, fileName.indexOf('?'));
             }
-            if (session.getMethod() == Method.GET) {
+            if("/api".equalsIgnoreCase(fileName)) {
+                NanoHTTPD.Response resp = (new ApiRequestProcess(this.mContext)).doResponse(session, fileName, session.getParms(), null);
+                return resp;
+            }else if (session.getMethod() == Method.GET) {
+                if(fileName.equalsIgnoreCase("/websocket-address"))
+                    return createPlainTextResponse(Response.Status.OK, getSocketAddress());
                 for (RequestProcess process : getRequestList) {
                     if (process.isRequest(session, fileName)) {
                         return process.doResponse(session, fileName, session.getParms(), null);
@@ -254,6 +265,15 @@ public class RemoteServer extends NanoHTTPD {
     public String getServerAddress() {
         String ipAddress = getLocalIPAddress(mContext);
         return "http://" + ipAddress + ":" + RemoteServer.serverPort + "/";
+    }
+
+    public String getSocketAddress() {
+        if(Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
+            String ipAddress = getLocalIPAddress(mContext);
+            return "ws://" + ipAddress + ":" + WebSocketServer.serverPort + "/";
+        } else {
+            return "";
+        }
     }
 
     public String getLoadAddress() {

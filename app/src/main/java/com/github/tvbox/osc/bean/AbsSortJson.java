@@ -13,7 +13,7 @@ public class AbsSortJson implements Serializable {
     @SerializedName(value = "list")
     public ArrayList<AbsJson.AbsJsonVod> list;
 
-    public AbsSortXml toAbsSortXml() {
+    public AbsSortXml toAbsSortXml(String sourceKey) {
         AbsSortXml absSortXml = new AbsSortXml();
         MovieSort movieSort = new MovieSort();
         movieSort.sortList = new ArrayList<>();
@@ -27,7 +27,9 @@ public class AbsSortJson implements Serializable {
             Movie movie = new Movie();
             ArrayList<Movie.Video> videos = new ArrayList<>();
             for (AbsJson.AbsJsonVod vod : list) {
-                videos.add(vod.toXmlVideo());
+                Movie.Video vodObj = vod.toXmlVideo();
+                vodObj.sourceKey = sourceKey;
+                videos.add(vodObj);
             }
             movie.videoList = videos;
             absSortXml.list = movie;

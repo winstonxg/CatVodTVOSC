@@ -307,7 +307,7 @@ public class RecommendViewModel extends SourceViewModel {
         MovieSort.SortFilter filter = new MovieSort.SortFilter();
         filter.key = key;
         filter.name = name;
-        filter.values = values;
+        filter.setValues(values);
         return filter;
     }
 
@@ -316,7 +316,7 @@ public class RecommendViewModel extends SourceViewModel {
             JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
             AbsSortJson sortJson = new Gson().fromJson(obj, new TypeToken<AbsSortJson>() {
             }.getType());
-            AbsSortXml data = sortJson.toAbsSortXml();
+            AbsSortXml data = sortJson.toAbsSortXml(null);
             try {
                 if (obj.has("filters")) {
                     LinkedHashMap<String, ArrayList<MovieSort.SortFilter>> sortFilters = new LinkedHashMap<>();

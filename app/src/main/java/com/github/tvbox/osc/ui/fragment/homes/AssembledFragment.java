@@ -35,9 +35,13 @@ import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
 import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
 import com.github.tvbox.osc.ui.tv.widget.ViewObj;
 import com.github.tvbox.osc.util.DefaultConfig;
+import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -74,14 +78,19 @@ public class AssembledFragment extends AbstractHomeFragment {
             initData();
         }
 
-        @Override
         protected void initView() {
-            super.initView();
             this.topLayout = findViewById(R.id.topLayout);
+            this.tvName = findViewById(R.id.tvName);
             this.tvDate = findViewById(R.id.tvDate);
             this.contentLayout = findViewById(R.id.contentLayout);
             this.mGridView = findViewById(R.id.mGridView);
             this.mFeatureView = findViewById(R.id.mFeatureView);
+            this.ivQRCode = findViewById(R.id.ivQRCode);
+            if(Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
+                refreshQRCode();
+            } else {
+                findViewById(R.id.remoteRoot).setVisibility(View.GONE);
+            }
             FragmentManager fragmentManager = getChildFragmentManager();
             UserFragment userFragment = (UserFragment)fragmentManager.findFragmentByTag("mUserFragment");
             userFragment.SetFragmentView(mFeatureView);
@@ -193,7 +202,6 @@ public class AssembledFragment extends AbstractHomeFragment {
         }
 
         private void initViewModel() {
-            showLoading("正在加载首页数据源...");
             sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
             sourceViewModel.sortResult.observe(this, new Observer<AbsSortXml>() {
                 @Override
@@ -214,6 +222,8 @@ public class AssembledFragment extends AbstractHomeFragment {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
                     if (data.id.equals("my0")) {
                         fragments.add(HistoryFragment.newInstance());
+                    } else if(data.id.equals("_home")) {
+                        fragments.add(GridFragment.newInstance(data, sourceViewModel));
                     } else {
                         fragments.add(GridFragment.newInstance(data, SourceViewModel.class));
                     }
@@ -291,7 +301,7 @@ public class AssembledFragment extends AbstractHomeFragment {
             } else if (event.getAction() == KeyEvent.ACTION_UP) {
                 mHandler.postDelayed(mDataRunnable, 200);
             }
-            return true;
+            return false;
         }
 
         byte topHide = 0;
@@ -340,6 +350,12 @@ public class AssembledFragment extends AbstractHomeFragment {
                 animatorSet.start();
                 return;
             }
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            EventBus.getDefault().unregister(this);
         }
 
     }

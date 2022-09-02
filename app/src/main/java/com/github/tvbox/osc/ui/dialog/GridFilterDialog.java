@@ -63,8 +63,8 @@ public class GridFilterDialog extends BaseDialog {
             GridFilterKVAdapter filterKVAdapter = new GridFilterKVAdapter();
             gridView.setAdapter(filterKVAdapter);
             String key = filter.key;
-            ArrayList<String> values = new ArrayList<>(filter.values.keySet());
-            ArrayList<String> keys = new ArrayList<>(filter.values.values());
+            ArrayList<String> values = new ArrayList<>(filter.getValues().keySet());
+            ArrayList<String> keys = new ArrayList<>(filter.getValues().values());
             filterKVAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
                 View pre = null;
 

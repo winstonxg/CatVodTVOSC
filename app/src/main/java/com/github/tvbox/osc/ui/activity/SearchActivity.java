@@ -29,7 +29,9 @@ import com.github.tvbox.osc.ui.tv.QRCodeGen;
 import com.github.tvbox.osc.ui.tv.widget.SearchKeyboard;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
+import com.github.tvbox.osc.util.VodSearch;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -71,6 +73,8 @@ public class SearchActivity extends BaseActivity {
     private SearchAdapter searchAdapter;
     private PinyinAdapter wordAdapter;
     private String searchTitle = "";
+    private View footLoading = null;
+    private VodSearch vodSearch;
 
     @Override
     protected int getLayoutResID() {
@@ -89,11 +93,11 @@ public class SearchActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (pauseRunnable != null && pauseRunnable.size() > 0) {
-            searchExecutorService = Executors.newFixedThreadPool(5);
-            allRunCount.set(pauseRunnable.size());
+        if (vodSearch != null && pauseRunnable != null && pauseRunnable.size() > 0) {
+            vodSearch.StartNewSearchService();
+            vodSearch.getAllRunCount().set(pauseRunnable.size());
             for (Runnable runnable : pauseRunnable) {
-                searchExecutorService.execute(runnable);
+                vodSearch.getSearchExecutorService().execute(runnable);
             }
             pauseRunnable.clear();
             pauseRunnable = null;
@@ -115,6 +119,9 @@ public class SearchActivity extends BaseActivity {
         mGridViewWord.setLayoutManager(new V7LinearLayoutManager(this.mContext, 1, false));
         wordAdapter = new PinyinAdapter();
         mGridViewWord.setAdapter(wordAdapter);
+        footLoading = getLayoutInflater().inflate(R.layout.item_search_lite, null);
+        footLoading.findViewById(R.id.tvName).setVisibility(View.GONE);
+        footLoading.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
         wordAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -137,9 +144,8 @@ public class SearchActivity extends BaseActivity {
                 Movie.Video video = searchAdapter.getData().get(position);
                 if (video != null) {
                     try {
-                        if (searchExecutorService != null) {
-                            pauseRunnable = searchExecutorService.shutdownNow();
-                            searchExecutorService = null;
+                        if (vodSearch.getSearchExecutorService() != null) {
+                            pauseRunnable = vodSearch.getSearchExecutorService().shutdownNow();
                         }
                     } catch (Throwable th) {
                         th.printStackTrace();
@@ -200,6 +206,7 @@ public class SearchActivity extends BaseActivity {
 
     private void initViewModel() {
         sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
+        vodSearch = new VodSearch(sourceViewModel);
     }
 
     /**
@@ -236,7 +243,10 @@ public class SearchActivity extends BaseActivity {
     }
 
     private void initData() {
-        refreshQRCode();
+        if(Hawk.get(HawkConfig.REMOTE_CONTROL, true))
+            refreshQRCode();
+        else
+            findViewById(R.id.remoteRoot).setVisibility(View.GONE);
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("title")) {
             String title = intent.getStringExtra("title");
@@ -299,50 +309,14 @@ public class SearchActivity extends BaseActivity {
     private void search(String title) {
         cancel();
         showLoading();
+        JsonObject startJson = new JsonObject();
+        startJson.addProperty("type", "search");
+        startJson.addProperty("action", "start");
+        ControlManager.get().getSocketServer().sendToAll(startJson);
         this.searchTitle = title;
         mGridView.setVisibility(View.INVISIBLE);
         searchAdapter.setNewData(new ArrayList<>());
-        searchResult();
-    }
-
-    private ExecutorService searchExecutorService = null;
-    private AtomicInteger allRunCount = new AtomicInteger(0);
-
-    private void searchResult() {
-        try {
-            if (searchExecutorService != null) {
-                searchExecutorService.shutdownNow();
-                searchExecutorService = null;
-            }
-        } catch (Throwable th) {
-            th.printStackTrace();
-        } finally {
-            searchAdapter.setNewData(new ArrayList<>());
-            allRunCount.set(0);
-        }
-        searchExecutorService = Executors.newFixedThreadPool(5);
-        List<SourceBean> searchRequestList = new ArrayList<>();
-        searchRequestList.addAll(ApiConfig.get().getSourceBeanList());
-        SourceBean home = ApiConfig.get().getHomeSourceBean();
-        searchRequestList.remove(home);
-        searchRequestList.add(0, home);
-
-        ArrayList<String> siteKey = new ArrayList<>();
-        for (SourceBean bean : searchRequestList) {
-            if (!bean.isSearchable()) {
-                continue;
-            }
-            siteKey.add(bean.getKey());
-            allRunCount.incrementAndGet();
-        }
-        for (String key : siteKey) {
-            searchExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    sourceViewModel.getSearch(key, searchTitle);
-                }
-            });
-        }
+        vodSearch.searchResult(searchTitle, false);
     }
 
     private void searchData(AbsXml absXml) {
@@ -352,25 +326,35 @@ public class SearchActivity extends BaseActivity {
                 if (video.name.contains(searchTitle))
                     data.add(video);
             }
+            JsonObject endJson = new JsonObject();
+            endJson.addProperty("type", "search");
+            endJson.add("results", JsonParser.parseString((new Gson()).toJson(data)));
+            ControlManager.get().getSocketServer().sendToAll(endJson);
             if (searchAdapter.getData().size() > 0) {
                 searchAdapter.addData(data);
             } else {
                 showSuccess();
                 mGridView.setVisibility(View.VISIBLE);
                 searchAdapter.setNewData(data);
+                searchAdapter.addFooterView(footLoading);
             }
         }
 
-        int count = allRunCount.decrementAndGet();
+        int count = vodSearch.getAllRunCount().decrementAndGet();
         if (count <= 0) {
             if (searchAdapter.getData().size() <= 0) {
                 showEmpty();
             }
+            searchAdapter.removeFooterView(footLoading);
             cancel();
         }
     }
 
     private void cancel() {
+        JsonObject endJson = new JsonObject();
+        endJson.addProperty("type", "search");
+        endJson.addProperty("action", "end");
+        ControlManager.get().getSocketServer().sendToAll(endJson);
         OkGo.getInstance().cancelTag("search");
     }
 
@@ -378,14 +362,7 @@ public class SearchActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         cancel();
-        try {
-            if (searchExecutorService != null) {
-                searchExecutorService.shutdownNow();
-                searchExecutorService = null;
-            }
-        } catch (Throwable th) {
-            th.printStackTrace();
-        }
+        vodSearch.destroy();
         EventBus.getDefault().unregister(this);
     }
 }

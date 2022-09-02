@@ -14,6 +14,7 @@ import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.DriveFolderFile;
 import com.github.tvbox.osc.bean.VodInfo;
 import com.github.tvbox.osc.picasso.RoundTransformation;
+import com.github.tvbox.osc.ui.dialog.AlistDriveDialog;
 import com.github.tvbox.osc.ui.dialog.WebdavDialog;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.MD5;
@@ -46,7 +47,8 @@ public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHold
             }
             DriveFolderFile item = this.getItem(pos);
             item.isDelMode = isDelMode;
-            if(item.getDriveType() == StorageDriveType.TYPE.WEBDAV) {
+            if(item.getDriveType() == StorageDriveType.TYPE.WEBDAV
+                || item.getDriveType() == StorageDriveType.TYPE.ALISTWEB) {
                 this.getViewByPosition(pos, R.id.imgConfig).setVisibility(isDelMode ? View.GONE : View.VISIBLE);
             }
         }
@@ -92,6 +94,16 @@ public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHold
                     @Override
                     public void onClick(View view) {
                         WebdavDialog dialog = new WebdavDialog(mContext, item.getDriveData());
+                        dialog.show();
+                    }
+                });
+            } else if(item.getDriveType() == StorageDriveType.TYPE.ALISTWEB) {
+                imgItem.setImageResource(R.drawable.icon_alist);
+                imgConfig.setVisibility(item.isDelMode ? View.GONE : View.VISIBLE);
+                imgConfig.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        AlistDriveDialog dialog = new AlistDriveDialog(mContext, item.getDriveData());
                         dialog.show();
                     }
                 });

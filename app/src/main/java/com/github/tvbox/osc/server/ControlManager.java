@@ -25,6 +25,7 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 public class ControlManager {
     private static ControlManager instance;
     private RemoteServer mServer = null;
+    private WebSocketServer socketServer = null;
     public static Context mContext;
 
     private ControlManager() {
@@ -90,11 +91,31 @@ public class ControlManager {
                 mServer.stop();
             }
         } while (RemoteServer.serverPort < 9999);
+        if (socketServer != null) {
+            return;
+        }
+        do {
+            socketServer = new WebSocketServer(WebSocketServer.serverPort, mContext);
+            try {
+                socketServer.start(60000, true);
+                break;
+            } catch (IOException ex) {
+                WebSocketServer.serverPort++;
+                socketServer.stop();
+            }
+        } while (RemoteServer.serverPort < 9899);
+    }
+
+    public WebSocketServer getSocketServer() {
+        return socketServer;
     }
 
     public void stopServer() {
         if (mServer != null && mServer.isStarting()) {
             mServer.stop();
+        }
+        if(socketServer != null && socketServer.wasStarted()) {
+            socketServer.stop();
         }
     }
 }

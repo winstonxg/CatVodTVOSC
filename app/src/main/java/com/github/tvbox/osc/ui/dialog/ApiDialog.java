@@ -60,7 +60,8 @@ public class ApiDialog extends BaseDialog {
             @Override
             public void onClick(View v) {
                 String newApi = inputApi.getText().toString().trim();
-                if (!newApi.isEmpty() && (newApi.startsWith("http") || newApi.startsWith("clan"))) {
+                String lowerUrl = newApi.toLowerCase();
+                if (!newApi.isEmpty() && (lowerUrl.startsWith("http") || lowerUrl.startsWith("clan"))) {
                     ArrayList<String> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<String>());
                     if (!history.contains(newApi))
                         history.add(0, newApi);
@@ -133,7 +134,7 @@ public class ApiDialog extends BaseDialog {
     }
 
     private void refreshQRCode() {
-        String address = ControlManager.get().getAddress(false);
+        String address = ControlManager.get().getAddress(false) + "?to=api";
         tvAddress.setText(String.format("手机/电脑扫描上方二维码或者直接浏览器访问地址\n%s", address));
         ivQRCode.setImageBitmap(QRCodeGen.generateBitmap(address, AutoSizeUtils.mm2px(getContext(), 300), AutoSizeUtils.mm2px(getContext(), 300)));
     }
