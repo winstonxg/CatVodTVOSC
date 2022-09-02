@@ -243,7 +243,7 @@
                 android:padding="@dimen/vs_10"
                 android:text="系统播放器"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_16" />
+                android:textSize="@dimen/ts_20" />
 
             <TextView
                 android:id="@+id/play_ijk"
@@ -257,7 +257,7 @@
                 android:padding="@dimen/vs_10"
                 android:text="硬解码"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_16" />
+                android:textSize="@dimen/ts_20" />
 
             <TextView
                 android:id="@+id/play_3rdplayer"
@@ -271,7 +271,7 @@
                 android:padding="@dimen/vs_10"
                 android:text="外部播放"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_16"
+                android:textSize="@dimen/ts_20"
                 tools:visibility="gone" />
 
             <TextView
@@ -286,7 +286,7 @@
                 android:padding="@dimen/vs_10"
                 android:text="01:00"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_16" />
+                android:textSize="@dimen/ts_20" />
 
             <TextView
                 android:id="@+id/play_time_end"
@@ -300,7 +300,7 @@
                 android:padding="@dimen/vs_10"
                 android:text="01:00"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_16" />
+                android:textSize="@dimen/ts_20" />
 
             <TextView
                 android:id="@+id/play_time_step"
@@ -314,7 +314,7 @@
                 android:padding="@dimen/vs_10"
                 android:text="1S"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_16" />
+                android:textSize="@dimen/ts_20" />
 
 
             <Space

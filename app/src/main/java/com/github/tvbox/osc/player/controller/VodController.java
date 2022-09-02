@@ -746,17 +746,17 @@ public class VodController extends BaseController {
     void showControllerAnimation() {
         mTopRoot.setVisibility(VISIBLE);
         mTopRoot.setAlpha(0);
-        mTopRoot.setTranslationY(mTopRoot.getTranslationY() - mTopRoot.getHeight()/2);
+        mTopRoot.setTranslationY(-mTopRoot.getHeight()/2);
         mTopRoot.animate()
-                .translationYBy(mTopRoot.getHeight()/2)
+                .translationY(0)
                 .alpha(1.0f)
                 .setDuration(300).setInterpolator(new DecelerateInterpolator()).start();
 
         mBottomRoot.setVisibility(VISIBLE);
         mBottomRoot.setAlpha(0);
-        mBottomRoot.setTranslationY(mBottomRoot.getTranslationY() + mBottomRoot.getHeight()/2);
+        mBottomRoot.setTranslationY(mBottomRoot.getHeight()/2);
         mBottomRoot.animate()
-                .translationYBy(-mBottomRoot.getHeight()/2)
+                .translationY(0)
                 .alpha(1.0f).setDuration(300)
                 .setInterpolator(new DecelerateInterpolator()).start();
 
@@ -785,9 +785,9 @@ public class VodController extends BaseController {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mTopRoot.setTranslationY(mTopRoot.getTranslationY() + mTopRoot.getHeight()/2);
+                mTopRoot.setTranslationY(0);
                 mTopRoot.setVisibility(GONE);
-                mBottomRoot.setTranslationY(mBottomRoot.getTranslationY() - mBottomRoot.getHeight()/2);
+                mBottomRoot.setTranslationY(0);
                 mBottomRoot.setVisibility(GONE);
             }
         }, 300);
