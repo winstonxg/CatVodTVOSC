@@ -3,7 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.8.20220906] - 2022-09-06
+### Changed
+- 修复安卓4.x不能进入播放
+- 修复网页遥控不能点击搜索结果
+- 修复剧集按钮倒叙后不能全屏
+- 修复小米不能触发更新安装包
+- 部分界面更新
 
 ## [0.8.20220901] - 2022-09-01
 ### Added

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingBottom="@dimen/vs_10">
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:id="@+id/topLayout"
@@ -89,7 +89,8 @@
                     android:layout_width="40mm"
                     android:layout_height="40mm"
                     android:layout_gravity="center_horizontal|center_vertical"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:focusable="true" />
             </LinearLayout>
         </LinearLayout>
 
@@ -116,9 +117,11 @@
                 android:layout_width="@dimen/vs_0"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
+                android:ellipsize="end"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:gravity="left|center_vertical"
+                android:maxLines="1"
                 android:text="最近观看"
                 android:textAlignment="gravity"
                 android:textColor="@android:color/white"
@@ -127,25 +130,28 @@
 
             <Space
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/vs_1"
                 android:layout_weight="2" />
 
             <LinearLayout
                 android:id="@+id/lblExpandHist"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/shape_source_series_focus"
                 android:focusable="true"
                 android:orientation="horizontal"
                 android:paddingTop="@dimen/vs_4"
-                android:paddingBottom="@dimen/vs_4">
+                android:paddingBottom="@dimen/vs_4"
+                android:visibility="gone"
+                tools:visibility="gone">
 
                 <ImageView
                     android:id="@+id/imgExpandHistIcon"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/vs_30"
                     android:layout_weight="1"
+                    android:scaleType="centerInside"
                     app:srcCompat="@drawable/icon_angle_down" />
             </LinearLayout>
 

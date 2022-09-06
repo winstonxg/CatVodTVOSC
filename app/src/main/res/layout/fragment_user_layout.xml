@@ -51,8 +51,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_vod" />
@@ -69,7 +69,8 @@
                         android:text="点播"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 
@@ -91,8 +92,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_live" />
@@ -109,7 +110,8 @@
                         android:text="直播"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 
@@ -131,8 +133,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_search" />
@@ -149,7 +151,8 @@
                         android:text="搜索"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 
@@ -172,8 +175,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_push" />
@@ -190,7 +193,8 @@
                         android:text="推送"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 
@@ -212,8 +216,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_drive" />
@@ -230,7 +234,8 @@
                         android:text="存储"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 
@@ -253,8 +258,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_douban" />
@@ -271,7 +276,8 @@
                         android:text="推荐"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 
@@ -294,8 +300,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_collect" />
@@ -312,7 +318,8 @@
                         android:text="收藏"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 
@@ -335,8 +342,8 @@
 
 
                     <ImageView
-                        android:layout_width="@dimen/vs_50"
-                        android:layout_height="@dimen/vs_50"
+                        android:layout_width="@dimen/vs_40"
+                        android:layout_height="@dimen/vs_40"
                         android:layout_gravity="center"
                         android:alpha="1"
                         android:src="@drawable/icon_setting" />
@@ -353,7 +360,8 @@
                         android:text="设置"
                         android:textAlignment="gravity"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/ts_40" />
+                        android:textSize="@dimen/ts_24"
+                        android:layout_marginTop="@dimen/vs_5"/>
 
                 </LinearLayout>
 

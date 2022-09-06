@@ -903,7 +903,7 @@ public class VodController extends BaseController {
         }
     }
 
-    private void showLocker() {
+    public void showLocker() {
         if(deviceType == 0)
             return;
         isShowingLocker = true;
@@ -913,7 +913,7 @@ public class VodController extends BaseController {
         mHandler.postDelayed(hideLockerRunnable, 10000);
     }
 
-    private void hideLocker() {
+    public void hideLocker() {
         isShowingLocker = false;
         lockerLeft.setVisibility(GONE);
         lockerRight.setVisibility(GONE);

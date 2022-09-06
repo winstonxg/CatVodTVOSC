@@ -450,7 +450,7 @@ $(function () {
         sentData[_this.data("name")] = _this.val();
         mainSocket.send(JSON.stringify(sentData));
     });
-    $("body").on('click', '.backendResult', function() {
+    $("body").on('click', '.searchResult', function() {
         var vodData = $(this).data("voddata");
         playVod(vodData.sourceKey, vodData.id, vodData.name);
     });

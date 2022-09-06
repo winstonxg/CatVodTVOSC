@@ -23,6 +23,7 @@ import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.activity.HomeActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
+import com.github.tvbox.osc.ui.dialog.QRCodeDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.TipDialog;
 import com.github.tvbox.osc.ui.tv.QRCodeGen;
@@ -86,6 +87,13 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
     protected void refreshQRCode() {
         String address = ControlManager.get().getAddress(false);
         ivQRCode.setImageBitmap(QRCodeGen.generateBitmap(address, 100, 100));
+        ivQRCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                QRCodeDialog dialog = new QRCodeDialog(mContext);
+                dialog.show();
+            }
+        });
     }
 
     private void bindQuickApiChange() {

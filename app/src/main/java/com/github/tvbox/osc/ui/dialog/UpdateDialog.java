@@ -132,15 +132,20 @@ public class UpdateDialog extends BaseDialog {
                 Toast.makeText(baseActivity, "下载完成，准备安装新版本", Toast.LENGTH_SHORT).show();
                 try {
                     Intent install = new Intent(Intent.ACTION_VIEW);
-                    install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    install.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
-                    install.setDataAndType(destination, "application/vnd.android.package-archive");
-                    baseActivity.startActivity(install);
-
-                    baseActivity.unregisterReceiver(this);
-                    baseActivity.finish();
+                    try {
+                        install.setFlags(
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        install.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
+                        install.setDataAndType(destination, "application/vnd.android.package-archive");
+                        baseActivity.startActivity(install);
+                        baseActivity.unregisterReceiver(this);
+                        baseActivity.finish();
+                    }catch (Exception ex) {
+                        install.setDataAndType(Uri.fromFile(cache), "application/vnd.android.package-archive");
+                        baseActivity.startActivity(install);
+                    }
                 }catch (Exception ex) {
                     Toast.makeText(baseActivity, "错误：" + ex.getMessage(), Toast.LENGTH_SHORT).show();
                 }

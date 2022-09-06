@@ -315,6 +315,7 @@ public class PlayerFragment  extends BaseLazyFragment {
                         String url = info.getString("url");
                         HashMap<String, String> headers = null;
                         webUserAgent = null;
+                        webHeaderMap = null;
                         if (info.has("header")) {
                             try {
                                 JSONObject hds = new JSONObject(info.getString("header"));
@@ -329,6 +330,7 @@ public class PlayerFragment  extends BaseLazyFragment {
                                         webUserAgent = hds.getString(key).trim();
                                     }
                                 }
+                                webHeaderMap = headers;
                             } catch (Throwable th) {
 
                             }
@@ -421,6 +423,11 @@ public class PlayerFragment  extends BaseLazyFragment {
 
     public VodInfo getPlayingVodInfo() {
         return clonePlayingVodeInfo(playingInfo);
+    }
+
+    public void  updatePlayingVodInfo() {
+        if(mVodInfo != null)
+            playingInfo = clonePlayingVodeInfo(mVodInfo);
     }
 
     public void playNext() {
@@ -528,6 +535,7 @@ public class PlayerFragment  extends BaseLazyFragment {
     private String parseFlag;
     private String webUrl;
     private String webUserAgent;
+    private Map<String, String > webHeaderMap;
 
     private void initParse(String flag, boolean useParse, String playUrl, final String url) {
         parseFlag = flag;
@@ -865,20 +873,24 @@ public class PlayerFragment  extends BaseLazyFragment {
                     //mXwalkWebView.clearCache(true);
                     if(ua != null && !ua.isEmpty()) {
                         mXwalkWebView.getSettings().setUserAgentString(ua);
-                    } else {
-                        mXwalkWebView.getSettings().setUserAgentString(UA.random());
                     }
-                    mXwalkWebView.loadUrl(url);
+                    if(webHeaderMap != null){
+                        mXwalkWebView.loadUrl(url,webHeaderMap);
+                    }else {
+                        mXwalkWebView.loadUrl(url);
+                    }
                 }
                 if (mSysWebView != null) {
                     mSysWebView.stopLoading();
                     if(ua != null && !ua.isEmpty()) {
                         mSysWebView.getSettings().setUserAgentString(ua);
-                    } else {
-                        mSysWebView.getSettings().setUserAgentString(UA.random());
                     }
                     //mSysWebView.clearCache(true);
-                    mSysWebView.loadUrl(url);
+                    if(webHeaderMap != null){
+                        mSysWebView.loadUrl(url,webHeaderMap);
+                    }else {
+                        mSysWebView.loadUrl(url);
+                    }
                 }
             }
         });
@@ -999,7 +1011,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
-        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         /* 添加webView配置 */
         //设置编码
         settings.setDefaultTextEncodingName("utf-8");
@@ -1159,7 +1171,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         settings.setLoadWithOverviewMode(true);
         settings.setBuiltInZoomControls(true);
         settings.setSupportZoom(false);
-        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         // settings.setUserAgentString(ANDROID_UA);
 
         webView.setBackgroundColor(Color.BLACK);

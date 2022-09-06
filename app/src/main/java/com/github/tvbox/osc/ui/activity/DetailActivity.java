@@ -191,6 +191,8 @@ public class DetailActivity extends BaseActivity {
                     vodInfo.reverseSort = !vodInfo.reverseSort;
                     vodInfo.reverse();
                     vodInfo.playIndex = vodInfo.seriesMap.get(vodInfo.playFlag).size() - 1 - vodInfo.playIndex;
+                    if(playerFragment != null)
+                        playerFragment.updatePlayingVodInfo();
                     JsonObject jsonObject = new JsonObject();
                     jsonObject.addProperty("type", "vod-update-info");
                     jsonObject.addProperty("reverseSort", vodInfo.reverseSort);
@@ -313,6 +315,7 @@ public class DetailActivity extends BaseActivity {
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 FastClickCheckUtil.check(view);
                 if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
+                    VodInfo.VodSeries selectedSeries = seriesAdapter.getData().get(position);
                     if (vodInfo.playIndex != position) {
                         seriesAdapter.getData().get(vodInfo.playIndex).selected = false;
                         seriesAdapter.notifyItemChanged(vodInfo.playIndex);
@@ -323,7 +326,7 @@ public class DetailActivity extends BaseActivity {
                     }
                     if(playerFragment != null) {
                         VodInfo playingInfo = playerFragment.getPlayingVodInfo();
-                        if(playingInfo != null && playingInfo.playFlag.equals(vodInfo.playFlag) && playingInfo.playIndex == vodInfo.playIndex ) {
+                        if(playingInfo != null && playingInfo.playFlag.equals(vodInfo.playFlag) && playingInfo.playIndex == vodInfo.playIndex) {
                             jumpToPlay(true, false, null);
                         } else {
                             jumpToPlay(false, true, null);
@@ -924,6 +927,7 @@ public class DetailActivity extends BaseActivity {
         VodController controller = playerFragment.getVodController();
         if(controller != null) {
             controller.enableController(false);
+            controller.hideLocker();
         }
         VideoView videoView = playerFragment.getVideoView();
         if (videoView != null) {
