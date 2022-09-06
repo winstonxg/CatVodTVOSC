@@ -471,7 +471,7 @@
     <LinearLayout
         android:id="@+id/tv_progress_container"
         android:layout_width="@dimen/vs_280"
-        android:layout_height="@dimen/vs_200"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:background="@drawable/shape_user_focus"
         android:focusable="false"
@@ -487,6 +487,7 @@
             android:layout_height="@dimen/vs_200"
             android:focusable="false"
             android:focusableInTouchMode="false"
+            android:scaleType="centerInside"
             tools:src="@drawable/icon_back" />
 
         <TextView

@@ -108,6 +108,7 @@ public class CatFragment extends AbstractHomeFragment {
         this.tvDate = findViewById(R.id.tvDate);
 
         mHomeGridView.setHasFixedSize(true);
+        mHomeGridView.getRecycledViewPool().setMaxRecycledViews(0, 10);
         this.homeCatAdapter = new HomeCatAdapter((BaseActivity) this.mActivity);
         mHomeGridView.setAdapter(this.homeCatAdapter);
         this.homeCatAdapter.bindToRecyclerView(mHomeGridView);

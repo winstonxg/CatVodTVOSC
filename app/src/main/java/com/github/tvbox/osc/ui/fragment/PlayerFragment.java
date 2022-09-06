@@ -78,9 +78,12 @@ import org.xwalk.core.XWalkWebResourceRequest;
 import org.xwalk.core.XWalkWebResourceResponse;
 
 import java.io.ByteArrayInputStream;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -104,6 +107,7 @@ public class PlayerFragment  extends BaseLazyFragment {
     private String playingUrl;
     private HashMap<String, String> playingHeader;
     private ParserCallback oneTimeParserCallback = null;
+    private ParseBean lastParseBean = null;
 
     public static final String FRAGMENT_TAG = "mPlayerFragment";
 
@@ -210,6 +214,8 @@ public class PlayerFragment  extends BaseLazyFragment {
                 autoRetryCount = 0;
                 String progressKey = playingUrl; //mVodInfo.sourceKey + mVodInfo.id + mVodInfo.playFlag + mVodInfo.playIndex;
                 replayKey = progressKey;
+                if(mVideoView.getCurrentPlayState() != VideoView.STATE_ERROR)
+                    lastParseBean = null;
                 play();
             }
 
@@ -366,6 +372,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         playingUrl = null;
         mVodInfo = vodInfo;
         playingInfo = clonePlayingVodeInfo(vodInfo);
+        lastParseBean = null;
         this.sourceKey = sourceKey;
         sourceBean = ApiConfig.get().getSource(sourceKey);
         initPlayerCfg();
@@ -685,11 +692,23 @@ public class PlayerFragment  extends BaseLazyFragment {
             setTip("正在解析播放地址", true, false);
             parseThreadPool = Executors.newSingleThreadExecutor();
             LinkedHashMap<String, String> jxs = new LinkedHashMap<>();
+            List<Map.Entry<String, String>> usedJxs = new ArrayList<>();
+            boolean foundLastParseBean = false;
             for (ParseBean p : ApiConfig.get().getParseBeanList()) {
                 if (p.getType() == 1) {
-                    jxs.put(p.getName(), p.mixUrl());
+                    if(p == lastParseBean) {
+                        foundLastParseBean = true;
+                        usedJxs.add(new AbstractMap.SimpleEntry<>(p.getName(), p.mixUrl()));
+                        continue;
+                    }
+                    if(!foundLastParseBean)
+                        usedJxs.add(new AbstractMap.SimpleEntry<>(p.getName(), p.mixUrl()));
+                    else
+                        jxs.put(p.getName(), p.mixUrl());
                 }
             }
+            for(Map.Entry<String, String> usedJx : usedJxs)
+                jxs.put(usedJx.getKey(), usedJx.getValue());
             parseThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -721,6 +740,12 @@ public class PlayerFragment  extends BaseLazyFragment {
                                 }
                             });
                         }
+                        for (ParseBean p : ApiConfig.get().getParseBeanList()) {
+                            if (p.getName() == rs.optString("jxFrom")) {
+                                lastParseBean = p;
+                                break;
+                            }
+                        }
                         boolean parseWV = rs.optInt("parse", 0) == 1;
                         if (parseWV) {
                             String wvUrl = DefaultConfig.checkReplaceProxy(rs.optString("url", ""));
@@ -735,6 +760,8 @@ public class PlayerFragment  extends BaseLazyFragment {
             setTip("正在解析播放地址", true, false);
             parseThreadPool = Executors.newSingleThreadExecutor();
             LinkedHashMap<String, HashMap<String, String>> jxs = new LinkedHashMap<>();
+            List<Map.Entry<String, HashMap<String, String>>> usedJxs = new ArrayList<>();
+            boolean foundLastParseBean = false;
             String extendName = "";
             for (ParseBean p : ApiConfig.get().getParseBeanList()) {
                 HashMap data = new HashMap<String, String>();
@@ -744,8 +771,20 @@ public class PlayerFragment  extends BaseLazyFragment {
                 }
                 data.put("type", p.getType() + "");
                 data.put("ext", p.getExt());
-                jxs.put(p.getName(), data);
+
+                if(p == lastParseBean) {
+                    foundLastParseBean = true;
+                    usedJxs.add(new AbstractMap.SimpleEntry<>(p.getName(), data));
+                    continue;
+                }
+                if(!foundLastParseBean)
+                    usedJxs.add(new AbstractMap.SimpleEntry<>(p.getName(), data));
+                else
+                    jxs.put(p.getName(), data);
+
             }
+            for(Map.Entry<String, HashMap<String, String>> usedJx : usedJxs)
+                jxs.put(usedJx.getKey(), usedJx.getValue());
             String finalExtendName = extendName;
             parseThreadPool.execute(new Runnable() {
                 @Override
@@ -790,6 +829,12 @@ public class PlayerFragment  extends BaseLazyFragment {
                                         Toast.makeText(mContext, "解析来自:" + rs.optString("jxFrom"), Toast.LENGTH_SHORT).show();
                                     }
                                 });
+                            }
+                            for (ParseBean p : ApiConfig.get().getParseBeanList()) {
+                                if (p.getName() == rs.optString("jxFrom")) {
+                                    lastParseBean = p;
+                                    break;
+                                }
                             }
                             playUrl(rs.optString("url", ""), headers);
                         }

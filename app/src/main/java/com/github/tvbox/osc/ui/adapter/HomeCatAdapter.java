@@ -43,8 +43,6 @@ import me.jessyan.autosize.utils.AutoSizeUtils;
 
 public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder> {
 
-    private static final int HOME_CAT_USER_FRAME_ID = 9999996;
-
     private boolean isDelMode = false;
     private BaseActivity currentActivity;
 
@@ -59,19 +57,19 @@ public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder
 
     @Override
     protected void convert(BaseViewHolder helper, HomeCatBean item) {
-        FrameLayout mItemFrame = helper.getView(R.id.mItemFrame);
-        LinearLayout mHomeTitle = helper.getView(R.id.mHomeTitle);
-        mItemFrame.setVisibility(View.GONE);
-        mHomeTitle.setVisibility(View.GONE);
         if(item.isHead) {
-            mHomeTitle.setVisibility(View.VISIBLE);
-        } else if(item.historyRecord != null || item.homeItem != null) {
-            mItemFrame.setVisibility(View.VISIBLE);
+            helper.setGone(R.id.mHomeTitle, true);
+            helper.setGone(R.id.mItemFrame, false);
+        } else {
+            helper.setGone(R.id.mHomeTitle, false);
+            helper.setGone(R.id.mItemFrame, true);
+            FrameLayout mItemFrame = helper.getView(R.id.mItemFrame);
             if(item.historyRecord != null) {
                 this.convertHistoryRecord(helper, item.historyRecord);
                 mItemFrame.setOnLongClickListener(historyLongClickListener);
-            } else
+            } else {
                 this.convertMovie(helper, item.homeItem);
+            }
             mItemFrame.setOnFocusChangeListener(vodFocusChangeListener);
             mItemFrame.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -93,6 +91,7 @@ public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder
                 }
             });
         }
+        helper.itemView.invalidate();
     }
 
     private View.OnLongClickListener historyLongClickListener = new View.OnLongClickListener() {
