@@ -744,9 +744,9 @@ public class VideoView<P extends AbstractPlayer> extends FrameLayout
             uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         }
         decorView.setSystemUiVisibility(uiOptions);
-        getActivity().getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        getActivity().getWindow().setFlags(
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     @Override
@@ -778,6 +778,7 @@ public class VideoView<P extends AbstractPlayer> extends FrameLayout
         //把播放器视图从DecorView中移除并添加到当前FrameLayout中即退出了全屏
         decorView.removeView(mPlayerContainer);
         this.addView(mPlayerContainer);
+        this.invalidate();
 
         setPlayerState(PLAYER_NORMAL);
     }
@@ -791,7 +792,7 @@ public class VideoView<P extends AbstractPlayer> extends FrameLayout
             uiOptions &= ~View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         }
         decorView.setSystemUiVisibility(uiOptions);
-        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        //getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     /**

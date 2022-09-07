@@ -934,6 +934,10 @@ public class VodController extends BaseController {
         if (isBottomVisible()) {
             if(event.getKeyCode() != KeyEvent.KEYCODE_BACK)
                 showBtnHint(this.findFocus());
+            else {
+                hideBottom();
+                return true;
+            }
             mHandler.removeCallbacks(hideLockerRunnable);
             mHandler.removeCallbacks(mHideBottomRunnable);
             mHandler.postDelayed(mHideBottomRunnable, 10000);
@@ -943,7 +947,7 @@ public class VodController extends BaseController {
         boolean isInPlayback = isInPlaybackState();
         int keyCode = event.getKeyCode();
         int action = event.getAction();
-        if (action == KeyEvent.ACTION_DOWN) {
+        if (action == KeyEvent.ACTION_UP) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 if (isInPlayback) {
                     tvSlideStart(keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ? 1 : -1);
@@ -990,6 +994,20 @@ public class VodController extends BaseController {
             hideBottom();
         }
         return true;
+    }
+
+    @Override
+    public boolean startFullScreen() {
+        return super.startFullScreen();
+    }
+
+    @Override
+    public boolean stopFullScreen() {
+        return super.stopFullScreen();
+    }
+
+    public boolean isFullScreen() {
+        return mControlWrapper.isFullScreen();
     }
 
     @Override

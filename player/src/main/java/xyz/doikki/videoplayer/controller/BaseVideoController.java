@@ -406,7 +406,7 @@ public abstract class BaseVideoController extends FrameLayout
      */
     protected boolean startFullScreen() {
         if (mActivity == null || mActivity.isFinishing()) return false;
-        mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        //mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mControlWrapper.startFullScreen();
         return true;
     }
@@ -418,7 +418,7 @@ public abstract class BaseVideoController extends FrameLayout
      */
     protected boolean stopFullScreen() {
         if (mActivity == null || mActivity.isFinishing()) return false;
-        mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         mControlWrapper.stopFullScreen();
         return true;
     }

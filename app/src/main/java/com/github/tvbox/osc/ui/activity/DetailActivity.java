@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -516,29 +517,19 @@ public class DetailActivity extends BaseActivity {
 
     private List<Runnable> pauseRunnable = null;
 
-    public void jumpToPlay(boolean shouldOpenActivity, boolean newSource, PlayerFragment.ParserCallback callback) {
+    public void jumpToPlay(boolean shouldFullScreen, boolean newSource, PlayerFragment.ParserCallback callback) {
         if (vodInfo != null && vodInfo.seriesMap.get(vodInfo.playFlag).size() > 0) {
-            if(shouldOpenActivity) {
-                getSupportFragmentManager().beginTransaction().remove(playerFragment).commit();
-                if(newSource) {
-                    //保存历史
-                    insertVod(sourceKey, vodInfo);
-                    playerFragment.destroy();
-                    playerFragment = new PlayerFragment();
-                } else {
-                    playerFragment.getVodController().enableController(true);
-                }
-                Bundle bundle = new Bundle();
-                bundle.putBoolean("newSource", newSource);
-                bundle.putString("sourceKey", sourceKey);
-                bundle.putSerializable("VodInfo", vodInfo);
-                jumpActivity(PlayActivity.class, bundle);
+            if(playerFragment == null)
+                playerFragment = new PlayerFragment();
+            if(newSource) {
+                //保存历史
+                insertVod(sourceKey, vodInfo);
+                playerFragment.initData(vodInfo, sourceKey, callback);
+            }
+            if(shouldFullScreen) {
+                playerFragment.getVodController().enableController(true);
+                playerFragment.getVodController().startFullScreen();
                 sendScreenChange(true);
-            } else {
-                if(newSource)
-                    insertVod(sourceKey, vodInfo);
-                if(playerFragment != null)
-                    playerFragment.initData(vodInfo, sourceKey, callback);
             }
         }
     }
@@ -892,6 +883,19 @@ public class DetailActivity extends BaseActivity {
     }
 
     @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if(playerFragment.getVodController().isFullScreen()) {
+            VodController controller = playerFragment.getVodController();
+            if (event != null && controller != null) {
+                if (controller.onKeyEvent(event)) {
+                    return true;
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         try {
@@ -950,6 +954,10 @@ public class DetailActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
 
+        if(playerFragment.getVodController().isFullScreen()) {
+            playerFragment.getVodController().stopFullScreen();
+            return;
+        }
         if(thirdPlayerDialog != null) {
             thirdPlayerDialog.dismiss();
             thirdPlayerDialog = null;
