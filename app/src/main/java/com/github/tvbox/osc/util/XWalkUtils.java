@@ -29,7 +29,7 @@ public class XWalkUtils {
     }
 
     public static String downUrl() {
-        return String.format("https://download.01.org/crosswalk/releases/crosswalk/android/stable/23.53.589.4/%s/crosswalk-apks-23.53.589.4-%s.zip", getRuntimeAbi(), getRuntimeAbi());
+        return String.format("https://gitea.com/kensonmiao/crosswalk/raw/branch/main/crosswalk-apks-23.53.589.4-%s.zip", getRuntimeAbi(), getRuntimeAbi());
     }
 
     public static String saveZipFile() {
