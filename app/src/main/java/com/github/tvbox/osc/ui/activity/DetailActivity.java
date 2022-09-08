@@ -955,6 +955,7 @@ public class DetailActivity extends BaseActivity {
     public void onBackPressed() {
 
         if(playerFragment.getVodController().isFullScreen()) {
+            playerFragment.getVodController().enableController(false);
             playerFragment.getVodController().stopFullScreen();
             return;
         }

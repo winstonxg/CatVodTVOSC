@@ -132,6 +132,7 @@ public class VodController extends BaseController {
     TextView btnHint;
     ImageView lockerLeft;
     ImageView lockerRight;
+    ImageView tvBack;
 
     private boolean shouldShowBottom = true;
     private boolean shouldShowLoadingSpeed = Hawk.get(HawkConfig.DISPLAY_LOADING_SPEED, true);
@@ -190,6 +191,7 @@ public class VodController extends BaseController {
         btnHint = findViewById(R.id.play_btn_hint);
         lockerLeft = findViewById(R.id.play_screen_lock_left);
         lockerRight = findViewById(R.id.play_screen_lock_right);
+        tvBack = findViewById(R.id.tv_back);
 
         mGridView.setLayoutManager(new V7LinearLayoutManager(getContext(), 0, false));
 
@@ -466,6 +468,17 @@ public class VodController extends BaseController {
                 toggleLockController();
             }
         });
+        if(Hawk.get(HawkConfig.TV_TYPE, 0) == 0) {
+            tvBack.setVisibility(GONE);
+        } else {
+            tvBack.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    enableController(false);
+                    stopFullScreen();
+                }
+            });
+        }
         init3rdPlayerButton();
     }
 
@@ -934,7 +947,7 @@ public class VodController extends BaseController {
         if (isBottomVisible()) {
             if(event.getKeyCode() != KeyEvent.KEYCODE_BACK)
                 showBtnHint(this.findFocus());
-            else {
+            else if(Hawk.get(HawkConfig.TV_TYPE, 0) == 0) {
                 hideBottom();
                 return true;
             }
@@ -1003,6 +1016,8 @@ public class VodController extends BaseController {
 
     @Override
     public boolean stopFullScreen() {
+        hideBottom();
+        hideLocker();
         return super.stopFullScreen();
     }
 
