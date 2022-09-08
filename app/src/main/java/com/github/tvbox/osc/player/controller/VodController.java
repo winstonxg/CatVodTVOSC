@@ -960,7 +960,7 @@ public class VodController extends BaseController {
         boolean isInPlayback = isInPlaybackState();
         int keyCode = event.getKeyCode();
         int action = event.getAction();
-        if (action == KeyEvent.ACTION_UP) {
+        if (action == KeyEvent.ACTION_DOWN) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 if (isInPlayback) {
                     tvSlideStart(keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ? 1 : -1);
@@ -984,7 +984,13 @@ public class VodController extends BaseController {
                     return true;
                 }
             }
+            if(event.getKeyCode() == KeyEvent.KEYCODE_BACK && isFullScreen()) {
+                stopFullScreen();
+                return true;
+            }
         }
+        if(isFullScreen())
+            return true;
         return super.dispatchKeyEvent(event);
     }
 

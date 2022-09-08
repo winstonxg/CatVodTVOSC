@@ -3,6 +3,7 @@ package com.github.tvbox.osc.util;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.text.TextUtils;
 
 import com.github.tvbox.osc.api.ApiConfig;
@@ -172,9 +173,7 @@ public class DefaultConfig {
     }
 
     public static String[] StoragePermissionGroup() {
-        return new String[] {
-                //Permission.READ_EXTERNAL_STORAGE,
-                //Permission.WRITE_EXTERNAL_STORAGE,
+        return new String[]{
                 Permission.MANAGE_EXTERNAL_STORAGE
         };
     }

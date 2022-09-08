@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.dialog;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -23,12 +24,16 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.util.AppUpdate;
+import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.HawkConfig;
+import com.hjq.permissions.OnPermissionCallback;
+import com.hjq.permissions.XXPermissions;
 import com.orhanobut.hawk.Hawk;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 public class UpdateDialog extends BaseDialog {
 
@@ -95,12 +100,36 @@ public class UpdateDialog extends BaseDialog {
         if(this.versionInfo.VersionNo == null || this.versionInfo.VersionNo.length() <= 0)
             return;
 
-        if(Build.VERSION.SDK_INT >= 23) {
+        if(Build.VERSION.SDK_INT == 23) {
             if (App.getInstance().checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(baseActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 this.dismiss();
                 return;
             }
+        } else if (!XXPermissions.isGranted(getContext(), DefaultConfig.StoragePermissionGroup())) {
+            XXPermissions.with(getContext())
+                .permission(DefaultConfig.StoragePermissionGroup())
+                .request(new OnPermissionCallback() {
+                    @Override
+                    public void onGranted(List<String> permissions, boolean all) {
+                        if (all) {
+                            Toast.makeText(getContext(), "已获得存储权限", Toast.LENGTH_SHORT).show();
+                            startUpdate();
+                        }
+                    }
+
+                    @Override
+                    public void onDenied(List<String> permissions, boolean never) {
+                        if (never) {
+                            Toast.makeText(getContext(), "获取存储权限失败,请在系统设置中开启", Toast.LENGTH_SHORT).show();
+                            XXPermissions.startPermissionActivity((Activity) getContext(), permissions);
+                        } else {
+                            Toast.makeText(getContext(), "获取存储权限失败", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            this.dismiss();
+            return;
         }
 
         String packageName = this.getContext().getPackageName();

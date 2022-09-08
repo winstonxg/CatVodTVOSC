@@ -8,7 +8,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 30
         versionCode 2
-        versionName '0.8.20220906.2'
+        versionName '0.8.20220908.1'
         multiDexEnabled true
         //设置room的Schema的位置
         javaCompileOptions {
@@ -26,7 +26,7 @@ android {
         debug {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationIdSuffix ".dev"
-            versionNameSuffix '-DEBUG'
+
             resValue "string", "app_name", "TV猫盒 Dev"
             minifyEnabled false
 
