@@ -1091,11 +1091,11 @@ public class PlayerFragment  extends BaseLazyFragment {
 
     @Override
     public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
         if(!isInPictureInPictureMode && mVideoView.isPlaying()) {
             mController.stopFullScreen();
             mVideoView.pause();
         }
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
     }
 
     private class SysWebClient extends WebViewClient {

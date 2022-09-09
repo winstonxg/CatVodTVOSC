@@ -50,14 +50,19 @@ public class VodProcessor {
                 boolean isFullscreen = backData.get("isFullscreen").getAsBoolean();
                 AppManager appManager = AppManager.getInstance();
                 BaseActivity currentActivity = ((BaseActivity)appManager.currentActivity());
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("type", "detail");
-                jsonObject.addProperty("fullscreen", isFullscreen);
-                if(currentActivity instanceof DetailActivity && isFullscreen) {
-                    ((DetailActivity)currentActivity).jumpToPlay(true, false, null);
-                } else if(currentActivity instanceof PlayActivity) {
-                    ControlManager.get().getSocketServer().sendToAll(jsonObject);
-                    currentActivity.onBackPressed();
+                if(currentActivity instanceof DetailActivity) {
+                    PlayerFragment player = DetailActivity.getManagedPlayerFragment();
+                    if(player != null) {
+                        JsonObject jsonObject = new JsonObject();
+                        jsonObject.addProperty("type", "detail");
+                        jsonObject.addProperty("fullscreen", isFullscreen);
+                        if (isFullscreen) {
+                            player.getVodController().startFullScreen();
+                        } else {
+                            ControlManager.get().getSocketServer().sendToAll(jsonObject);
+                            player.getVodController().stopFullScreen();
+                        }
+                    }
                 }
             }
         });

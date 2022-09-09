@@ -11,6 +11,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.BaseLazyFragment;
+import com.github.tvbox.osc.bean.AbsSortXml;
 import com.github.tvbox.osc.bean.AbsXml;
 import com.github.tvbox.osc.bean.Movie;
 import com.github.tvbox.osc.bean.MovieSort;
@@ -23,6 +24,7 @@ import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -192,7 +194,11 @@ public class GridFragment extends BaseLazyFragment {
         if(sortData.id.equals("_home")) {
             showSuccess();
             isLoad = true;
-            adapter.setNewData(sourceViewModel.sortResult.getValue().list.videoList);
+            AbsSortXml result = sourceViewModel.sortResult.getValue();
+            if(result != null && result.list != null && result.list.videoList != null)
+                adapter.setNewData(sourceViewModel.sortResult.getValue().list.videoList);
+            else
+                showEmpty();
         }else
             sourceViewModel.listResult.observe(this, new Observer<AbsXml>() {
                 @Override

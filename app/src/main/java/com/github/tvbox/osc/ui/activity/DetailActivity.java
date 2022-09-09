@@ -1,9 +1,15 @@
 package com.github.tvbox.osc.ui.activity;
 
+import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
+import android.app.RemoteAction;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
@@ -127,8 +134,12 @@ public class DetailActivity extends BaseActivity {
     private View currentSeriesGroupView;
     private boolean originalFullScreen = false;
     private boolean wasInPIPMode = false;
+    private BroadcastReceiver pipActionReceiver;
 
     private static final int DETAIL_PLAYER_FRAME_ID = 9999999;
+    private static final int PIP_BOARDCAST_ACTION_PREV = 0;
+    private static final int PIP_BOARDCAST_ACTION_PLAYPAUSE = 1;
+    private static final int PIP_BOARDCAST_ACTION_NEXT = 2;
 
     public VodInfo getVodInfo() {
         return vodInfo;
@@ -956,7 +967,12 @@ public class DetailActivity extends BaseActivity {
             try {
                 originalFullScreen = playerFragment.getVodController().isFullScreen();
                 playerFragment.getVodController().startFullScreen();
-                PictureInPictureParams params = new PictureInPictureParams.Builder().build();
+                List<RemoteAction> actions = new ArrayList<>();
+                actions.add(generateRemoteAction(android.R.drawable.ic_media_previous, PIP_BOARDCAST_ACTION_PREV, "上一集", "播放上一集"));
+                actions.add(generateRemoteAction(android.R.drawable.ic_media_play,PIP_BOARDCAST_ACTION_PLAYPAUSE, "播放/暂停", "播放或者暂停"));
+                actions.add(generateRemoteAction(android.R.drawable.ic_media_next,PIP_BOARDCAST_ACTION_NEXT, "下一集", "播放下一集"));
+                PictureInPictureParams params = new PictureInPictureParams.Builder()
+                        .setActions(actions).build();
                 enterPictureInPictureMode(params);
                 playerFragment.getVodController().enableController(false);
             }catch (Exception ex) {
@@ -964,6 +980,49 @@ public class DetailActivity extends BaseActivity {
             }
         }
         super.onUserLeaveHint();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private RemoteAction generateRemoteAction(int iconResId, int actionCode, String title, String desc) {
+        final PendingIntent intent =
+                PendingIntent.getBroadcast(
+                        DetailActivity.this,
+                        actionCode,
+                        new Intent("PIP_VOD_CONTROL").putExtra("action", actionCode),
+                        0);
+        final Icon icon = Icon.createWithResource(DetailActivity.this, iconResId);
+        return (new RemoteAction(icon, title, desc, intent));
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+        if (isInPictureInPictureMode) {
+            pipActionReceiver = new BroadcastReceiver() {
+
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if(intent == null || !intent.getAction().equals("PIP_VOD_CONTROL")
+                            || playerFragment == null || playerFragment.getVodController() == null)
+                        return;
+
+                    VodController controller = playerFragment.getVodController();
+                    int currentStatus = intent.getIntExtra("action",1);
+                    if(currentStatus == PIP_BOARDCAST_ACTION_PREV){
+                        playerFragment.playPrevious();
+                    } else if(currentStatus == PIP_BOARDCAST_ACTION_PLAYPAUSE) {
+                        controller.togglePlay();
+                    } else if(currentStatus == PIP_BOARDCAST_ACTION_NEXT) {
+                        playerFragment.playNext();
+                    }
+                }
+            };
+            registerReceiver(pipActionReceiver, new IntentFilter("PIP_VOD_CONTROL"));
+
+        } else {
+            unregisterReceiver(pipActionReceiver);
+            pipActionReceiver = null;
+        }
     }
 
     @Override
