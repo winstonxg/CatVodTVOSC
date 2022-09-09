@@ -1089,6 +1089,15 @@ public class PlayerFragment  extends BaseLazyFragment {
         webView.setBackgroundColor(Color.BLACK);
     }
 
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+        if(!isInPictureInPictureMode && mVideoView.isPlaying()) {
+            mController.stopFullScreen();
+            mVideoView.pause();
+        }
+    }
+
     private class SysWebClient extends WebViewClient {
 
         @Override

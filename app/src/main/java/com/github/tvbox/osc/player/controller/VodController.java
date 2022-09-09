@@ -500,6 +500,10 @@ public class VodController extends BaseController {
         this.shouldShowBottom = enable;
         this.mPlayTitle.setVisibility(enable ? VISIBLE : GONE);
         this.tvDate.setVisibility(enable ? VISIBLE : GONE );
+        if(!enable) {
+            hideLocker();
+            hideBottom();
+        }
         setDoubleTapTogglePlayEnabled(enable);
         setGestureEnabled(enable);
     }
@@ -984,13 +988,27 @@ public class VodController extends BaseController {
                     return true;
                 }
             }
-            if(event.getKeyCode() == KeyEvent.KEYCODE_BACK && isFullScreen()) {
-                stopFullScreen();
+            if(event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                if(isControllerLock) {
+                    toggleLockController();
+                    return true;
+                }
+                if(isFullScreen()) {
+                    stopFullScreen();
+                    return true;
+                }
+            }
+        }
+        if(playerFragment.getVodController().isFullScreen()) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                    keyCode == KeyEvent.KEYCODE_ENTER) {
                 return true;
             }
         }
-        if(isFullScreen())
-            return true;
         return super.dispatchKeyEvent(event);
     }
 

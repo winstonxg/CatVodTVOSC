@@ -52,6 +52,9 @@
             android:screenOrientation="landscape" />
         <activity
             android:name="com.github.tvbox.osc.ui.activity.DetailActivity"
+            android:supportsPictureInPicture="true"
+            android:configChanges=
+                "screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="landscape" />
         <activity
             android:name="com.github.tvbox.osc.ui.activity.PlayActivity"

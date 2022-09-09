@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.8.20220909] - 2022-09-09
+### Added
+- 安卓8.0及更高版本的设备可使用画中画
+- 手机模式：全屏界面左上角添加返回按钮
+
+### Changed
+- 控制器问题修复
+- 优化全屏切换
+
 ## [0.8.20220906] - 2022-09-06
 ### Changed
 - 修复安卓4.x不能进入播放

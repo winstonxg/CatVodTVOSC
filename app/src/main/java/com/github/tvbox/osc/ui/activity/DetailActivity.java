@@ -1,8 +1,10 @@
 package com.github.tvbox.osc.ui.activity;
 
+import android.app.PictureInPictureParams;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
@@ -42,6 +44,7 @@ import com.github.tvbox.osc.ui.adapter.SeriesFlagAdapter;
 import com.github.tvbox.osc.ui.dialog.QuickSearchDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.fragment.PlayerFragment;
+import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
@@ -122,6 +125,8 @@ public class DetailActivity extends BaseActivity {
     private SelectDialog<Integer> thirdPlayerDialog;
     private Handler mHandler = new Handler();
     private View currentSeriesGroupView;
+    private boolean originalFullScreen = false;
+    private boolean wasInPIPMode = false;
 
     private static final int DETAIL_PLAYER_FRAME_ID = 9999999;
 
@@ -929,9 +934,14 @@ public class DetailActivity extends BaseActivity {
             insertPlayerFragment();
         }
         VodController controller = playerFragment.getVodController();
-        if(controller != null) {
-            controller.enableController(false);
-            controller.hideLocker();
+        if(controller != null && wasInPIPMode) {
+            wasInPIPMode = false;
+            if (originalFullScreen) {
+                controller.enableController(true);
+            } else {
+                controller.stopFullScreen();
+                controller.enableController(false);
+            }
         }
         VideoView videoView = playerFragment.getVideoView();
         if (videoView != null) {
@@ -941,8 +951,28 @@ public class DetailActivity extends BaseActivity {
     }
 
     @Override
+    protected void onUserLeaveHint() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && playerFragment.getVideoView().getCurrentPlayState() != VideoView.STATE_PAUSED) {
+            try {
+                originalFullScreen = playerFragment.getVodController().isFullScreen();
+                playerFragment.getVodController().startFullScreen();
+                PictureInPictureParams params = new PictureInPictureParams.Builder().build();
+                enterPictureInPictureMode(params);
+                playerFragment.getVodController().enableController(false);
+            }catch (Exception ex) {
+
+            }
+        }
+        super.onUserLeaveHint();
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode()) {
+            wasInPIPMode = true;
+            return;
+        }
         if(playerFragment != null) {
             VideoView videoView = playerFragment.getVideoView();
             if (videoView != null) {
@@ -975,6 +1005,10 @@ public class DetailActivity extends BaseActivity {
             playerFragment.destroy();
             playerFragment = null;
         }
+        AppManager.getInstance().finishActivity(this);
+        Intent intent = new Intent(this,AppManager.getInstance().currentActivity().getClass());
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
         super.onBackPressed();
     }
 }
