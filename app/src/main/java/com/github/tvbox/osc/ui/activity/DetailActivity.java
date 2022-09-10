@@ -457,13 +457,6 @@ public class DetailActivity extends BaseActivity {
         setLoadSir(llLayout);
     }
 
-    private void sendScreenChange(boolean isFullscreen) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("type", "detail");
-        jsonObject.addProperty("fullscreen", isFullscreen);
-        ControlManager.get().getSocketServer().sendToAll(jsonObject);
-    }
-
     private interface ThirdPlayerSelectDialogCallback {
         void onSelected(int selectedType);
     }
@@ -543,9 +536,7 @@ public class DetailActivity extends BaseActivity {
                 playerFragment.initData(vodInfo, sourceKey, callback);
             }
             if(shouldFullScreen) {
-                playerFragment.getVodController().enableController(true);
                 playerFragment.getVodController().startFullScreen();
-                sendScreenChange(true);
             }
         }
     }
@@ -694,6 +685,7 @@ public class DetailActivity extends BaseActivity {
                         ControlManager.get().getSocketServer().sendToAll(updateNotice);
                         // startQuickSearch();
                     } else {
+                        tvQuickSearch.callOnClick();
                         mGridViewFlag.setVisibility(View.GONE);
                         mGridView.setVisibility(View.GONE);
                         tvPlay.setVisibility(View.GONE);
@@ -947,18 +939,24 @@ public class DetailActivity extends BaseActivity {
         VodController controller = playerFragment.getVodController();
         if(controller != null && wasInPIPMode) {
             wasInPIPMode = false;
+//            mHandler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mGridView.invalidate();
+//                    seriesFlagAdapter.notifyDataSetChanged();
+//                    seriesGroupAdapter.notifyDataSetChanged();
+//                }
+//            }, 5000);
             if (originalFullScreen) {
                 controller.enableController(true);
             } else {
                 controller.stopFullScreen();
-                controller.enableController(false);
             }
         }
         VideoView videoView = playerFragment.getVideoView();
         if (videoView != null) {
             videoView.resume();
         }
-        sendScreenChange(false);
     }
 
     @Override

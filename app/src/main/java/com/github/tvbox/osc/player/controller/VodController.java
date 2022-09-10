@@ -496,6 +496,13 @@ public class VodController extends BaseController {
         }
     }
 
+    private void sendScreenChange(boolean isFullscreen) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("type", "detail");
+        jsonObject.addProperty("fullscreen", isFullscreen);
+        ControlManager.get().getSocketServer().sendToAll(jsonObject);
+    }
+
     public void enableController(boolean enable) {
         this.shouldShowBottom = enable;
         this.mPlayTitle.setVisibility(enable ? VISIBLE : GONE);
@@ -1035,6 +1042,8 @@ public class VodController extends BaseController {
 
     @Override
     public boolean startFullScreen() {
+        enableController(true);
+        sendScreenChange(true);
         return super.startFullScreen();
     }
 
@@ -1042,6 +1051,8 @@ public class VodController extends BaseController {
     public boolean stopFullScreen() {
         hideBottom();
         hideLocker();
+        enableController(false);
+        sendScreenChange(false);
         return super.stopFullScreen();
     }
 

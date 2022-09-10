@@ -45,7 +45,6 @@ public class HomeActivity extends BaseActivity {
     private static final int HOME_FRAME_ID = 9999997;
 
     private boolean isChaningApi = false;
-    private TextView tvName;
     private Handler mHandler = new Handler();
 
     @Override
@@ -91,12 +90,6 @@ public class HomeActivity extends BaseActivity {
         mViewPager.setPageTransformer(true, new DefaultTransformer());
         mViewPager.setAdapter(pageAdapter);
         mViewPager.setCurrentItem(0, false);
-        mViewPager.post(new Runnable() {
-            @Override
-            public void run() {
-                tvName = currentHomeFragment.findViewById(R.id.tvName);
-            }
-        });
     }
 
     @Override
@@ -135,11 +128,6 @@ public class HomeActivity extends BaseActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if(tvName != null && event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_MENU)
-        {
-            tvName.callOnClick();
-            return false;
-        }
         boolean superDKE = super.dispatchKeyEvent(event);
         boolean fragDKE = currentHomeFragment.dispatchKey(event);
         return superDKE || fragDKE;

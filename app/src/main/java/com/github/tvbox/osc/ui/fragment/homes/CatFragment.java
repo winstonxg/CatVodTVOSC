@@ -365,7 +365,10 @@ public class CatFragment extends AbstractHomeFragment {
         }
     };
 
+    @Override
     public boolean dispatchKey(KeyEvent event) {
+        if(super.dispatchKey(event))
+            return true;
         View focusedView = mHomeGridView.getFocusedChild();
         if(focusedView != null) {
             View headerName = focusedView.findViewById(R.id.headerName);

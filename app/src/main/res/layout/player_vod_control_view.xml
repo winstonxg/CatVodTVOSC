@@ -520,6 +520,7 @@
     </LinearLayout>
 
     <ProgressBar
+        android:id="@+id/play_loading"
         android:layout_width="@dimen/vs_50"
         android:layout_height="@dimen/vs_50"
         android:layout_gravity="center"
@@ -528,6 +529,30 @@
         android:indeterminateOnly="true"
         android:tag="vod_control_loading"
         android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/play_load_error"
+        android:layout_width="@dimen/vs_50"
+        android:layout_height="@dimen/vs_50"
+        android:layout_gravity="center"
+        android:alpha="0.75"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:src="@drawable/icon_error"
+        android:visibility="gone"
+        app:srcCompat="@drawable/icon_error"
+        tools:visibility="gone" />
+
+    <TextView
+        android:id="@+id/play_load_tip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/vs_50"
+        android:textColor="@color/color_CCFFFFFF"
+        android:textSize="@dimen/ts_24"
+        android:visibility="gone"
+        tools:visibility="gone" />
 
     <TextView
         android:id="@+id/loadingSpeed"

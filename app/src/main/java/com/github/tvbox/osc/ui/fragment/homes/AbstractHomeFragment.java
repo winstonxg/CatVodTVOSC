@@ -34,6 +34,7 @@ import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.google.gson.JsonObject;
 import com.orhanobut.hawk.Hawk;
 
+import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
@@ -169,7 +170,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
         }
         if (dataInitOk && !jarInitOk) {
             showLoading("正在加载自定义设置...");
-            if (!ApiConfig.get().getSpider().isEmpty()) {
+            if (!StringUtils.isEmpty(ApiConfig.get().getSpider())) {
                 showLoading("正在加载自定义爬虫代码...");
                 ApiConfig.get().loadJar(useCacheConfig,
                         ApiConfig.get().getHomeSourceBean().getSpider(),
@@ -224,7 +225,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
             public void success() {
                 showLoading("正在加载站点规则...");
                 dataInitOk = true;
-                if (ApiConfig.get().getSpider().isEmpty()) {
+                if (StringUtils.isEmpty(ApiConfig.get().getSpider())) {
                     jarInitOk = true;
                 }
                 mHandler.postDelayed(new Runnable() {
@@ -318,6 +319,14 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
         mHandler.removeCallbacksAndMessages(null);
     }
 
+    public boolean dispatchKey(KeyEvent event) {
+        if(tvName != null && event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_MENU)
+        {
+            tvName.callOnClick();
+            return true;
+        }
+        return false;
+    }
+
     public abstract boolean pressBack();
-    public abstract boolean dispatchKey(KeyEvent event);
 }

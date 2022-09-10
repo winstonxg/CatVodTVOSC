@@ -55,15 +55,18 @@ public class AppUpdate {
                             return;
                         String[] localVersionNo = getCurrentVersionNo().split("\\.");
                         String[] remoteVersionNo = splitData[0].split("\\.");
-                        if(remoteVersionNo.length >localVersionNo.length) {
-                            showUpdateDialog(context, updateUrls[sourceIndex], splitData);
-                            return;
-                        }
                         for (int i = 0; i < localVersionNo.length && i < remoteVersionNo.length; i++) {
                             if (Integer.parseInt(remoteVersionNo[i]) > Integer.parseInt(localVersionNo[i])) {
                                 showUpdateDialog(context, updateUrls[sourceIndex], splitData);
                                 return;
                             }
+                            if (Integer.parseInt(remoteVersionNo[i]) < Integer.parseInt(localVersionNo[i])) {
+                                return;
+                            }
+                        }
+                        if(remoteVersionNo.length > localVersionNo.length) {
+                            showUpdateDialog(context, updateUrls[sourceIndex], splitData);
+                            return;
                         }
                     }
                 }catch(Exception ex) {}

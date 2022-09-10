@@ -293,7 +293,10 @@ public class AssembledFragment extends AbstractHomeFragment {
             }
         };
 
+        @Override
         public boolean dispatchKey(KeyEvent event) {
+            if(super.dispatchKey(event))
+                return true;
             if (topHide < 0)
                 return false;
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
