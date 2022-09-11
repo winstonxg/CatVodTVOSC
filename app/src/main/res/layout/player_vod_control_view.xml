@@ -536,12 +536,9 @@
         android:layout_height="@dimen/vs_50"
         android:layout_gravity="center"
         android:alpha="0.75"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:src="@drawable/icon_error"
         android:visibility="gone"
-        app:srcCompat="@drawable/icon_error"
-        tools:visibility="gone" />
+        android:scaleType="centerInside"
+        app:srcCompat="@drawable/icon_error" />
 
     <TextView
         android:id="@+id/play_load_tip"
