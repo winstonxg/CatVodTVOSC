@@ -24,4 +24,8 @@ public class PIPHelper {
         final Icon icon = Icon.createWithResource(activity, iconResId);
         return (new RemoteAction(icon, title, desc, intent));
     }
+
+    public static boolean supportsPiPMode() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
 }

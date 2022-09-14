@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="ts_16">16mm</dimen>
+    <dimen name="ts_18">18mm</dimen>
     <dimen name="ts_20">20mm</dimen>
     <dimen name="ts_22">22mm</dimen>
     <dimen name="ts_24">24mm</dimen>
@@ -85,5 +86,7 @@
     <dimen name="vs_610">610mm</dimen>
     <dimen name="vs_640">640mm</dimen>
     <dimen name="vs_720">720mm</dimen>
+    <dimen name="vs_850">850mm</dimen>
+    <dimen name="vs_900">900mm</dimen>
     <dimen name="vs_960">960mm</dimen>
 </resources>

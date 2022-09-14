@@ -67,6 +67,8 @@ public class Movie implements Serializable {
         public String totalEpisodes;
         @XStreamAlias("alias") //别名
         public String alias;
+        @XStreamAlias("tag")
+        public String tag;
         public String sourceKey;
         public String score;
         public String scoreImdb;

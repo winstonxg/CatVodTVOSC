@@ -30,11 +30,11 @@ public class LiveChannelItemAdapter extends BaseQuickAdapter<LiveChannelItem, Ba
         tvChannel.setText(item.getChannelName());
         int channelIndex = item.getChannelIndex();
         if (channelIndex == selectedChannelIndex && channelIndex != focusedChannelIndex) {
-            tvChannelNum.setTextColor(mContext.getResources().getColor(R.color.color_1890FF));
+            tvChannelNum.setTextColor(mContext.getResources().getColor(R.color.color_aed7fc));
             tvChannel.setTextColor(mContext.getResources().getColor(R.color.color_1890FF));
         }
         else{
-            tvChannelNum.setTextColor(mContext.getResources().getColor(R.color.color_99000000));
+            tvChannelNum.setTextColor(mContext.getResources().getColor(android.R.color.white));
             tvChannel.setTextColor(mContext.getResources().getColor(R.color.color_99000000));
         }
     }

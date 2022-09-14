@@ -89,3 +89,6 @@ lint/tmp/
 /LTDecodeSpace
 /adb.exe
 /LTDecodeNew3.exe
+/app/schemas/com.github.tvbox.km.osc.data.AppDataBase/1.json
+/app/schemas/com.github.tvbox.osc.data.AppDataBase/2.json
+/app/release/output-metadata.json

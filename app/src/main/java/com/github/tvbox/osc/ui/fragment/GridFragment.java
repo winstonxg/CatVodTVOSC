@@ -24,8 +24,11 @@ import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * @author pj567
@@ -56,6 +59,10 @@ public class GridFragment extends BaseLazyFragment {
         public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
             FastClickCheckUtil.check(view);
             Movie.Video video = (Movie.Video) adapter.getData().get(position);
+            if(!StringUtils.isEmpty(video.tag) && video.tag.trim().equals("folder")){
+                pushFolder(video.id, position);
+                return;
+            }
             if (video != null) {
                 Bundle bundle = new Bundle();
                 bundle.putString("id", video.id);
@@ -65,6 +72,7 @@ public class GridFragment extends BaseLazyFragment {
         }
     };
     private BaseQuickAdapter.OnItemLongClickListener itemLongClickListener = null;
+    private Stack<MovieFolder> movieFolders = new Stack<>();
 
     public static GridFragment newInstance(MovieSort.SortData sortData, Class viewModelClass) {
         GridFragment fragment = new GridFragment().setArguments(sortData, new GridAdapter(), viewModelClass, null);
@@ -241,6 +249,42 @@ public class GridFragment extends BaseLazyFragment {
         }
     }
 
+    public void pushFolder(String id, int position){
+        MovieFolder folder = new MovieFolder();
+        folder.id = this.sortData.id;
+        folder.loadedVideos = this.adapter.getData();
+        folder.lastSelectedPos = position;
+        folder.lastLoadedPage = page;
+        folder.lastMaxPage = maxPage;
+        movieFolders.push(folder);
+        this.adapter.setNewData(new ArrayList<>());
+        showLoading();
+        this.sortData.id =id; // 修改sortData.id为新的ID
+        page = 1;
+        maxPage = 1;
+        sourceViewModel.getList(sortData, page);
+    }
+
+    public boolean popFolder() {
+        if(movieFolders.size() <= 0)
+            return false;
+
+        MovieFolder folder = movieFolders.pop();
+        this.sortData.id = folder.id;
+        this.page = folder.lastLoadedPage;
+        this.maxPage = folder.lastMaxPage;
+        this.adapter.setNewData(folder.loadedVideos);
+        if(page > maxPage)
+            this.adapter.loadMoreEnd();
+        this.mGridView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                GridFragment.this.mGridView.scrollToPosition(folder.lastSelectedPos);
+            }
+        }, 500);
+        return true;
+    }
+
     public boolean isTop() {
         return isTop;
     }
@@ -267,5 +311,12 @@ public class GridFragment extends BaseLazyFragment {
             gridFilterDialog.show();
     }
 
+    private class MovieFolder {
+        public String id;
+        public List<Movie.Video> loadedVideos;
+        public int lastSelectedPos;
+        public int lastLoadedPage;
+        public int lastMaxPage;
+    }
 
 }

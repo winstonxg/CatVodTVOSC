@@ -263,6 +263,8 @@ public class AssembledFragment extends AbstractHomeFragment {
                 }
             }
             if (baseLazyFragment instanceof GridFragment) {
+                if(((GridFragment)baseLazyFragment).popFolder())
+                    return false;
                 View view = this.sortFocusView;
                 if (view != null && !view.isFocused()) {
 //                ((GridFragment) baseLazyFragment).scrollTop();
@@ -336,7 +338,7 @@ public class AssembledFragment extends AbstractHomeFragment {
             if (hide && topHide == 0) {
                 animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
                         AutoSizeUtils.mm2px(this.mContext, 50.0f),
-                        AutoSizeUtils.mm2px(this.mContext, -180.0f)),
+                        AutoSizeUtils.mm2px(this.mContext, -150.0f)),
                         ObjectAnimator.ofFloat(this.mFeatureView, "alpha", 1.0f, 0.0f),
                         ObjectAnimator.ofFloat(this.topLayout, "alpha", 1.0f, 0.0f));
                 animatorSet.setDuration(200);
@@ -345,7 +347,7 @@ public class AssembledFragment extends AbstractHomeFragment {
             }
             if (!hide && topHide == 1) {
                 animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(),
-                        AutoSizeUtils.mm2px(this.mContext, -180.0f),
+                        AutoSizeUtils.mm2px(this.mContext, -150.0f),
                         AutoSizeUtils.mm2px(this.mContext, 50.0f)),
                         ObjectAnimator.ofFloat(this.topLayout, "alpha", 0.0f, 1.0f),
                         ObjectAnimator.ofFloat(this.mFeatureView, "alpha", 0.0f, 1.0f));

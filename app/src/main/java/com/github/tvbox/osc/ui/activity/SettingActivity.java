@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.activity;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -117,6 +118,11 @@ public class SettingActivity extends BaseActivity {
         homeRec = Hawk.get(HawkConfig.HOME_REC, 0);
         dnsOpt = Hawk.get(HawkConfig.DOH_URL, 0);
         enabledRemoteControl = Hawk.get(HawkConfig.REMOTE_CONTROL, true);
+        Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            Bundle bundle = intent.getExtras();
+            Hawk.put(HawkConfig.API_URL, bundle.getString("newApi", ""));
+        }
         List<String> sortList = new ArrayList<>();
         sortList.add("设置其他");
         sortAdapter.setNewData(sortList);

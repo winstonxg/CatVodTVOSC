@@ -16,6 +16,9 @@ import okhttp3.Response;
 public class AppUpdate {
 
     private static final String[] updateUrls = new String[] {
+            "https://raw.fastgit.org/kensonmiao/CatVodTVOSC_Release/master/",
+            "http://ghproxy.com/?q=https%3A%2F%2Fraw.githubusercontent.com%2Fkensonmiao%2FCatVodTVOSC_Release%2Fmain%2F",
+            "http://raw.githubusercontents.com/kensonmiao/CatVodTVOSC_Release/main/",
             "https://raw.githubusercontent.com/kensonmiao/CatVodTVOSC_Release/main/",
             "https://codeberg.org/kensonlogin55/CatVodTVOSC_Release/raw/branch/main/"
     };

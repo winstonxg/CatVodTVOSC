@@ -345,6 +345,11 @@ public class CatFragment extends AbstractHomeFragment {
             this.homeCatAdapter.toggleDelMode(false);
             return false;
         } if(mCategoryFrame.getVisibility() == View.VISIBLE) {
+            if(currentSelected >= 0 && currentSelected < fragments.size()) {
+                GridFragment currentGridFragment = ((GridFragment)fragments.get(currentSelected));
+                if(currentGridFragment.popFolder())
+                    return false;
+            }
             mCategoryFrame.setVisibility(View.GONE);
             mHomeFrame.setVisibility(View.VISIBLE);
             return false;

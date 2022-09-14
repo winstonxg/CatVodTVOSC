@@ -82,7 +82,15 @@ function selectFile(path, canDel) {
     // $("#fileUrl0")[0].value = current_remote.replace('clan://', 'http://') + 'file/' + current_file;
     $("#fileUrl1")[0].value = "clan://localhost/" + current_file;
     $("#fileUrl2")[0].value = current_remote + current_file;
-    $("#fileInfoDialog").fadeIn();
+    var fileInfoDialog = $("#fileInfoDialog");
+    fileInfoDialog.fadeIn(200);
+    fileInfoDialog.find(".js_dialog").addClass('weui-half-screen-dialog_show');
+    setTimeout(function(){
+        fileInfoDialog.attr('aria-hidden','false');
+        fileInfoDialog.attr('aria-modal','true');
+        fileInfoDialog.attr('tabindex','0');
+        fileInfoDialog.trigger('focus');
+    },200);
 }
 
 function fileToApi(type) {
