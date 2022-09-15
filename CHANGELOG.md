@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.8.20220914] - 2022-09-14
+### Added
+- 接口源指定播放器
+
 ## [0.8.20220909] - 2022-09-09
 ### Added
 - 安卓8.0及更高版本的设备可使用画中画

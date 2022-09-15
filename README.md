@@ -78,3 +78,22 @@
 }
 ```
 
+## Ver 0.8.20220914
+## 额外新的参数如下
+
+针对接口源指定默认播放器:
+```javascript
+{
+    ...
+    "sites": [
+        ...
+        { "key": "csp_csp1", "name": "CSP1", ... }, //没有playerType参数，程序使用设置里指定的播放器
+        { "key": "csp_csp2", "name": "CSP2", ..., "playerType": 0 }, //playerType 指定默认播放器为系统播放器，覆盖设置的指定播放器，但是用户变更播放器后，该影视纪录（只是该纪录）保留用户的选择
+        { "key": "csp_csp3", "name": "CSP3", ..., "playerType": 1 }, //playerType 指定默认播放器为IJK，其余同上
+        { "key": "csp_csp4", "name": "CSP4", ..., "playerType": 2 }, //playerType 指定默认播放器为EXO，其余同上
+        ...
+    ],
+    ...
+}
+```
+
