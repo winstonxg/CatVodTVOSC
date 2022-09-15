@@ -20,6 +20,7 @@ import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.util.MD5;
+import com.github.tvbox.osc.util.PlayerHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -37,6 +38,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -269,6 +271,7 @@ public class ApiConfig {
         }
         // 远端站点源
         SourceBean firstSite = null;
+        List<Integer> availablePlayerTypes = Arrays.asList(PlayerHelper.getAvailableDefaultPlayerTypes());
         for (JsonElement opt : infoJson.get("sites").getAsJsonArray()) {
             JsonObject obj = (JsonObject) opt;
             SourceBean sb = new SourceBean();
@@ -276,6 +279,9 @@ public class ApiConfig {
             sb.setKey(siteKey);
             sb.setName(obj.get("name").getAsString().trim());
             sb.setType(obj.get("type").getAsInt());
+            int playerType = DefaultConfig.safeJsonInt(obj, "playerType", -1);
+            if((playerType >= 0 && availablePlayerTypes.contains(sb.getPlayerType())) || playerType == -1)
+                sb.setPlayerType(playerType);
             sb.setApi(obj.get("api").getAsString().trim());
             sb.setSearchable(DefaultConfig.safeJsonInt(obj, "searchable", 1));
             sb.setQuickSearch(DefaultConfig.safeJsonInt(obj, "quickSearch", 1));

@@ -89,6 +89,9 @@ public abstract class BaseActivity extends AppCompatActivity implements CustomAd
                 uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
                 uiOptions |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
                 uiOptions |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                    uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE;
+                }
             }
             uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
             getWindow().getDecorView().setSystemUiVisibility(uiOptions);

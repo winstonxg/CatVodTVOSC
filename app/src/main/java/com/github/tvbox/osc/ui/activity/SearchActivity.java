@@ -49,6 +49,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -179,25 +180,21 @@ public class SearchActivity extends BaseActivity {
         keyboard.setOnSearchKeyListener(new SearchKeyboard.OnSearchKeyListener() {
             @Override
             public void onSearchKey(int pos, String key) {
-                if (pos > 1) {
+                if (pos > 0) {
                     String text = etSearch.getText().toString().trim();
                     text += key;
                     etSearch.setText(text);
-                    if (text.length() > 0) {
-                        loadRec(text);
-                    }
-                } else if (pos == 1) {
+                } else if (pos == 0) {
                     String text = etSearch.getText().toString().trim();
                     if (text.length() > 0) {
                         text = text.substring(0, text.length() - 1);
                         etSearch.setText(text);
                     }
-                    if (text.length() > 0) {
-                        loadRec(text);
-                    }
-                } else if (pos == 0) {
-                    RemoteDialog remoteDialog = new RemoteDialog(mContext);
-                    remoteDialog.show();
+                }
+                if(etSearch.getText().length() <= 0) {
+                    loadHotSearch();
+                } else {
+                    loadRec(etSearch.getText().toString());
                 }
             }
         });
@@ -254,7 +251,12 @@ public class SearchActivity extends BaseActivity {
             search(title);
         }
         // 加载热词
-        OkGo.<String>get("https://node.video.qq.com/x/api/hot_mobilesearch")
+        loadHotSearch();
+    }
+
+    //load hot search
+    private void loadHotSearch() {
+        OkGo.<String>get("https://node.video.qq.com/x/api/hot_search")
                 .params("channdlId", "0")
                 .params("_", System.currentTimeMillis())
                 .execute(new AbsCallback<String>() {
@@ -262,11 +264,22 @@ public class SearchActivity extends BaseActivity {
                     public void onSuccess(Response<String> response) {
                         try {
                             ArrayList<String> hots = new ArrayList<>();
-                            JsonArray itemList = JsonParser.parseString(response.body()).getAsJsonObject().get("data").getAsJsonObject().get("itemList").getAsJsonArray();
-                            for (JsonElement ele : itemList) {
-                                JsonObject obj = (JsonObject) ele;
-                                hots.add(obj.get("title").getAsString().trim().replaceAll("<|>|《|》|-", "").split(" ")[0]);
+                            JsonObject mapResult = JsonParser.parseString(response.body())
+                                    .getAsJsonObject()
+                                    .get("data").getAsJsonObject()
+                                    .get("mapResult").getAsJsonObject();
+                            List<String> groupIndex = Arrays.asList("0", "1", "2", "3", "5");
+                            for(String index : groupIndex) {
+                                JsonArray itemList = mapResult.get(index).getAsJsonObject()
+                                        .get("listInfo").getAsJsonArray();
+                                for (JsonElement ele : itemList) {
+                                    JsonObject obj = (JsonObject) ele;
+                                    String hotKey = obj.get("title").getAsString().trim().replaceAll("<|>|《|》|-", "").split(" ")[0];
+                                    if(!hots.contains(hotKey))
+                                        hots.add(hotKey);
+                                }
                             }
+
                             wordAdapter.setNewData(hots);
                         } catch (Throwable th) {
                             th.printStackTrace();

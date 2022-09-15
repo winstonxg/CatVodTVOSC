@@ -353,10 +353,10 @@ public class PlayerFragment  extends BaseLazyFragment {
                             }
                         }
                     } catch (Throwable th) {
-                        errorWithRetry("获取播放信息错误", true);
+                        errorWithRetry("获取播放信息错误", false);
                     }
                 } else {
-                    errorWithRetry("获取播放信息错误", true);
+                    errorWithRetry("获取播放信息错误", false);
                 }
             }
         };
@@ -396,7 +396,10 @@ public class PlayerFragment  extends BaseLazyFragment {
         }
         try {
             if (!mVodPlayerCfg.has("pl")) {
-                mVodPlayerCfg.put("pl", Hawk.get(HawkConfig.PLAY_TYPE, 1));
+                if(sourceBean.getPlayerType() > -1)
+                    mVodPlayerCfg.put("pl", sourceBean.getPlayerType());
+                else
+                    mVodPlayerCfg.put("pl", Hawk.get(HawkConfig.PLAY_TYPE, 1));
             }
             if (!mVodPlayerCfg.has("pr")) {
                 mVodPlayerCfg.put("pr", Hawk.get(HawkConfig.PLAY_RENDER, 0));

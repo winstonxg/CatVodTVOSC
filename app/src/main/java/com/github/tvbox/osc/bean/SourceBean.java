@@ -7,6 +7,7 @@ public class SourceBean {
     private String name;
     private String api;
     private int type;   // 0 xml 1 json 3 Spider
+    private int playerType;
     private int searchable; // 是否可搜索
     private int quickSearch; // 是否可以快速搜索
     private int filterable; // 可筛选?
@@ -104,5 +105,17 @@ public class SourceBean {
             this.spider = "default";
         else
             this.spider = spider;
+    }
+
+    public int getPlayerType() {
+        return playerType;
+    }
+
+    public void setPlayerType(int playerType) {
+        this.playerType = playerType;
+    }
+
+    public int getSearchable() {
+        return searchable;
     }
 }

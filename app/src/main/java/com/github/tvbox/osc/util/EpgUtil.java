@@ -38,7 +38,7 @@ public class EpgUtil {
         File cacheEpg = new File(cachePath);
         Calendar c = Calendar.getInstance();
         c.setTime(new Date());
-        c.add(Calendar.DATE, -1);
+        c.add(Calendar.DATE, -10);
         if (cacheEpg.exists()) {
             if(cacheEpg.lastModified() > c.getTime().getTime()) {
                 readCachedEpgList(cacheEpg);
@@ -86,38 +86,43 @@ public class EpgUtil {
     }
 
     private static void readCachedEpgList(File cacheEpg) {
-        String content = "";
-        FileInputStream fin = null;
-        BufferedReader reader = null;
-        try {
-            fin = new FileInputStream(cacheEpg);
-            reader = new BufferedReader(new InputStreamReader(fin));
-            StringBuilder sb = new StringBuilder();
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-            content = sb.toString();
-            epgDoc = JXDocument.create(content);
-            return;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            if (reader != null) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String content = "";
+                FileInputStream fin = null;
+                BufferedReader reader = null;
                 try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    fin = new FileInputStream(cacheEpg);
+                    reader = new BufferedReader(new InputStreamReader(fin));
+                    StringBuilder sb = new StringBuilder();
+                    String line = null;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line).append("\n");
+                    }
+                    content = sb.toString();
+                    epgDoc = JXDocument.create(content);
+                    return;
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                } finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (fin != null) {
+                        try {
+                            fin.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
-            if (fin != null) {
-                try {
-                    fin.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        });
     }
 
     public static String[] getEpgInfo(String channelName) {
