@@ -264,6 +264,10 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
     }
 
     protected void showLoading(String message) {
+        showLoading(message, null, null);
+    }
+
+    protected void showLoading(String message, Long cancelBtnAvailableAfter, View.OnClickListener cancelBtnClick) {
         if (mLoadService != null) {
             mLoadService.showCallback(LoadingCallback.class);
             TextView lblMsg = mLoadService.getLoadLayout().findViewById(R.id.lblMsg);
@@ -277,6 +281,35 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
                 });
             } else {
                 lblMsg.setText(message);
+            }
+            if(cancelBtnClick != null) {
+                mLoadService.getLoadLayout().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView btnCancelLoad = mLoadService.getLoadLayout().findViewById(R.id.btnCancelLoad);
+                        btnCancelLoad.setOnClickListener(cancelBtnClick);
+                        if (cancelBtnAvailableAfter == null) {
+                            btnCancelLoad.setVisibility(View.VISIBLE);
+                            btnCancelLoad.requestFocus();
+                        } else
+                            mLoadService.getLoadLayout().
+                                postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        btnCancelLoad.setVisibility(View.VISIBLE);
+                                        btnCancelLoad.requestFocus();
+                                    }
+                                }, cancelBtnAvailableAfter);
+                    }
+                });
+            } else {
+                mLoadService.getLoadLayout().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView btnCancelLoad = mLoadService.getLoadLayout().findViewById(R.id.btnCancelLoad);
+                        btnCancelLoad.setVisibility(View.GONE);
+                    }
+                });
             }
         }
     }

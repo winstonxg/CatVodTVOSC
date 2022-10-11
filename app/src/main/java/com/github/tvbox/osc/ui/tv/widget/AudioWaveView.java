@@ -9,7 +9,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.github.tvbox.osc.R;
+
 import java.util.Random;
+
+import me.jessyan.autosize.utils.AutoSizeUtils;
 
 public class AudioWaveView extends View {
     private Paint paint;
@@ -53,12 +58,12 @@ public class AudioWaveView extends View {
         viewWidth = MeasureSpec.getSize(widthMeasureSpec);
         viewHeight = MeasureSpec.getSize(heightMeasureSpec);
 
-        rectWidth = (viewWidth - space * (columnCount - 1)) / columnCount;
+        rectWidth = (AutoSizeUtils.dp2px(getContext(), viewWidth) - space * (columnCount - 1)) / columnCount;
     }
 
     private void init() {
         paint = new Paint();
-        paint.setColor(Color.WHITE);//字节跳动颜色
+        paint.setColor(getContext().getResources().getColor(R.color.color_B4000000));//字节跳动颜色
         paint.setStyle(Paint.Style.FILL);
         random = new Random();
 

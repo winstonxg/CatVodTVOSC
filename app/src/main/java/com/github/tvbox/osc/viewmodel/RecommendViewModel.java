@@ -114,6 +114,7 @@ public class RecommendViewModel extends SourceViewModel {
 
     public static void getIMDBScore(String imdbId, Callback<String> resultCallback) {
         GetRequest<String> request = OkGo.<String>get("https://www.imdb.com/title/" + imdbId);
+        request.removeHeader("User-Agent");
         request.headers("User-Agent", UA.random());
         request.execute(new AbsCallback<String>() {
             @Override

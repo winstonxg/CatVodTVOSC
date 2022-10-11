@@ -135,7 +135,7 @@ function listFile(path) {
             }
         });
         $('#loadingToast').fadeOut();
-    })
+    });
 }
 
 function warnToast(msg) {
@@ -148,6 +148,26 @@ function warnToast(msg) {
 
 function uploadFile() {
     $('#file_uploader').click();
+}
+
+function downloadFile() {
+
+    var fileName = current_file;
+    var lastSlash = current_file.lastIndexOf("/");
+    if(lastSlash >= 0) 
+        fileName = current_file.substring(lastSlash + 1);
+    fetch('/file/' + current_file)
+        .then(resp => resp.blob())
+        .then(blob => {
+            var fileUrl = URL.createObjectURL(blob);
+            var anchor = document.createElement("a");
+            anchor.href = fileUrl;
+            anchor.download = fileName;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            URL.revokeObjectURL(fileUrl);
+        });
 }
 
 function uploadTip() {
@@ -200,56 +220,6 @@ function doNewFolder(yes) {
             return false;
         $('#loadingToast').fadeIn();
         $.post('/newFolder', { path: current_root, name: '' + name }, function (data) {
-            $('#loadingToast').fadeOut();
-            listFile(current_root);
-        });
-    }
-}
-
-
-function delFolder() {
-    $('#delFolderContent').html('是否删除 ' + current_root);
-    $('#delFolder').fadeIn();
-}
-
-function doDelFolder(yes) {
-    $('#delFolder').fadeOut();
-    if (yes == 1) {
-        $('#loadingToast').fadeIn();
-        $.post('/delFolder', { path: current_root }, function (data) {
-            $('#loadingToast').fadeOut();
-            listFile(current_parent);
-        });
-    }
-}
-
-function delFolder() {
-    $('#delFolderContent').html('是否删除 ' + current_root);
-    $('#delFolder').fadeIn();
-}
-
-function doDelFolder(yes) {
-    $('#delFolder').fadeOut();
-    if (yes == 1) {
-        $('#loadingToast').fadeIn();
-        $.post('/delFolder', { path: current_root }, function (data) {
-            $('#loadingToast').fadeOut();
-            listFile(current_parent);
-        });
-    }
-}
-
-function delFile() {
-    hideFileInfo();
-    $('#delFileContent').html('是否删除 ' + current_file);
-    $('#delFile').fadeIn();
-}
-
-function doDelFile(yes) {
-    $('#delFile').fadeOut();
-    if (yes == 1) {
-        $('#loadingToast').fadeIn();
-        $.post('/delFile', { path: current_file }, function (data) {
             $('#loadingToast').fadeOut();
             listFile(current_root);
         });

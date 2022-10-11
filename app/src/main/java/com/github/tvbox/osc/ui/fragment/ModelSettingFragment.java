@@ -223,7 +223,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
             public void onClick(View view) {
                 FastClickCheckUtil.check(view);
                 ArrayList<AbstractHomeFragment.ManagedHomeViewStyle> homeViewStyles = AbstractHomeFragment.getManagedHomeFragments();
-                String currentVal = Hawk.get(HawkConfig.HOME_VIEW_STYLE, homeViewStyles.get(0).getClassName());
+                String currentVal = Hawk.get(HawkConfig.HOME_VIEW_STYLE, homeViewStyles.get(1).getClassName());
                 int defaultPos = 0;
                 for (AbstractHomeFragment.ManagedHomeViewStyle style: homeViewStyles) {
                     if(style.getClassName().equals(currentVal))

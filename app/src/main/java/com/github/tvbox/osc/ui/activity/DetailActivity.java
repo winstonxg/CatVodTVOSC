@@ -706,6 +706,8 @@ public class DetailActivity extends BaseActivity {
     }
 
     public static PlayerFragment getManagedPlayerFragment() {
+        if(DetailActivity.playerFragment == null)
+            DetailActivity.playerFragment = new PlayerFragment();
         return DetailActivity.playerFragment;
     }
 
@@ -962,7 +964,8 @@ public class DetailActivity extends BaseActivity {
     @Override
     @RequiresApi(api = Build.VERSION_CODES.O)
     protected void onUserLeaveHint() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && playerFragment.getVideoView().getCurrentPlayState() != VideoView.STATE_PAUSED) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && playerFragment != null &&
+                playerFragment.getVideoView().getCurrentPlayState() != VideoView.STATE_PAUSED) {
             try {
                 originalFullScreen = playerFragment.getVodController().isFullScreen();
                 playerFragment.getVodController().startFullScreen();
@@ -1057,6 +1060,9 @@ public class DetailActivity extends BaseActivity {
         AppManager.getInstance().finishActivity(this);
         Intent intent = new Intent(this,AppManager.getInstance().currentActivity().getClass());
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//        Bundle bundle = new Bundle();
+//        bundle.putBoolean("useCache", true);
+//        jumpActivity(HomeActivity.class, bundle);
         startActivity(intent);
         super.onBackPressed();
     }

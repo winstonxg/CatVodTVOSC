@@ -16,6 +16,7 @@ import com.github.tvbox.osc.bean.ParseBean;
 import com.github.tvbox.osc.bean.SourceBean;
 import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.util.AdBlocker;
+import com.github.tvbox.osc.util.ConfigUtil;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
@@ -89,6 +90,7 @@ public class ApiConfig {
             callback.error("-1");
             return;
         }
+
         File cache = new File(App.getInstance().getFilesDir().getAbsolutePath() + "/" + MD5.encode(apiUrl));
         if (useCache && cache.exists()) {
             try {
@@ -100,16 +102,30 @@ public class ApiConfig {
             }
         }
         String apiFix = apiUrl;
+        String mySecretKey = null;
         if (apiUrl.startsWith("clan://")) {
             apiFix = clanToAddress(apiUrl);
+        } else {
+            //get link and password
+            String[] myConfigLinkToArr = apiUrl.split(";");
+            if (myConfigLinkToArr.length == 3) {
+                mySecretKey = myConfigLinkToArr[2];
+                apiFix = myConfigLinkToArr[0];
+            }
         }
+        String finalMySecretKey = mySecretKey;
+        String finalApiUrl = apiFix;
         OkGo.<String>get(apiFix)
+                .tag("loadApi")
                 .execute(new AbsCallback<String>() {
                     @Override
                     public void onSuccess(Response<String> response) {
                         try {
                             String json = response.body();
-                            parseJson(apiUrl, response.body());
+                            //decode and decrypt
+                            json = ConfigUtil.decodeConfig(finalMySecretKey, json);
+
+                            parseJson(finalApiUrl, json);
                             try {
                                 File cacheDir = cache.getParentFile();
                                 if (!cacheDir.exists())
@@ -135,7 +151,7 @@ public class ApiConfig {
                         super.onError(response);
                         if (cache.exists()) {
                             try {
-                                parseJson(apiUrl, cache);
+                                parseJson(finalApiUrl, cache);
                                 callback.success();
                                 return;
                             } catch (Throwable th) {
@@ -152,8 +168,8 @@ public class ApiConfig {
                         } else {
                             result = response.body().string();
                         }
-                        if (apiUrl.startsWith("clan")) {
-                            result = clanContentFix(clanToAddress(apiUrl), result);
+                        if (finalApiUrl.startsWith("clan")) {
+                            result = clanContentFix(clanToAddress(finalApiUrl), result);
                         }
                         return result;
                     }
@@ -202,6 +218,8 @@ public class ApiConfig {
             }
         }
 
+        boolean isJarInImg = jarUrl.startsWith("img+");
+        jarUrl = jarUrl.replace("img+", "");
         OkGo.<File>get(jarUrl).execute(new AbsCallback<File>() {
 
             @Override
@@ -212,7 +230,13 @@ public class ApiConfig {
                 if (cache.exists())
                     cache.delete();
                 FileOutputStream fos = new FileOutputStream(cache);
-                fos.write(response.body().bytes());
+                if(isJarInImg) {
+                    String respData = response.body().string();
+                    byte[] decodedSpider = ConfigUtil.decodeSpider(respData);
+                    fos.write(decodedSpider);
+                } else {
+                    fos.write(response.body().bytes());
+                }
                 fos.flush();
                 fos.close();
                 return cache;

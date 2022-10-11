@@ -69,26 +69,6 @@
             android:textColor="@android:color/white"
             android:textSize="@dimen/ts_28" />
 
-        <LinearLayout
-            android:id="@+id/remoteRoot"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:layout_marginStart="@dimen/vs_10"
-            android:layout_marginLeft="@dimen/vs_10"
-            android:background="@drawable/shape_dialog_bg_main"
-            android:orientation="horizontal"
-            android:padding="@dimen/vs_5">
-
-            <ImageView
-                android:id="@+id/ivQRCode"
-                android:layout_width="40mm"
-                android:layout_height="40mm"
-                android:layout_gravity="center_horizontal|center_vertical"
-                android:layout_weight="1"
-                android:focusable="true" />
-        </LinearLayout>
-
     </LinearLayout>
 
     <LinearLayout

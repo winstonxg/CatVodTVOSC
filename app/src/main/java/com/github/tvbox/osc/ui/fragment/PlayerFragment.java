@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DiffUtil;
 
 import com.github.catvod.crawler.Spider;
 import com.github.tvbox.osc.R;
@@ -41,12 +42,16 @@ import com.github.tvbox.osc.bean.SourceBean;
 import com.github.tvbox.osc.bean.VodInfo;
 import com.github.tvbox.osc.cache.CacheManager;
 import com.github.tvbox.osc.event.RefreshEvent;
+import com.github.tvbox.osc.player.IjkMediaPlayer;
 import com.github.tvbox.osc.player.controller.VodController;
 import com.github.tvbox.osc.player.thirdparty.DangbeiPlayer;
 import com.github.tvbox.osc.player.thirdparty.MXPlayer;
 import com.github.tvbox.osc.player.thirdparty.ReexPlayer;
 import com.github.tvbox.osc.player.thirdparty.UCPlayer;
 import com.github.tvbox.osc.server.ControlManager;
+import com.github.tvbox.osc.ui.activity.PlayActivity;
+import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
+import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.util.AdBlocker;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.HawkConfig;
@@ -67,6 +72,7 @@ import com.lzy.okgo.model.Response;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xwalk.core.XWalkJavascriptResult;
@@ -89,6 +95,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import me.jessyan.autosize.AutoSize;
+import tv.danmaku.ijk.media.player.misc.ITrackInfo;
+import xyz.doikki.videoplayer.player.AbstractPlayer;
 import xyz.doikki.videoplayer.player.ProgressManager;
 import xyz.doikki.videoplayer.player.VideoView;
 
@@ -222,6 +230,67 @@ public class PlayerFragment  extends BaseLazyFragment {
             @Override
             public void errReplay() {
                 errorWithRetry("视频播放出错", false);
+            }
+
+            @Override
+            public void setAudioTrack() {
+                List<ITrackInfo> tracks = mVideoView.getTrackInfo(ITrackInfo.MEDIA_TRACK_TYPE_AUDIO);
+                if (tracks.size() <= 1) {
+                    Toast.makeText(mContext, "没有可选择的音轨。", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                int selectedPos = 0;
+                for(ITrackInfo track : tracks) {
+                    if(track.isSelected())
+                        break;
+                    else
+                        selectedPos++;
+                }
+                if(selectedPos >= tracks.size())
+                    selectedPos = 0;
+                SelectDialog<ITrackInfo> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("请选择音道：");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<ITrackInfo>() {
+                    @Override
+                    public void click(ITrackInfo value, int pos) {
+                        try {
+                            mVideoView.pause();
+                            long progress = mVideoView.getCurrentPosition();//保存当前进度，ijk 切换轨道 会有快进几秒
+                            mVideoView.selectTrack(value.getTrackIndex());
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    //mVideoView.seekTo(progress);
+                                    mVideoView.start();
+                                }
+                            }, 800);
+                            dialog.dismiss();
+                        } catch (Exception e) {
+                            LOG.e("切换音轨出错");
+                        }
+                    }
+
+                    @Override
+                    public String getDisplay(ITrackInfo val) {
+                        return val.getInfoInline();
+                    }
+                }, new DiffUtil.ItemCallback<ITrackInfo>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull @NotNull ITrackInfo oldItem, @NonNull @NotNull ITrackInfo newItem) {
+                        return oldItem.getTrackIndex() == newItem.getTrackIndex();
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(@NonNull @NotNull ITrackInfo oldItem, @NonNull @NotNull ITrackInfo newItem) {
+                        return oldItem.getTrackIndex() == newItem.getTrackIndex();
+                    }
+                }, tracks, selectedPos);
+                dialog.show();
+            }
+
+            @Override
+            public void setSubtitleTrack() {
+
             }
         });
         mVideoView.setVideoController(mController);
@@ -396,7 +465,7 @@ public class PlayerFragment  extends BaseLazyFragment {
         }
         try {
             if (!mVodPlayerCfg.has("pl")) {
-                if(sourceBean.getPlayerType() > -1)
+                if(sourceBean != null && sourceBean.getPlayerType() > -1)
                     mVodPlayerCfg.put("pl", sourceBean.getPlayerType());
                 else
                     mVodPlayerCfg.put("pl", Hawk.get(HawkConfig.PLAY_TYPE, 1));
@@ -493,7 +562,12 @@ public class PlayerFragment  extends BaseLazyFragment {
         ControlManager.get().getSocketServer().sendToAll(jsonObject);
         VodInfo.VodSeries vs = mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.playIndex);
         EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_REFRESH, mVodInfo.playIndex));
-        setTip("正在获取播放信息", true, false);
+        mActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        setTip("正在获取播放信息", true, false);
+                                    }
+                                });
         String playTitleInfo = mVodInfo.name + " " + vs.name;
         mController.setTitle(playTitleInfo);
 
@@ -518,11 +592,16 @@ public class PlayerFragment  extends BaseLazyFragment {
         if (Thunder.play(vs.url, new Thunder.ThunderCallback() {
             @Override
             public void status(int code, String info) {
-                if (code < 0) {
-                    setTip(info, false, true);
-                } else {
-                    setTip(info, true, false);
-                }
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (code < 0) {
+                            setTip(info, false, true);
+                        } else {
+                            setTip(info, true, false);
+                        }
+                    }
+                });
             }
 
             @Override
@@ -794,7 +873,12 @@ public class PlayerFragment  extends BaseLazyFragment {
                 public void run() {
                     JSONObject rs = ApiConfig.get().jsonExtMix(parseFlag + "111", pb.getUrl(), finalExtendName, jxs, webUrl);
                     if (rs == null || !rs.has("url")) {
-                        errorWithRetry("解析错误", false);
+                        mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                errorWithRetry("解析错误", false);
+                            }
+                        });
                     } else {
                         if (rs.has("parse") && rs.optInt("parse", 0) == 1) {
                             mActivity.runOnUiThread(new Runnable() {

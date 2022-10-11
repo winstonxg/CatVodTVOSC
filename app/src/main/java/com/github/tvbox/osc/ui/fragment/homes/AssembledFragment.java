@@ -85,12 +85,12 @@ public class AssembledFragment extends AbstractHomeFragment {
             this.contentLayout = findViewById(R.id.contentLayout);
             this.mGridView = findViewById(R.id.mGridView);
             this.mFeatureView = findViewById(R.id.mFeatureView);
-            this.ivQRCode = findViewById(R.id.ivQRCode);
-            if(Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
-                refreshQRCode();
-            } else {
-                findViewById(R.id.remoteRoot).setVisibility(View.GONE);
-            }
+            //this.ivQRCode = findViewById(R.id.ivQRCode);
+//            if(Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
+//                refreshQRCode();
+//            } else {
+//                findViewById(R.id.remoteRoot).setVisibility(View.GONE);
+//            }
             FragmentManager fragmentManager = getChildFragmentManager();
             UserFragment userFragment = (UserFragment)fragmentManager.findFragmentByTag("mUserFragment");
             userFragment.SetFragmentView(mFeatureView);
@@ -220,9 +220,7 @@ public class AssembledFragment extends AbstractHomeFragment {
         private void initViewPager(AbsSortXml absXml) {
             if (sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
-                    if (data.id.equals("my0")) {
-                        fragments.add(HistoryFragment.newInstance());
-                    } else if(data.id.equals("_home")) {
+                    if(data.id.equals("_home")) {
                         fragments.add(GridFragment.newInstance(data, sourceViewModel));
                     } else {
                         fragments.add(GridFragment.newInstance(data, SourceViewModel.class));
@@ -249,7 +247,10 @@ public class AssembledFragment extends AbstractHomeFragment {
             }
         }
 
+        @Override
         public boolean pressBack() {
+            if(!super.pressBack())
+                return false;
             int i;
             if (this.fragments.size() <= 0 || this.sortFocused >= this.fragments.size() || (i = this.sortFocused) < 0) {
                 return exit();
@@ -281,7 +282,13 @@ public class AssembledFragment extends AbstractHomeFragment {
             return exit();
         }
 
-        private Runnable mDataRunnable = new Runnable() {
+    @Override
+    public void doAfterApiInit() {
+        fragments.add(HistoryFragment.newInstance());
+        showSuccess();
+    }
+
+    private Runnable mDataRunnable = new Runnable() {
             @Override
             public void run() {
                 if (sortChange) {

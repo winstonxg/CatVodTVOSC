@@ -652,6 +652,7 @@ public class SourceViewModel extends ViewModel {
                 playResult.postValue(null);
             }
         } else if (type == 4) {
+            LOG.i(url);
             OkGo.<String>get(sourceBean.getApi())
                     .params("play", url)
                     .params("flag" ,playFlag)

@@ -133,6 +133,7 @@ public class VodController extends BaseController {
     ImageView lockerLeft;
     ImageView lockerRight;
     ImageView tvBack;
+    ImageView playAudio;
 
     private boolean shouldShowBottom = true;
     private boolean shouldShowLoadingSpeed = Hawk.get(HawkConfig.DISPLAY_LOADING_SPEED, true);
@@ -192,6 +193,7 @@ public class VodController extends BaseController {
         lockerLeft = findViewById(R.id.play_screen_lock_left);
         lockerRight = findViewById(R.id.play_screen_lock_right);
         tvBack = findViewById(R.id.tv_back);
+        playAudio = findViewById(R.id.play_audio);
 
         mGridView.setLayoutManager(new V7LinearLayoutManager(getContext(), 0, false));
 
@@ -480,6 +482,12 @@ public class VodController extends BaseController {
             });
         }
         init3rdPlayerButton();
+        playAudio.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.setAudioTrack();
+            }
+        });
     }
 
     public void init3rdPlayerButton() {
@@ -614,6 +622,10 @@ public class VodController extends BaseController {
         void replay();
 
         void errReplay();
+
+        void setAudioTrack();
+
+        void setSubtitleTrack();
     }
 
     public void setListener(VodControlListener listener) {
@@ -788,7 +800,7 @@ public class VodController extends BaseController {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mPlayPause.requestFocus();
+                mNextBtn.requestFocus();
             }
         }, 300);
 
@@ -862,6 +874,8 @@ public class VodController extends BaseController {
             doShowHint(mPlayerTimeSkipBtn, "跳过片尾", postDelay);
         } else if(focusedView == mPlayerTimeStepBtn) {
             doShowHint(mPlayerTimeSkipBtn, "用于设置跳过片头/片尾的步速", postDelay);
+        } else if(focusedView == playAudio) {
+            doShowHint(playAudio, "选择音轨", postDelay);
         } else {
             mHandler.post(hideBtnHintRunnable);
         }
@@ -872,13 +886,14 @@ public class VodController extends BaseController {
             @Override
             public void run() {
                 bringChildToFront(btnHint);
-                btnHint.clearAnimation();
                 btnHint.setText(hintText);
                 btnHint.setVisibility(VISIBLE);
                 btnHint.post(new Runnable() {
                     @Override
                     public void run() {
                         updateHintPosition(focusedView);
+                        btnHint.setAlpha(0f);
+                        btnHint.clearAnimation();
                         btnHint.animate().alpha(1f).setDuration(1000).start();
                         mHandler.removeCallbacks(hideBtnHintRunnable);
                         mHandler.postDelayed(hideBtnHintRunnable, 7000);

@@ -23,29 +23,44 @@ import android.media.MediaPlayer;
 import android.os.Build;
 
 public class AndroidTrackInfo implements ITrackInfo {
+    private int trackIndex;
+    private boolean isSelected;
     private final MediaPlayer.TrackInfo mTrackInfo;
 
     public static AndroidTrackInfo[] fromMediaPlayer(MediaPlayer mp) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-            return fromTrackInfo(mp.getTrackInfo());
-
+            return fromTrackInfo(mp, mp.getTrackInfo());
         return null;
     }
 
-    private static AndroidTrackInfo[] fromTrackInfo(MediaPlayer.TrackInfo[] trackInfos) {
+    private static AndroidTrackInfo[] fromTrackInfo(MediaPlayer mp, MediaPlayer.TrackInfo[] trackInfos) {
         if (trackInfos == null)
             return null;
 
         AndroidTrackInfo androidTrackInfo[] = new AndroidTrackInfo[trackInfos.length];
         for (int i = 0; i < trackInfos.length; ++i) {
-            androidTrackInfo[i] = new AndroidTrackInfo(trackInfos[i]);
+            MediaPlayer.TrackInfo info = trackInfos[i];
+            boolean selected = false;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                int index = mp.getSelectedTrack(info.getTrackType());
+                if(index == i)
+                    selected = true;
+            }
+            androidTrackInfo[i] = new AndroidTrackInfo(i, info, selected);
         }
 
         return androidTrackInfo;
     }
 
-    private AndroidTrackInfo(MediaPlayer.TrackInfo trackInfo) {
+    private AndroidTrackInfo(int index, MediaPlayer.TrackInfo trackInfo, boolean isSelected) {
+        this.trackIndex = index;
         mTrackInfo = trackInfo;
+        this.isSelected = isSelected;
+    }
+
+    @Override
+    public int getTrackIndex() {
+        return this.trackIndex;
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -105,5 +120,10 @@ public class AndroidTrackInfo implements ITrackInfo {
         } else {
             return "null";
         }
+    }
+
+    @Override
+    public boolean isSelected() {
+        return isSelected;
     }
 }

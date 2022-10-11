@@ -59,17 +59,12 @@ public class HomeActivity extends BaseActivity {
         new AppUpdate().CheckLatestVersion(this, false, null);
         //mFrame = findViewById(R.id.mFrame);
         mViewPager = findViewById(R.id.mHomeViewPager);
-        String homeStyleClassName = Hawk.get(HawkConfig.HOME_VIEW_STYLE, AbstractHomeFragment.getManagedHomeFragments().get(0).getClassName());
+        String homeStyleClassName = Hawk.get(HawkConfig.HOME_VIEW_STYLE, AbstractHomeFragment.getManagedHomeFragments().get(1).getClassName());
         try {
             currentHomeFragment = (AbstractHomeFragment) Class.forName("com.github.tvbox.osc.ui.fragment.homes." + homeStyleClassName).newInstance();
         } catch (Exception e) {
             currentHomeFragment = new AssembledFragment();
         }
-        //FrameLayout tempFrame = new FrameLayout(this);
-        //tempFrame.setId(HOME_FRAME_ID);
-        //mFrame.addView(tempFrame, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-//        getSupportFragmentManager().beginTransaction()
-//                .add(R.id.mFrame, currentHomeFragment, PlayerFragment.FRAGMENT_TAG).disallowAddToBackStack().commit();
         currentHomeFragment.useCacheConfig = false;
         Intent intent = getIntent();
         if (intent != null && intent.getExtras() != null) {

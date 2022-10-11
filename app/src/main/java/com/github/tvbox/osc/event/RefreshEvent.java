@@ -21,6 +21,7 @@ public class RefreshEvent {
     public static final int TYPE_VOD_PLAY = 12;
     public static final int TYPE_BACKSEARCH_RESULT = 13;
     public static final int TYPE_LIVEPLAY_UPDATE = 14;
+    public static final int TYPE_HISTORY_CATDEL = 15;
     public int type;
     public Object obj;
 

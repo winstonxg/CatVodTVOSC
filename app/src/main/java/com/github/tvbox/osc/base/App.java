@@ -31,7 +31,6 @@ public class App extends MultiDexApplication {
         initParams();
         // OKGo
         OkGoHelper.init();
-        EpgUtil.init();
         // 初始化Web服务器
         ControlManager.init(this);
         //初始化数据库
@@ -45,6 +44,7 @@ public class App extends MultiDexApplication {
                 .setSupportSP(false)
                 .setSupportSubunits(Subunits.MM);
         PlayerHelper.init();
+        EpgUtil.init();
     }
 
     private void initParams() {

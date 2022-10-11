@@ -22,15 +22,27 @@ import android.text.TextUtils;
 import tv.danmaku.ijk.media.player.IjkMediaMeta;
 
 public class IjkTrackInfo implements ITrackInfo {
+    private int trackIndex = -1;
     private int mTrackType = MEDIA_TRACK_TYPE_UNKNOWN;
     private IjkMediaMeta.IjkStreamMeta mStreamMeta;
+    private boolean isSelected;
 
-    public IjkTrackInfo(IjkMediaMeta.IjkStreamMeta streamMeta) {
+    public IjkTrackInfo(int index, IjkMediaMeta.IjkStreamMeta streamMeta) {
+        trackIndex = index;
         mStreamMeta = streamMeta;
     }
 
     public void setMediaMeta(IjkMediaMeta.IjkStreamMeta streamMeta) {
         mStreamMeta = streamMeta;
+    }
+
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    @Override
+    public int getTrackIndex() {
+        return this.trackIndex;
     }
 
     @Override
@@ -76,6 +88,8 @@ public class IjkTrackInfo implements ITrackInfo {
             case MEDIA_TRACK_TYPE_AUDIO:
                 out.append("AUDIO");
                 out.append(", ");
+                out.append(mStreamMeta.mLanguage);
+                out.append(", ");
                 out.append(mStreamMeta.getCodecShortNameInline());
                 out.append(", ");
                 out.append(mStreamMeta.getBitrateInline());
@@ -95,5 +109,10 @@ public class IjkTrackInfo implements ITrackInfo {
                 break;
         }
         return out.toString();
+    }
+
+    @Override
+    public boolean isSelected() {
+        return isSelected;
     }
 }

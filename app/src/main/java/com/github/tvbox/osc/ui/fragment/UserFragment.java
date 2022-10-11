@@ -3,6 +3,7 @@ package com.github.tvbox.osc.ui.fragment;
 import android.os.Handler;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.fragment.app.FragmentContainerView;
@@ -10,6 +11,7 @@ import androidx.fragment.app.FragmentContainerView;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.event.ServerEvent;
+import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.activity.CollectActivity;
 import com.github.tvbox.osc.ui.activity.DriveActivity;
 import com.github.tvbox.osc.ui.activity.LivePlayActivity;
@@ -17,12 +19,18 @@ import com.github.tvbox.osc.ui.activity.PushActivity;
 import com.github.tvbox.osc.ui.activity.RecommendActivity;
 import com.github.tvbox.osc.ui.activity.SearchActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
+import com.github.tvbox.osc.ui.dialog.QRCodeDialog;
+import com.github.tvbox.osc.ui.tv.QRCodeGen;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
+import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
+import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import me.jessyan.autosize.utils.AutoSizeUtils;
 
 /**
  * @author pj567
@@ -38,6 +46,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     private LinearLayout tvFavorite;
     private LinearLayout tvDouban;
     private LinearLayout tvDrive;
+    private LinearLayout tvQrCode;
+    private ImageView imgQrCode;
     private FragmentContainerView selfView;
     private boolean anyItemFocused = false;
     private boolean hasScheduled = false;
@@ -72,6 +82,13 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvFavorite = findViewById(R.id.tvFavorite);
         tvDouban = findViewById(R.id.tvDouban);
         tvDrive = findViewById(R.id.tvDrive);
+        tvQrCode = findViewById(R.id.tvQrCode);
+        imgQrCode = findViewById(R.id.imgQrCode);
+        if(Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
+            refreshQRCode();
+        } else {
+            tvQrCode.setVisibility(View.GONE);
+        }
         tvVod.setOnClickListener(this);
         tvLive.setOnClickListener(this);
         tvSearch.setOnClickListener(this);
@@ -80,6 +97,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvFavorite.setOnClickListener(this);
         tvDouban.setOnClickListener(this);
         tvDrive.setOnClickListener(this);
+        tvQrCode.setOnClickListener(this);
         tvVod.setOnFocusChangeListener(focusChangeListener);
         tvLive.setOnFocusChangeListener(focusChangeListener);
         tvSearch.setOnFocusChangeListener(focusChangeListener);
@@ -87,7 +105,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvPush.setOnFocusChangeListener(focusChangeListener);
         tvFavorite.setOnFocusChangeListener(focusChangeListener);
         tvDouban.setOnFocusChangeListener(focusChangeListener);
-        tvDrive.setOnFocusChangeListener(focusChangeListener);;
+        tvDrive.setOnFocusChangeListener(focusChangeListener);
+        tvQrCode.setOnFocusChangeListener(focusChangeListener);
         updateShowVod(this.showVod);
     }
 
@@ -105,6 +124,12 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             }
         }
     };
+
+    protected void refreshQRCode() {
+        String address = ControlManager.get().getAddress(false);
+        int pxSize = AutoSizeUtils.mm2px(this.mContext, 90);
+        imgQrCode.setImageBitmap(QRCodeGen.generateBitmap(address, pxSize, pxSize));
+    }
 
     public void updateShowVod(boolean showVod) {
         this.showVod = showVod;
@@ -132,6 +157,9 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             jumpActivity(RecommendActivity.class);
         } else if(v.getId() == R.id.tvDrive) {
             jumpActivity(DriveActivity.class);
+        } else if(v.getId() == R.id.tvQrCode) {
+            QRCodeDialog dialog = new QRCodeDialog(mContext);
+            dialog.show();
         }
     }
 

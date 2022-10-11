@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.DiffUtil;
 
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
+import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.SourceBean;
@@ -30,14 +31,18 @@ import com.github.tvbox.osc.ui.tv.QRCodeGen;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.LOG;
+import com.github.tvbox.osc.util.MD5;
+import com.github.tvbox.osc.util.OkGoHelper;
 import com.github.tvbox.osc.viewmodel.SourceViewModel;
 import com.google.gson.JsonObject;
+import com.lzy.okgo.OkGo;
 import com.orhanobut.hawk.Hawk;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,7 +54,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
     protected TextView tvDate;
     protected Handler mHandler = new Handler();
     protected TextView tvName;
-    protected ImageView ivQRCode;
+    //protected ImageView ivQRCode;
 
     public boolean useCacheConfig = false;
 
@@ -83,18 +88,6 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
                 return style;
         }
         return managedHomeFragments[0];
-    }
-
-    protected void refreshQRCode() {
-        String address = ControlManager.get().getAddress(false);
-        ivQRCode.setImageBitmap(QRCodeGen.generateBitmap(address, 100, 100));
-        ivQRCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                QRCodeDialog dialog = new QRCodeDialog(mContext);
-                dialog.show();
-            }
-        });
     }
 
     private void bindQuickApiChange() {
@@ -158,7 +151,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
 
     protected void initData() {
         if (dataInitOk && jarInitOk) {
-            showLoading("正在加载首页数据源...");
+            doAfterApiInit();
             sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey());
             if (((BaseActivity)mActivity).hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 LOG.e("有");
@@ -207,8 +200,7 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
             }
             return;
         }
-        showLoading("正在加载索引...");
-        ApiConfig.get().loadConfig(useCacheConfig, new ApiConfig.LoadConfigCallback() {
+        ApiConfig.LoadConfigCallback configCallback = new ApiConfig.LoadConfigCallback() {
             TipDialog dialog = null;
 
             @Override
@@ -296,7 +288,30 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
                     }
                 });
             }
-        }, mActivity);
+        };
+        showLoading("正在加载索引...", 3000L, new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                OkGo.getInstance().cancelTag("loadApi");
+                String apiUrl = Hawk.get(HawkConfig.API_URL, "");
+                if (apiUrl.isEmpty()) {
+                    dataInitOk = true;
+                    jarInitOk = true;
+                    initData();
+                    return;
+                }
+                File cache = new File(App.getInstance().getFilesDir().getAbsolutePath() + "/" + MD5.encode(apiUrl));
+                if (!cache.exists()) {
+                    dataInitOk = true;
+                    jarInitOk = true;
+                    initData();
+                    return;
+                }
+                useCacheConfig = true;
+                ApiConfig.get().loadConfig(useCacheConfig, configCallback, mActivity);
+            }
+        });
+        ApiConfig.get().loadConfig(useCacheConfig, configCallback, mActivity);
     }
 
     private long mExitTime = 0;
@@ -328,5 +343,14 @@ public abstract class AbstractHomeFragment extends BaseLazyFragment {
         return false;
     }
 
-    public abstract boolean pressBack();
+    public boolean pressBack() {
+        if(!jarInitOk || !dataInitOk) {
+            dataInitOk = true;
+            jarInitOk = true;
+            showSuccess();
+            return false;
+        }
+        return true;
+    }
+    public abstract void doAfterApiInit();
 }

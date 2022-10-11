@@ -99,9 +99,10 @@
             <ImageView
                 android:id="@+id/ivQRCode"
                 android:layout_width="180mm"
-                android:layout_height="180mm"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal|center_vertical"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:scaleType="centerInside" />
         </LinearLayout>
     </LinearLayout>
 

@@ -17,6 +17,8 @@
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/channel_num_bg.xml" value="0.1835" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_alist.xml" value="0.322" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_angle_down.xml" value="0.1575" />
+        <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_angles_left.xml" value="0.3635" />
+        <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_angles_right.xml" value="0.3635" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_circle_node.xml" value="0.1935" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_circle_plus.xml" value="0.2145" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_delete.xml" value="0.2135" />
@@ -25,12 +27,14 @@
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_file.xml" value="0.322" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_film.xml" value="0.322" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_folder.xml" value="0.322" />
+        <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_headphone.xml" value="0.197" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_home.xml" value="0.322" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_live.xml" value="0.2985" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_network_wired.xml" value="0.1935" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_play.xml" value="0.1575" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_push.xml" value="0.1575" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_sdcard.xml" value="0.322" />
+        <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_subtitle.xml" value="0.197" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_trash_solid.xml" value="0.1935" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_vod.xml" value="0.1575" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/drawable/icon_vodcontroller_circle.xml" value="0.2135" />
@@ -105,6 +109,7 @@
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_home_sort.xml" value="0.18072916666666666" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_home_sort_cat.xml" value="0.18072916666666666" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_home_sort_layout.xml" value="0.18072916666666666" />
+        <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_keyboard.xml" value="0.1625" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_live_channel.xml" value="0.175" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_live_channel_group.xml" value="0.175" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_live_channel_source.xml" value="0.175" />
@@ -113,6 +118,7 @@
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_search_lite.xml" value="0.18541666666666667" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_series.xml" value="0.14791666666666667" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_series_flag.xml" value="0.20625" />
+        <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/item_setting_menu.xml" value="0.1625" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/loadsir_empty_layout.xml" value="0.14791666666666667" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/loadsir_loading_layout.xml" value="0.14791666666666667" />
         <entry key="..\:/New_work/HomeWeb/CatVodTVOSC/app/src/main/res/layout/player_live_control_view.xml" value="0.11302083333333333" />

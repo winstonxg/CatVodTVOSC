@@ -603,16 +603,24 @@ public final class IjkMediaPlayer extends AbstractMediaPlayer {
             return null;
 
         ArrayList<IjkTrackInfo> trackInfos = new ArrayList<IjkTrackInfo>();
+        int index = 0;
+        int selectedVideoTrackIndex = this.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO);
+        int selectedAudioTrackIndex = this.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_AUDIO);
+        int selectedTimedTextTrackIndex = this.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT);
         for (IjkMediaMeta.IjkStreamMeta streamMeta : mediaMeta.mStreams) {
-            IjkTrackInfo trackInfo = new IjkTrackInfo(streamMeta);
+            IjkTrackInfo trackInfo = new IjkTrackInfo(index, streamMeta);
             if (streamMeta.mType.equalsIgnoreCase(IjkMediaMeta.IJKM_VAL_TYPE__VIDEO)) {
                 trackInfo.setTrackType(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO);
+                trackInfo.setSelected(selectedVideoTrackIndex == index);
             } else if (streamMeta.mType.equalsIgnoreCase(IjkMediaMeta.IJKM_VAL_TYPE__AUDIO)) {
                 trackInfo.setTrackType(ITrackInfo.MEDIA_TRACK_TYPE_AUDIO);
+                trackInfo.setSelected(selectedAudioTrackIndex == index);
             } else if (streamMeta.mType.equalsIgnoreCase(IjkMediaMeta.IJKM_VAL_TYPE__TIMEDTEXT)) {
                 trackInfo.setTrackType(ITrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT);
+                trackInfo.setSelected(selectedTimedTextTrackIndex == index);
             }
             trackInfos.add(trackInfo);
+            index++;
         }
 
         return trackInfos.toArray(new IjkTrackInfo[trackInfos.size()]);

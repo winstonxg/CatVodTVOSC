@@ -2,30 +2,39 @@ package xyz.doikki.videoplayer.exo;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.os.Build;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RenderersFactory;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.analytics.AnalyticsCollector;
+import com.google.android.exoplayer2.Tracks;
+import com.google.android.exoplayer2.analytics.DefaultAnalyticsCollector;
+import com.google.android.exoplayer2.extractor.mp4.Track;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.EventLogger;
 import com.google.android.exoplayer2.video.VideoSize;
+import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.Map;
 
+import tv.danmaku.ijk.media.player.misc.ITrackInfo;
 import xyz.doikki.videoplayer.player.AbstractPlayer;
 import xyz.doikki.videoplayer.player.VideoViewManager;
 
@@ -33,7 +42,7 @@ import xyz.doikki.videoplayer.player.VideoViewManager;
 public class ExoMediaPlayer extends AbstractPlayer implements Player.Listener {
 
     protected Context mAppContext;
-    protected SimpleExoPlayer mInternalPlayer;
+    protected ExoPlayer mInternalPlayer;
     protected MediaSource mMediaSource;
     protected ExoMediaSourceHelper mMediaSourceHelper;
 
@@ -45,6 +54,8 @@ public class ExoMediaPlayer extends AbstractPlayer implements Player.Listener {
     private RenderersFactory mRenderersFactory;
     private TrackSelector mTrackSelector;
 
+    private ExoTrackInfo[] tracks = new ExoTrackInfo[0];
+
     public ExoMediaPlayer(Context context) {
         mAppContext = context.getApplicationContext();
         mMediaSourceHelper = ExoMediaSourceHelper.getInstance(context);
@@ -52,14 +63,21 @@ public class ExoMediaPlayer extends AbstractPlayer implements Player.Listener {
 
     @Override
     public void initPlayer() {
-        mInternalPlayer = new SimpleExoPlayer.Builder(
+        if(mRenderersFactory == null) {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mRenderersFactory = new FfmpegRenderersFactory(mAppContext);
+            } else {
+                mRenderersFactory = new DefaultRenderersFactory(mAppContext);
+            }
+        }
+        mInternalPlayer = new ExoPlayer.Builder(
                 mAppContext,
-                mRenderersFactory == null ? mRenderersFactory = new DefaultRenderersFactory(mAppContext) : mRenderersFactory,
-                mTrackSelector == null ? mTrackSelector = new DefaultTrackSelector(mAppContext) : mTrackSelector,
+                mRenderersFactory,
                 new DefaultMediaSourceFactory(mAppContext),
+                mTrackSelector == null ? mTrackSelector = new DefaultTrackSelector(mAppContext) : mTrackSelector,
                 mLoadControl == null ? mLoadControl = new DefaultLoadControl() : mLoadControl,
                 DefaultBandwidthMeter.getSingletonInstance(mAppContext),
-                new AnalyticsCollector(Clock.DEFAULT))
+                new DefaultAnalyticsCollector(Clock.DEFAULT))
                 .build();
         setOptions();
 
@@ -268,11 +286,13 @@ public class ExoMediaPlayer extends AbstractPlayer implements Player.Listener {
             case Player.STATE_ENDED:
                 mPlayerEventListener.onCompletion();
                 break;
+            case Player.STATE_IDLE:
+                break;
         }
     }
 
     @Override
-    public void onPlayerError(ExoPlaybackException error) {
+    public void onPlayerError(PlaybackException error) {
         if (mPlayerEventListener != null) {
             mPlayerEventListener.onError();
         }
@@ -286,5 +306,73 @@ public class ExoMediaPlayer extends AbstractPlayer implements Player.Listener {
                 mPlayerEventListener.onInfo(MEDIA_INFO_VIDEO_ROTATION_CHANGED, videoSize.unappliedRotationDegrees);
             }
         }
+    }
+
+    @Override
+    public ITrackInfo[] getTrackInfo() {
+        return tracks;
+    }
+
+    @Override
+    public void selectTrack(int trackIndex) {
+        if(mTrackSelector instanceof DefaultTrackSelector) {
+            DefaultTrackSelector selector = (DefaultTrackSelector)mTrackSelector;
+            MappingTrackSelector.MappedTrackInfo trackInfo = selector.getCurrentMappedTrackInfo();
+            ExoTrackInfo selectedTrack = tracks[trackIndex];
+            for(int i = 0; i < trackInfo.getRendererCount(); i++) {
+                if(selectedTrack.getExoTrackType() == trackInfo.getRendererType(i)) {
+                    TrackGroupArray typeGroup = trackInfo.getTrackGroups(i);
+                    int mappedTrack = 0;
+                    for (int j = 0; j < typeGroup.length; j ++) {
+                        if(typeGroup.get(j).getFormat(0).id.equals(selectedTrack.getTrackGroup().getTrackFormat(0).id)) {
+                            mappedTrack = j;
+                            break;
+                        }
+                    }
+                    selector.setParameters(
+                            selector.buildUponParameters()
+                                    .setSelectionOverride(i, typeGroup,
+                                            new DefaultTrackSelector.SelectionOverride(mappedTrack, 0)));
+                    return;
+                }
+            }
+
+        }
+    }
+
+    @Override
+    public void onTracksChanged(Tracks tracks) {
+        Player.Listener.super.onTracksChanged(tracks);
+        ArrayList<ExoTrackInfo> trackList = new ArrayList<>();
+        ImmutableList<Tracks.Group> groups = tracks.getGroups();
+        for(int i=0; i<groups.size(); i++) {
+            Tracks.Group tgroup = groups.get(i);
+            if(!tgroup.isSupported())
+                continue;
+            try {
+                Format tGroupFormat = tgroup.getTrackFormat(0);
+                String type = tGroupFormat.sampleMimeType;
+                String infoInline =
+                        tGroupFormat.label + ", " +
+                                tGroupFormat.language + ", " + type + ", " + tGroupFormat.sampleRate;
+                boolean isSelected = tgroup.isSelected();
+                int infoType = ITrackInfo.MEDIA_TRACK_TYPE_UNKNOWN;
+
+                if(type.startsWith("video")) {
+                    infoType = ITrackInfo.MEDIA_TRACK_TYPE_VIDEO;
+                    infoInline = "VIDEO, " + infoInline;
+                } else if(type.startsWith("audio")) {
+                    infoType = ITrackInfo.MEDIA_TRACK_TYPE_AUDIO;
+                    infoInline = "AUDIO, " + infoInline;
+                } else if(type.startsWith("txt")) {
+                    infoType = ITrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT;
+                    infoInline = "TIMEDTEXT, " + infoInline;
+                } else
+                    infoInline = "UNKNOWN, " + infoInline;
+
+                trackList.add(new ExoTrackInfo(i, infoType, tGroupFormat.language, infoInline, isSelected, tgroup));
+            } catch (Exception ex) {}
+        }
+        this.tracks = trackList.toArray(new ExoTrackInfo[trackList.size()]);
     }
 }

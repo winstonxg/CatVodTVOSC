@@ -37,6 +37,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -139,7 +140,7 @@ public class RemoteServer extends NanoHTTPD {
                         String file = root + "/" + f;
                         File localFile = new File(file);
                         if (localFile.exists()) {
-                            if (localFile.isFile()) {
+                            if (localFile.isFile() && localFile.getName().toLowerCase(Locale.ROOT).endsWith(".json")) {
                                 return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, "application/octet-stream", new FileInputStream(localFile));
                             } else {
                                 return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, fileList(root, f));
@@ -224,23 +225,24 @@ public class RemoteServer extends NanoHTTPD {
                                 flag.createNewFile();
                         }
                         return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "OK");
-                    } else if (fileName.equals("/delFolder")) {
-                        String path = params.get("path");
-                        String root = Environment.getExternalStorageDirectory().getAbsolutePath();
-                        File file = new File(root + "/" + path);
-                        if (file.exists()) {
-                            FileUtils.recursiveDelete(file);
-                        }
-                        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "OK");
-                    } else if (fileName.equals("/delFile")) {
-                        String path = params.get("path");
-                        String root = Environment.getExternalStorageDirectory().getAbsolutePath();
-                        File file = new File(root + "/" + path);
-                        if (file.exists()) {
-                            file.delete();
-                        }
-                        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "OK");
                     }
+//                    } else if (fileName.equals("/delFolder")) {
+//                        String path = params.get("path");
+//                        String root = Environment.getExternalStorageDirectory().getAbsolutePath();
+//                        File file = new File(root + "/" + path);
+//                        if (file.exists()) {
+//                            FileUtils.recursiveDelete(file);
+//                        }
+//                        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "OK");
+//                    } else if (fileName.equals("/delFile")) {
+//                        String path = params.get("path");
+//                        String root = Environment.getExternalStorageDirectory().getAbsolutePath();
+//                        File file = new File(root + "/" + path);
+//                        if (file.exists()) {
+//                            file.delete();
+//                        }
+//                        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "OK");
+//                    }
                 } catch (Throwable th) {
                     return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "OK");
                 }

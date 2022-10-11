@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -30,6 +31,7 @@ import com.github.tvbox.osc.ui.activity.DetailActivity;
 import com.github.tvbox.osc.ui.fragment.PlayerFragment;
 import com.github.tvbox.osc.ui.fragment.UserFragment;
 import com.github.tvbox.osc.util.DefaultConfig;
+import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.util.MD5;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.squareup.picasso.Picasso;
@@ -76,7 +78,7 @@ public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder
                 public void onClick(View view) {
                     if(isDelMode && item.historyRecord != null) {
                             RoomDataManger.deleteVodRecord(item.historyRecord.sourceKey, item.historyRecord);
-                            EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_HISTORY_REFRESH));
+                            EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_HISTORY_CATDEL, item));
                     } else if(item.historyRecord != null) {
                         Bundle bundle = new Bundle();
                         bundle.putString("id", item.historyRecord.id);
@@ -144,10 +146,10 @@ public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder
         //由于部分电视机使用glide报错
         if (!TextUtils.isEmpty(item.pic)) {
             FrameLayout innerFrame = helper.getView(R.id.mItemInnerFrame);
-            innerFrame.post(new Runnable() {
+            Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    innerFrame.getLayoutParams().height = (int)(innerFrame.getWidth() * 1.44171779);
+                    innerFrame.getLayoutParams().height = (int)(innerFrame.getMeasuredWidth() * 1.44171779);
                     innerFrame.requestLayout();
                     Picasso.get()
                             .load(DefaultConfig.checkReplaceProxy(item.pic))
@@ -159,6 +161,14 @@ public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder
                             .error(R.drawable.img_loading_placeholder)
                             .into(ivThumb);
 
+                }
+            };
+            innerFrame.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    innerFrame.getViewTreeObserver().removeOnPreDrawListener(this);
+                    runnable.run();
+                    return true;
                 }
             });
         } else {
@@ -193,10 +203,10 @@ public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder
         //由于部分电视机使用glide报错
         if (!TextUtils.isEmpty(item.pic)) {
             FrameLayout innerFrame = helper.getView(R.id.mItemInnerFrame);
-            innerFrame.post(new Runnable() {
+            Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    innerFrame.getLayoutParams().height = (int)(innerFrame.getWidth() * 1.44171779);
+                    innerFrame.getLayoutParams().height = (int)(innerFrame.getMeasuredWidth() * 1.44171779);
                     innerFrame.requestLayout();
                     Picasso.get()
                             .load(DefaultConfig.checkReplaceProxy(item.pic))
@@ -207,11 +217,19 @@ public class HomeCatAdapter extends BaseQuickAdapter<HomeCatBean, BaseViewHolder
                             .placeholder(R.drawable.img_loading_placeholder)
                             .error(R.drawable.img_loading_placeholder)
                             .into(ivThumb);
-
+                }
+            };
+            innerFrame.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    innerFrame.getViewTreeObserver().removeOnPreDrawListener(this);
+                    runnable.run();
+                    return true;
                 }
             });
         } else {
             ivThumb.setImageResource(R.drawable.img_loading_placeholder);
         }
     }
+
 }

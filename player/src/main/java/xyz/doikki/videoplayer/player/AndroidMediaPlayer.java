@@ -11,6 +11,9 @@ import android.view.SurfaceHolder;
 
 import java.util.Map;
 
+import tv.danmaku.ijk.media.player.misc.AndroidTrackInfo;
+import tv.danmaku.ijk.media.player.misc.ITrackInfo;
+
 /**
  * 封装系统的MediaPlayer，不推荐，系统的MediaPlayer兼容性较差，建议使用IjkPlayer或者ExoPlayer
  */
@@ -218,6 +221,16 @@ public class AndroidMediaPlayer extends AbstractPlayer implements MediaPlayer.On
     public long getTcpSpeed() {
         // no support
         return 0;
+    }
+
+    @Override
+    public ITrackInfo[] getTrackInfo() {
+        return AndroidTrackInfo.fromMediaPlayer(mMediaPlayer);
+    }
+
+    @Override
+    public void selectTrack(int trackIndex) {
+        mMediaPlayer.selectTrack(trackIndex);
     }
 
     @Override

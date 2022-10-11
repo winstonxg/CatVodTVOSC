@@ -74,6 +74,8 @@ public class CatFragment extends AbstractHomeFragment {
     private SortAdapter sortAdapter;
     private HomePageAdapter pageAdapter;
     private List<BaseLazyFragment> fragments = new ArrayList<>();
+    private View header;
+    private UserFragment userFragment;
 
     private boolean isRight = false;
     private boolean sortChange = false;
@@ -85,6 +87,7 @@ public class CatFragment extends AbstractHomeFragment {
     private int vodHeaderPos = 0;
 
     public View sortFocusView = null;
+    private View footLoading = null;
 
     @Override
     protected int getLayoutResID() {
@@ -112,30 +115,31 @@ public class CatFragment extends AbstractHomeFragment {
         this.homeCatAdapter = new HomeCatAdapter((BaseActivity) this.mActivity);
         mHomeGridView.setAdapter(this.homeCatAdapter);
         this.homeCatAdapter.bindToRecyclerView(mHomeGridView);
-        View header = getLayoutInflater().inflate(R.layout.item_home_cat_header, null);
+        header = getLayoutInflater().inflate(R.layout.item_home_cat_header, null);
         this.btnExpandHist = header.findViewById(R.id.lblExpandHist);
         this.imgExpandHistIcon = header.findViewById(R.id.imgExpandHistIcon);
         this.tvDate = header.findViewById(R.id.tvDate);
         this.tvName = header.findViewById(R.id.headerName);
-        this.ivQRCode = header.findViewById(R.id.ivQRCode);
-        if(Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
-            refreshQRCode();
-        } else {
-            header.findViewById(R.id.remoteRoot).setVisibility(View.GONE);
-        }
+        //this.ivQRCode = header.findViewById(R.id.ivQRCode);
+//        if(Hawk.get(HawkConfig.REMOTE_CONTROL, true)) {
+//            refreshQRCode();
+//        } else {
+//            header.findViewById(R.id.remoteRoot).setVisibility(View.GONE);
+//        }
         this.homeCatAdapter.addHeaderView(header);
-        UserFragment userFragment = (UserFragment) getChildFragmentManager().findFragmentByTag("mUserFragment");
+        userFragment = (UserFragment) getChildFragmentManager().findFragmentByTag("mUserFragment");
         userFragment.updateShowVod(true);
         userFragment.vodClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mCategoryFrame.setVisibility(View.VISIBLE);
                 mHomeFrame.setVisibility(View.GONE);
+                mCategoryFrame.setVisibility(View.VISIBLE);
                 if(mCategoryGridView.getSelectedPosition() == RecyclerView.NO_POSITION)
                     mCategoryGridView.setSelection(0);
             }
         };
 
+        this.homeCatAdapter.setFooterViewAsFlow(true);
         spanCount = !shouldMoreColumns() ? 5 : 6;
         V7GridLayoutManager gridLayoutManager = new V7GridLayoutManager(this.mContext, spanCount);
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -151,7 +155,6 @@ public class CatFragment extends AbstractHomeFragment {
         mHomeGridView.setLayoutManager(gridLayoutManager);
 
         this.homeCatAdapter.setNewData(catBeans);
-        mHomeGridView.setSelection(0);
 
         this.sortAdapter = new SortAdapter(R.layout.item_home_sort_cat);
         this.initCategorySection();
@@ -271,20 +274,51 @@ public class CatFragment extends AbstractHomeFragment {
         });
     }
 
+    private void deleteHistory(HomeCatBean deletedBean) {
+        for(int i = 0; i < homeCatAdapter.getData().size(); i++) {
+            HomeCatBean bean = homeCatAdapter.getItem(i);
+            if(bean == deletedBean) {
+                homeCatAdapter.remove(i);
+                List<VodInfo> topLimitedVodRecord = RoomDataManger.getAllVodRecord(spanCount + 1);
+                if(!isHistExpanded) {
+                    if(topLimitedVodRecord.size() >= spanCount) {
+                        HomeCatBean historyBean = new HomeCatBean();
+                        historyBean.historyRecord = topLimitedVodRecord.get(spanCount - 1);
+                        homeCatAdapter.addData(spanCount - 1, historyBean);
+                        if(topLimitedVodRecord.size() == spanCount)
+                            updateBtnExpandHist(false);
+                        return;
+                    }
+                }
+                int headerCount = homeCatAdapter.getHeaderLayoutCount();
+                if(vodHeaderPos - 1 - headerCount > 0) {
+                    if (i == vodHeaderPos - 1 - headerCount && i - 1 < homeCatAdapter.getData().size()) {
+                        int targetPos = i - 1 + headerCount;
+                        mHomeGridView.setSelection(targetPos);
+                        mHomeGridView.scrollToPosition(targetPos);
+                    }
+                }
+                if(topLimitedVodRecord.size() < spanCount)
+                    updateBtnExpandHist(false);
+                break;
+            }
+        }
+        vodHeaderPos--;
+    }
+
     private void initHistory(boolean fullRefresh) {
-        List<VodInfo> allVodRecord = RoomDataManger.getAllVodRecord(100);
+        List<VodInfo> allVodRecord = RoomDataManger.getAllVodRecord(isHistExpanded ? 100 : spanCount + 1);
         int headerCount = homeCatAdapter.getHeaderLayoutCount();
         int recordCount = 0;
         if(fullRefresh) {
             for (int i = 0; i < vodHeaderPos - headerCount; i++)
                 homeCatAdapter.remove(0);
             vodHeaderPos = 0;
+        } else {
+            recordCount = vodHeaderPos - headerCount;
         }
-        for (VodInfo vodInfo : allVodRecord) {
-            if(recordCount < vodHeaderPos - 1) {
-                recordCount++;
-                continue;
-            }
+        for (int i = recordCount; i < allVodRecord.size(); i++) {
+            VodInfo vodInfo = allVodRecord.get(i);
             HomeCatBean historyBean = new HomeCatBean();
             historyBean.historyRecord = vodInfo;
             homeCatAdapter.addData(recordCount, historyBean);
@@ -297,50 +331,50 @@ public class CatFragment extends AbstractHomeFragment {
     }
 
     private void initViewPager(AbsSortXml absXml) {
-        initHistory(false);
         HomeCatBean homeTitleBean = new HomeCatBean();
         homeTitleBean.isHead = true;
         homeCatAdapter.addData(homeTitleBean);
 
-        if(ApiConfig.get().getHomeSourceBean().getApi() == null) {
-            showSuccess();
-            return;
-        }
+        if(ApiConfig.get().getHomeSourceBean().getApi() != null) {
+            try {
+                if (absXml.list != null && absXml.list.videoList.size() > 0) {
+                    for (Movie.Video video : absXml.list.videoList) {
+                        HomeCatBean videoBean = new HomeCatBean();
+                        videoBean.homeItem = video;
+                        homeCatAdapter.addData(videoBean);
+                    }
+                }
 
-        try {
-            if (absXml.list != null && absXml.list.videoList.size() > 0) {
-                for (Movie.Video video : absXml.list.videoList) {
-                    HomeCatBean videoBean = new HomeCatBean();
-                    videoBean.homeItem = video;
-                    homeCatAdapter.addData(videoBean);
+                if (sortAdapter.getData().size() > 0) {
+                    for (MovieSort.SortData data : sortAdapter.getData()) {
+                        fragments.add(GridFragment.newInstance(data, SourceViewModel.class));
+                    }
+                    pageAdapter = new HomePageAdapter(((BaseActivity) mActivity).getSupportFragmentManager(), fragments);
+                    try {
+                        Field field = ViewPager.class.getDeclaredField("mScroller");
+                        field.setAccessible(true);
+                        FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator());
+                        field.set(mViewPager, scroller);
+                        scroller.setmDuration(300);
+                        mViewPager.setPageTransformer(true, new DefaultTransformer());
+                        mViewPager.setAdapter(pageAdapter);
+                        mViewPager.setCurrentItem(currentSelected, false);
+                    } catch (Exception e) {
+                    }
+                    mCategoryFrame.setVisibility(View.GONE);
                 }
+            } catch (Exception ex) {
+                LOG.e(ex.getMessage());
             }
-
-            if (sortAdapter.getData().size() > 0) {
-                for (MovieSort.SortData data : sortAdapter.getData()) {
-                    fragments.add(GridFragment.newInstance(data, SourceViewModel.class));
-                }
-                pageAdapter = new HomePageAdapter(((BaseActivity) mActivity).getSupportFragmentManager(), fragments);
-                try {
-                    Field field = ViewPager.class.getDeclaredField("mScroller");
-                    field.setAccessible(true);
-                    FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator());
-                    field.set(mViewPager, scroller);
-                    scroller.setmDuration(300);
-                    mViewPager.setPageTransformer(true, new DefaultTransformer());
-                    mViewPager.setAdapter(pageAdapter);
-                    mViewPager.setCurrentItem(currentSelected, false);
-                } catch (Exception e) {
-                }
-                mCategoryFrame.setVisibility(View.GONE);
-            }
-        }catch (Exception ex) {
-            LOG.e(ex.getMessage());
         }
-        showSuccess();
+        sortAdapter.removeAllFooterView();
+        userFragment.findViewById(R.id.tvVod).requestFocus();
     }
 
+    @Override
     public boolean pressBack() {
+        if(!super.pressBack())
+            return false;
         if(this.homeCatAdapter.getIsDelMode()) {
             this.homeCatAdapter.toggleDelMode(false);
             return false;
@@ -355,6 +389,16 @@ public class CatFragment extends AbstractHomeFragment {
             return false;
         } else
             return exit();
+    }
+
+    @Override
+    public void doAfterApiInit() {
+        initHistory(true);
+        showSuccess();
+        footLoading = getLayoutInflater().inflate(R.layout.item_search_lite, null);
+        footLoading.findViewById(R.id.tvName).setVisibility(View.GONE);
+        footLoading.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+        sortAdapter.addFooterView(footLoading);
     }
 
     private Runnable mDataRunnable = new Runnable() {
@@ -407,18 +451,19 @@ public class CatFragment extends AbstractHomeFragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void server(ServerEvent event) {
-        if (event.type == ServerEvent.SERVER_CONNECTION) {
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
     public void refresh(RefreshEvent event) {
         if (event.type == RefreshEvent.TYPE_HISTORY_REFRESH) {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     initHistory(true);
+                }
+            }, 50);
+        } else if(event.type == RefreshEvent.TYPE_HISTORY_CATDEL) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    deleteHistory((HomeCatBean) event.obj);
                 }
             }, 50);
         }

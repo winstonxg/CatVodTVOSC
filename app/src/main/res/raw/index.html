@@ -259,9 +259,6 @@
 								<a href="javascript:void(0)" role="button"
 									class="weui-btn weui-btn_mini weui-btn_default weui-wa-hotarea"
 									href="javascript:void(0)" onclick="newFolder()">新建文件夹</a>&nbsp;
-								<a id="delCurFolder" href="javascript:void(0)" role="button"
-									class="weui-btn weui-btn_mini weui-btn_warn weui-wa-hotarea"
-									href="javascript:void(0)" onclick="delFolder()" style="display: none;">删除当前文件夹</a>
 							</div>
 						</div>
 						<div class="weui-cells" id="file_list">
@@ -335,10 +332,10 @@
 						</div>
 						<div class="buttons">
 							<i class="btn play-pause fa-solid fa-circle-play fa-2xl"></i>
-							<i class="btn fa-solid fa-backward-step"></i>
-							<i class="btn fa-solid fa-forward-step"></i>
-							<i class="btn fullscreen fa-solid fa-expand"></i>
-							<div class="close-vod"><i class="btn fa-solid fa-xmark"></i></div>
+							<i class="btn fa-solid fa-backward-step fa-2xl"></i>
+							<i class="btn fa-solid fa-forward-step fa-2xl"></i>
+							<i class="btn fullscreen fa-solid fa-expand fa-2xl"></i>
+							<div class="close-vod"><i class="btn fa-solid fa-xmark fa-2xl"></i></div>
 						</div>
 					</div>
 					<div class="vod-state"></div>
@@ -428,8 +425,8 @@
 			<div class="weui-half-screen-dialog__ft" style="padding-bottom: 30px;">
 				<div class="weui-half-screen-dialog__btn-area">
 					<a href="javascript:void(0)" class="weui-btn weui-btn_default" onclick="hideFileInfo()">关闭</a>
-					<a href="javascript:void(0)" id="delFileBtn" class="weui-btn weui-btn_warn"
-						onclick="delFile()">删除文件</a>
+					<a href="javascript:void(0)" id="downloadBtn" class="weui-btn weui-btn_warn"
+						onclick="downloadFile()">下载文件</a>
 				</div>
 			</div>
 		</div>

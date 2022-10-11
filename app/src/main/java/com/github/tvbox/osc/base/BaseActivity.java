@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -76,8 +77,8 @@ public abstract class BaseActivity extends AppCompatActivity implements CustomAd
     @Override
     protected void onResume() {
         super.onResume();
-        updateBackground();
         hideSysBar();
+        updateBackground();
     }
 
     public void hideSysBar() {
@@ -133,6 +134,57 @@ public abstract class BaseActivity extends AppCompatActivity implements CustomAd
     protected void showLoading() {
         if (mLoadService != null) {
             mLoadService.showCallback(LoadingCallback.class);
+        }
+    }
+
+    protected void showLoading(String message) {
+        showLoading(message, null, null);
+    }
+
+    protected void showLoading(String message, Long cancelBtnAvailableAfter, View.OnClickListener cancelBtnClick) {
+        if (mLoadService != null) {
+            mLoadService.showCallback(LoadingCallback.class);
+            TextView lblMsg = mLoadService.getLoadLayout().findViewById(R.id.lblMsg);
+            if(lblMsg == null) {
+                mLoadService.getLoadLayout().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView lblMsg = mLoadService.getLoadLayout().findViewById(R.id.lblMsg);
+                        lblMsg.setText(message);
+                    }
+                });
+            } else {
+                lblMsg.setText(message);
+            }
+            if(cancelBtnClick != null) {
+                mLoadService.getLoadLayout().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView btnCancelLoad = mLoadService.getLoadLayout().findViewById(R.id.btnCancelLoad);
+                        btnCancelLoad.setOnClickListener(cancelBtnClick);
+                        if (cancelBtnAvailableAfter == null) {
+                            btnCancelLoad.setVisibility(View.VISIBLE);
+                            btnCancelLoad.requestFocus();
+                        } else
+                            mLoadService.getLoadLayout().
+                                    postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            btnCancelLoad.setVisibility(View.VISIBLE);
+                                            btnCancelLoad.requestFocus();
+                                        }
+                                    }, cancelBtnAvailableAfter);
+                    }
+                });
+            } else {
+                mLoadService.getLoadLayout().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView btnCancelLoad = mLoadService.getLoadLayout().findViewById(R.id.btnCancelLoad);
+                        btnCancelLoad.setVisibility(View.GONE);
+                    }
+                });
+            }
         }
     }
 
@@ -207,13 +259,17 @@ public abstract class BaseActivity extends AppCompatActivity implements CustomAd
     }
 
     public void updateBackground() {
-        if(Hawk.get(HawkConfig.CUSTOM_WALLPAPER, false)) {
-            File cache = new File(App.getInstance().getCacheDir().getAbsolutePath() + "/temp_wallpaper.jpg");
-            if(cache.exists()) {
-                Drawable drawable = Drawable.createFromPath(cache.getAbsolutePath());
-                getWindow().setBackgroundDrawable(drawable);
-                return;
+        try {
+            if (Hawk.get(HawkConfig.CUSTOM_WALLPAPER, false)) {
+                File cache = new File(App.getInstance().getCacheDir().getAbsolutePath() + "/temp_wallpaper.jpg");
+                if (cache.exists()) {
+                    Drawable drawable = Drawable.createFromPath(cache.getAbsolutePath());
+                    getWindow().setBackgroundDrawable(drawable);
+                    return;
+                }
             }
+        }catch (Exception ex) {
+            ex.printStackTrace();
         }
         getWindow().setBackgroundDrawableResource(R.drawable.app_bg);
     }

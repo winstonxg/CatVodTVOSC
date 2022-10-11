@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.github.tvbox.osc">
+    package="com.github.tvbox.osc"
+    tools:ignore="CoarseFineLocation">
 
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
     <uses-feature
         android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.location.gps"
         android:required="false" />
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -38,6 +42,7 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name="com.github.tvbox.osc.ui.activity.HomeActivity"
+            android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,13 +53,21 @@
         </activity>
         <activity
             android:name="com.github.tvbox.osc.ui.activity.LivePlayActivity"
+            android:supportsPictureInPicture="true"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape" />
         <activity
             android:name="com.github.tvbox.osc.ui.activity.DetailActivity"
+            android:taskAffinity="com.github.tvbox.osc.ui.activity.DetailActivity"
+            android:parentActivityName="com.github.tvbox.osc.ui.activity.HomeActivity"
+            android:launchMode="singleTask"
             android:supportsPictureInPicture="true"
             android:configChanges=
                 "screenSize|smallestScreenSize|screenLayout|orientation"
+            android:resizeableActivity="true"
+            android:autoRemoveFromRecents="true"
+            android:excludeFromRecents="true"
+            android:allowTaskReparenting="true"
             android:screenOrientation="landscape" />
         <activity
             android:name="com.github.tvbox.osc.ui.activity.PlayActivity"
@@ -82,12 +95,14 @@
             android:name="com.github.tvbox.osc.ui.activity.DriveActivity"
             android:screenOrientation="landscape" />
 
-        <receiver android:name="com.github.tvbox.osc.receiver.SearchReceiver">
+        <receiver android:name="com.github.tvbox.osc.receiver.SearchReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.content.movie.search.Action" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.github.tvbox.osc.receiver.CustomWebReceiver">
+        <receiver android:name="com.github.tvbox.osc.receiver.CustomWebReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.content.movie.custom.web.Action" />
             </intent-filter>

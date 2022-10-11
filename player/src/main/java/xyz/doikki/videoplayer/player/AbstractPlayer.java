@@ -6,6 +6,8 @@ import android.view.SurfaceHolder;
 
 import java.util.Map;
 
+import tv.danmaku.ijk.media.player.misc.ITrackInfo;
+
 /**
  * 抽象的播放器，继承此接口扩展自己的播放器
  * Created by Doikki on 2017/12/21.
@@ -149,6 +151,10 @@ public abstract class AbstractPlayer {
      * 获取当前缓冲的网速
      */
     public abstract long getTcpSpeed();
+
+    public abstract ITrackInfo[] getTrackInfo();
+
+    public abstract void selectTrack(int trackIndex);
 
     /**
      * 绑定VideoView

@@ -212,6 +212,16 @@ public class IjkPlayer extends AbstractPlayer implements IMediaPlayer.OnErrorLis
     }
 
     @Override
+    public ITrackInfo[] getTrackInfo() {
+        return mMediaPlayer.getTrackInfo();
+    }
+
+    @Override
+    public void selectTrack(int trackIndex) {
+        mMediaPlayer.selectTrack(trackIndex);
+    }
+
+    @Override
     public boolean onError(IMediaPlayer mp, int what, int extra) {
         mPlayerEventListener.onError();
         return true;

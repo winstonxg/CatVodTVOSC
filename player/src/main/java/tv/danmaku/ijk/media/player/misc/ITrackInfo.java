@@ -25,6 +25,8 @@ public interface ITrackInfo {
     int MEDIA_TRACK_TYPE_UNKNOWN = 0;
     int MEDIA_TRACK_TYPE_VIDEO = 1;
 
+    int getTrackIndex();
+
     IMediaFormat getFormat();
 
     String getLanguage();
@@ -32,4 +34,6 @@ public interface ITrackInfo {
     int getTrackType();
 
     String getInfoInline();
+
+    boolean isSelected();
 }
