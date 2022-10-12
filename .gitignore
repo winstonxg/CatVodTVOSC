@@ -2,6 +2,7 @@
 *.apk
 *.aar
 !/app/libs/*.aar
+!/player/libs/*.aar
 *.ap_
 *.aab
 

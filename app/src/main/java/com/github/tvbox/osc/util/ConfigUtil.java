@@ -46,8 +46,11 @@ public class ConfigUtil {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public static String decodeConfig(String secretKey, String data) {
         try {
-            if (data.startsWith("{"))
+            JSONObject jObj = null;
+            try {
+                jObj = new JSONObject(data);
                 return data;
+            }catch (Exception ex) {}
             String decodedStr = data;
 
             int startedPoint = data.indexOf("**");
@@ -55,8 +58,10 @@ public class ConfigUtil {
                 decodedStr = new String(Base64.decode(data.substring(startedPoint + 2), 0));
             }
 
-            if (decodedStr.startsWith("{"))
+            try {
+                jObj = new JSONObject(decodedStr);
                 return decodedStr;
+            }catch (Exception ex) {}
 
             if (secretKey.isEmpty()) {
                 if (decodedStr.startsWith("2423")) {

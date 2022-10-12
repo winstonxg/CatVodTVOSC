@@ -102,7 +102,7 @@ public class ApiConfig {
             }
         }
         String apiFix = apiUrl;
-        String mySecretKey = null;
+        String mySecretKey = "";
         if (apiUrl.startsWith("clan://")) {
             apiFix = clanToAddress(apiUrl);
         } else {
